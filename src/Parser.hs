@@ -4,14 +4,8 @@ import Datatype
 import Text.Parsec
 import Text.Parsec.String
 
-whiteSpaceCharacters :: [Char]
-whiteSpaceCharacters = " \n\r "
-
-whiteSpacesOptionalParser :: Parser String
-whiteSpacesOptionalParser = many (oneOf whiteSpaceCharacters)
-
-whiteSpacesSomeParser :: Parser String
-whiteSpacesSomeParser = many1 (oneOf whiteSpaceCharacters)
+whiteSpacesSomeParser :: Parser ()
+whiteSpacesSomeParser = skipMany1 space
 
 unitParser :: Parser AExp
 unitParser = do
