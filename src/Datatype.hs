@@ -11,6 +11,7 @@ data AExp
   | AExpApplication AExp AExp
   | AExpProduct AExp AExp
   | AExpFst AExp
+  | AExpSnd AExp
   | AExpInl AExp AType
   | AExpInr AExp AType
   | AExpMatch AExp String AExp String AExp
