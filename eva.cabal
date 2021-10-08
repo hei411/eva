@@ -25,7 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Datatype
+      Parser
   other-modules:
       Paths_eva
   hs-source-dirs:
