@@ -29,6 +29,7 @@ data AExp
   | AExpOut AExp
   | AExpInto AExp AType
   deriving (Show, Eq)
+
 data AType
   = ATypeVar String
   | ATypeUnit
