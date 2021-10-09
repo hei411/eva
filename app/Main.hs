@@ -4,7 +4,7 @@ import Datatype
 import Parser
 import System.Environment (getArgs)
 
-main :: IO ()
+main :: IO ( )
 main = do
   (file_name : _) <- getArgs
   file_content <- readFile file_name

@@ -340,7 +340,9 @@ expVarParser = do
 
 unitParser :: Parser AExp
 unitParser = do
-  string "()"
+  char '('
+  spaces
+  char ')'
   return AExpUnit
 
 oneExpParser :: Parser AExp
