@@ -10,3 +10,4 @@ let urectry = urec k with
 let test = into k: a +b -> e-> g;
 let bindingtest = into k : a+ Fix x -> x +b;
 let k = fun k:(Nat->Unit) + Nat * Nat => fix x:[]>Nat => 0; 
+let t = fun x : Nat Until Nat => 0;

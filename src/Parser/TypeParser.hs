@@ -46,18 +46,20 @@ type1Parser =
   try
     ( do
         t1 <- type2'Parser
-        skipMany1 space
+        spaces
         string "Until"
-        skipMany1 space
+        notFollowedBy alphaNum
+        spaces
         t2 <- type1Parser
         return (ATypeUntil t1 t2)
     )
     <|> try
       ( do
           t1 <- type2'Parser
-          skipMany1 space
+          spaces
           string "Until"
-          skipMany1 space
+          notFollowedBy alphaNum
+          spaces
           t2 <- fixTypeParser
           return (ATypeUntil t1 t2)
       )
@@ -110,8 +112,6 @@ type2'Parser =
         )
     return (foldType2' (h : t))
 
-
-
 foldType2' :: [AType] -> AType
 foldType2' l = case l of
   [] -> error "Should not happen!"
@@ -151,7 +151,6 @@ type3'Parser = do
         )
       )
   return (foldType3' (h : t))
-
 
 foldType3' :: [AType] -> AType
 foldType3' l = case l of
