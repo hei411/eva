@@ -110,18 +110,7 @@ type2'Parser =
         )
     return (foldType2' (h : t))
 
---do
---  l <-
---    sepBy1
---      (type3'Parser)
---     ( try
---( do
---             spaces
---         char '+'
---         spaces
---     )
---   )
---  return (foldType2' l)
+
 
 foldType2' :: [AType] -> AType
 foldType2' l = case l of
@@ -163,18 +152,6 @@ type3'Parser = do
       )
   return (foldType3' (h : t))
 
--- do
---  l <-
---  sepBy1
---    (type4'Parser)
---    ( try
---       ( do
---           spaces
---         char '*'
---       spaces
--- )
---      )
--- return (foldType3' l)
 
 foldType3' :: [AType] -> AType
 foldType3' l = case l of
