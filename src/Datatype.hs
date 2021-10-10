@@ -43,4 +43,5 @@ data AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
+  | ATypeApplication AType AType
   deriving (Show, Eq)

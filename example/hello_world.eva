@@ -1,1 +1,6 @@
-let main = 0;
+let zero = 0;
+let function = fun k:Nat => suc suc 0;
+let intofun = into 0 : Nat-> Nat;
+let inlfun = inl ( 0) : Unit;
+let application = a b c;
+let q = fix x: Fix a -> Nat ->Nat => inl ( 0) : Unit;
