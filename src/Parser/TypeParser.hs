@@ -74,7 +74,8 @@ type1'Parser =
         t1 <- type2'Parser
         skipMany1 space
         string "Until"
-        skipMany1 space
+        notFollowedBy alphaNum
+        spaces
         t2 <- type1'Parser
         return (ATypeUntil t1 t2)
     )

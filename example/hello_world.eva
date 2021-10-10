@@ -7,7 +7,8 @@ let q = fix x: Fix a -> Nat ->Nat => inl ( 0) : Unit;
 let urectry = urec k with 
 | now i => tre
 | wait o b fby oi => fix x:Unit => ok;
-let test = into k: a +b -> e-> g;
-let bindingtest = into k : a+ Fix x -> x +b;
+let test = into k: Unit +Unit -> Unit-> Unit;
+let bindingtest = into k : Nat+ Fix x -> x +Unit;
 let k = fun k:(Nat->Unit) + Nat * Nat => fix x:[]>Nat => 0; 
-let t = fun x : Nat Until Nat => 0;
+let t = fun x : Nat Until>Nat => 0;
+let delayconsecutive = advt>@>0(0);

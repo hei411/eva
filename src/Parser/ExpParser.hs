@@ -12,7 +12,7 @@ expParser =
     <|> try
       ( do
           first <- appExpParser
-          skipMany1 space
+          spaces
           second <- bindExpParser
           return (AExpApplication first second)
       )
@@ -62,7 +62,7 @@ appExpParser = do
     many
       ( try
           ( do
-              skipMany1 space
+              spaces
               oneExpParser
           )
       )
@@ -108,21 +108,24 @@ productParser = do
 fstParser :: Parser AExp
 fstParser = do
   string "fst"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpFst exp)
 
 sndParser :: Parser AExp
 sndParser = do
   string "snd"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpSnd exp)
 
 inlParser :: Parser AExp
 inlParser = do
   string "inl"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
   spaces
   char ':'
@@ -133,7 +136,8 @@ inlParser = do
 inrParser :: Parser AExp
 inrParser = do
   string "inr"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
   spaces
   char ':'
@@ -178,7 +182,8 @@ zeroParser = do
 sucParser :: Parser AExp
 sucParser = do
   string "suc"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpSuc exp)
 
@@ -230,14 +235,16 @@ atParser = do
 advParser :: Parser AExp
 advParser = do
   string "adv"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpAdv exp)
 
 unboxParser :: Parser AExp
 unboxParser = do
   string "unbox"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpUnbox exp)
 
@@ -251,7 +258,8 @@ boxParser = do
 nowParser :: Parser AExp
 nowParser = do
   string "now"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
   spaces
   char ':'
@@ -262,7 +270,8 @@ nowParser = do
 waitParser :: Parser AExp
 waitParser = do
   string "wait"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp1 <- oneExpParser
   skipMany1 space
   exp2 <- firstExpParser
@@ -306,14 +315,16 @@ urecParser = do
 outParser :: Parser AExp
 outParser = do
   string "out"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   return (AExpOut exp)
 
 intoParser :: Parser AExp
 intoParser = do
   string "into"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- firstExpParser
   spaces
   char ':'
