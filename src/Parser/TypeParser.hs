@@ -61,7 +61,8 @@ type1Parser =
           t2 <- fixTypeParser
           return (ATypeUntil t1 t2)
       )
-    <|> type2Parser
+    <|> try type2Parser
+    <|> type1'Parser
     <|> fail "Can't parse type1"
 
 type1'Parser :: Parser AType
@@ -86,35 +87,41 @@ type2Parser =
         spaces
         char '+'
         spaces
-        t2 <- type3Parser
+        t2 <- fixTypeParser
         return (ATypeSum t1 t2)
     )
-    <|> try
-      ( do
-          t1 <- type2'Parser
-          spaces
-          char '+'
-          spaces
-          t2 <- fixTypeParser
-          return (ATypeSum t1 t2)
-      )
     <|> type3Parser
     <|> fail "Can't parse type2"
 
 type2'Parser :: Parser AType
 type2'Parser =
   do
-    l <-
-      sepBy1
-        (type3'Parser)
-        ( try
-            ( do
-                spaces
-                char '+'
-                spaces
-            )
+    h <- type3'Parser
+    t <-
+      ( many
+          ( try
+              ( do
+                  spaces
+                  char '+'
+                  spaces
+                  type3'Parser
+              )
+          )
         )
-    return (foldType2' l)
+    return (foldType2' (h : t))
+
+--do
+--  l <-
+--    sepBy1
+--      (type3'Parser)
+--     ( try
+--( do
+--             spaces
+--         char '+'
+--         spaces
+--     )
+--   )
+--  return (foldType2' l)
 
 foldType2' :: [AType] -> AType
 foldType2' l = case l of
@@ -134,35 +141,40 @@ type3Parser =
         spaces
         char '*'
         spaces
-        t2 <- type4Parser
+        t2 <- fixTypeParser
         return (ATypeProduct t1 t2)
     )
-    <|> try
-      ( do
-          t1 <- type3'Parser
-          spaces
-          char '+'
-          spaces
-          t2 <- fixTypeParser
-          return (ATypeProduct t1 t2)
-      )
     <|> type4Parser
     <|> fail "Can't parse type3"
 
 type3'Parser :: Parser AType
-type3'Parser =
-  do
-    l <-
-      sepBy1
-        (type4'Parser)
+type3'Parser = do
+  h <- type4'Parser
+  t <-
+    ( many
         ( try
             ( do
                 spaces
                 char '*'
                 spaces
+                type4'Parser
             )
         )
-    return (foldType3' l)
+      )
+  return (foldType3' (h : t))
+
+-- do
+--  l <-
+--  sepBy1
+--    (type4'Parser)
+--    ( try
+--       ( do
+--           spaces
+--         char '*'
+--       spaces
+-- )
+--      )
+-- return (foldType3' l)
 
 foldType3' :: [AType] -> AType
 foldType3' l = case l of
@@ -220,43 +232,23 @@ type5Parser :: Parser AType
 type5Parser =
   try
     ( do
-        string "Unit"
-        return ATypeUnit
+        char '@'
+        spaces
+        t <- fixTypeParser
+        return (ATypeAt t)
     )
-    <|> try
-      ( do
-          char '('
-          spaces
-          t <- typeParser
-          spaces
-          char ')'
-          return t
-      )
-    <|> try
-      ( do
-          char '@'
-          spaces
-          t <- firstTypeParser
-          return (ATypeAt t)
-      )
     <|> try
       ( do
           char '>'
           spaces
-          t <- firstTypeParser
+          t <- fixTypeParser
           return (ATypeArrow t)
       )
-    <|> try
-      ( do
-          string "[]"
-          spaces
-          t <- firstTypeParser
-          return (ATypeBox t)
-      )
-    <|> try typeVarParser
     <|> ( do
-            string "Nat"
-            return ATypeNat
+            string "[]"
+            spaces
+            t <- fixTypeParser
+            return (ATypeBox t)
         )
     <|> fail "Can't parse Type5"
 

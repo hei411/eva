@@ -4,3 +4,8 @@ let intofun = into 0 : Nat-> Nat;
 let inlfun = inl ( 0) : Unit;
 let application = a b c;
 let q = fix x: Fix a -> Nat ->Nat => inl ( 0) : Unit;
+let urectry = urec k with 
+| now i => tre
+| wait o b fby oi => fix x:Unit => ok;
+let test = into k: a +b -> e-> g;
+let bindingtest = into k : a+ Fix x -> x +b;
