@@ -1,7 +1,5 @@
 module Main where
 
-import Datatype
-import Parser.ExpParser (foldApplication)
 import Parser.MainParser
 import System.Environment (getArgs)
 
