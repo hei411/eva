@@ -45,3 +45,13 @@ data AType
   | ATypeUntil AType AType
   | ATypeApplication AType AType
   deriving (Show, Eq)
+
+type ContextElem = (String, AType)
+
+type ContextElemList = [ContextElem]
+
+data Context
+  = TokenlessContext ContextElemList
+  | StableContext ContextElemList ContextElemList
+  | ArrowContext ContextElemList ContextElemList ContextElemList
+  | AtContext ContextElemList ContextElemList ContextElemList

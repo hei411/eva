@@ -30,6 +30,8 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      TypeChecker.LimitChecker
+      TypeChecker.StableChecker
   other-modules:
       Paths_eva
   hs-source-dirs:
