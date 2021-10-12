@@ -5,6 +5,7 @@ import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
 import Text.Parsec.String
+import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 
 expParser :: Parser AExp
 expParser =
@@ -177,6 +178,7 @@ matchParser = do
 zeroParser :: Parser AExp
 zeroParser = do
   char '0'
+  notFollowedBy letter
   return AExpZero
 
 sucParser :: Parser AExp

@@ -11,4 +11,4 @@ let test = into k: Unit +Unit -> Unit-> Unit;
 let bindingtest = into k : Nat+ Fix x -> x +Unit;
 let k = fun k:(Nat->Unit) + Nat * Nat => fix x:[]>Nat => 0; 
 let t = fun x : Nat Until>Nat => 0;
-let delayconsecutive = advt>@>0(0);
+let delayconsecutive = advt>@>0(0) 0 suc 0;

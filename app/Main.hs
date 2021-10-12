@@ -11,4 +11,6 @@ main = do
   let parse_tree = mainParser file_content
   case parse_tree of
     Left parseError -> fail (show (parseError))
-    Right program -> isValidProgramMain program
+    Right program -> do
+      putStrLn (show (program))
+      isValidProgramMain program
