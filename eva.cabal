@@ -30,7 +30,9 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      TypeChecker.ContextFunctions
       TypeChecker.LimitChecker
+      TypeChecker.MainTypeChecker
       TypeChecker.StableChecker
       TypeChecker.TypeFunctions
       TypeChecker.ValidChecker

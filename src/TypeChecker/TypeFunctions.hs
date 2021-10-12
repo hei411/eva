@@ -39,3 +39,10 @@ substituteType t1 s t2 = case t1 of
   ATypeFix str at -> if str == s then ATypeFix str at else ATypeFix str (substituteType at s t2)
   ATypeUntil at at' -> ATypeUntil (substituteType at s t2) (substituteType at' s t2)
   ATypeApplication at at' -> ATypeApplication (substituteType at s t2) (substituteType at' s t2)
+
+fixUnfold :: AType -> Maybe AType
+fixUnfold t =
+  case t of
+    ATypeFix a a' ->
+      return (substituteType a' a (ATypeArrow a'))
+    _ -> Nothing
