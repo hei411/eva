@@ -1,14 +1,19 @@
 let zero = 0;
 let function = fun k:Nat => suc suc 0;
-let intofun = into 0 : Nat-> Nat;
-let inlfun = inl ( 0) : Unit;
-let application = a b c;
-let q = fix x: Fix a -> Nat ->Nat => inl ( 0) : Unit;
-let urectry = urec k with 
-| now i => tre
-| wait o b fby oi => fix x:Unit => ok;
-let test = into k: Unit +Unit -> Unit-> Unit;
-let bindingtest = into k : Nat+ Fix x -> x +Unit;
-let k = fun k:(Nat->Unit) + Nat * Nat => fix x:[]>Nat => 0; 
-let t = fun x : Nat Until>Nat => 0;
-let delayconsecutive = advt>@>0(0) 0 suc 0;
+let intofun = into 0 : Fix a -> Nat;
+let inlfun = inl ( 0) : Nat + Unit;
+//This is a comment
+let q = fix e: [] Fix a -> Nat + a => into (inr (unbox e): (Nat + >Fix a -> Nat + a )) :  Fix a -> Nat + a;
+
+let primrectry = fun x :Nat => primrec x with 
+    |0 => 0
+    |suc k fby t => t;
+
+let urectry =  [] fun x: Nat Until Nat => urec x with 
+    |now x => suc 0
+    |wait x y fby z => 0;
+
+let embed = [] fun x: @Nat => >(adv x);
+/*Comment block
+heya
+*/

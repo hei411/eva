@@ -90,7 +90,7 @@ type2Parser =
         spaces
         char '+'
         spaces
-        t2 <- fixTypeParser
+        t2 <- type3Parser
         return (ATypeSum t1 t2)
     )
     <|> type3Parser
@@ -131,7 +131,7 @@ type3Parser =
         spaces
         char '*'
         spaces
-        t2 <- fixTypeParser
+        t2 <- type4Parser
         return (ATypeProduct t1 t2)
     )
     <|> type4Parser
@@ -211,22 +211,24 @@ type5Parser =
     ( do
         char '@'
         spaces
-        t <- fixTypeParser
+        t <- type5Parser
         return (ATypeAt t)
     )
     <|> try
       ( do
           char '>'
           spaces
-          t <- fixTypeParser
+          t <- type5Parser
           return (ATypeArrow t)
       )
-    <|> ( do
-            string "[]"
-            spaces
-            t <- fixTypeParser
-            return (ATypeBox t)
-        )
+    <|> try
+      ( do
+          string "[]"
+          spaces
+          t <- type5Parser
+          return (ATypeBox t)
+      )
+    <|> fixTypeParser
     <|> fail "Can't parse Type5"
 
 type5'Parser :: Parser AType

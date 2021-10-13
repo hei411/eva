@@ -8,7 +8,7 @@ isValidProgramMain program =
       let allValidTypes = isValidProgram program
       case allValidTypes of
         Right (s, t) -> fail (s ++ " has invalid type ascription: " ++ show (t) ++ "!")
-        Left _ -> putStrLn ("All type ascriptions are correct.")
+        Left _ -> return ()
   )
 
 isValidProgram :: Program -> Either () (String, AType)

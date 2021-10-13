@@ -2,6 +2,8 @@ module Datatype where
 
 type Program = [Statement]
 
+type TypeCheckedProgram = [(String, AExp, AType)]
+
 data Statement = LetStatement String AExp deriving (Show)
 
 data AExp

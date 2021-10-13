@@ -44,5 +44,5 @@ fixUnfold :: AType -> Maybe AType
 fixUnfold t =
   case t of
     ATypeFix a a' ->
-      return (substituteType a' a (ATypeArrow a'))
+      return (substituteType a' a (ATypeArrow t))
     _ -> Nothing
