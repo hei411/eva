@@ -31,6 +31,8 @@ data AExp
   | AExpFix String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
+  | --Special exp for interpreter
+    AExpLocation Integer
   deriving (Show, Eq)
 
 data AType
@@ -57,3 +59,12 @@ data Context
   | StableContext ContextElemList ContextElemList
   | ArrowContext ContextElemList ContextElemList ContextElemList
   | AtContext ContextElemList ContextElemList ContextElemList
+
+type StoreElem = (Integer, AExp)
+
+type StoreElemList = [StoreElem]
+
+data Store
+  = NullStore
+  | TicklessStore StoreElemList
+  | TickStore StoreElemList StoreElemList

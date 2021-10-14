@@ -26,6 +26,8 @@ source-repository head
 library
   exposed-modules:
       Datatype
+      Interpreter.StoreFunctions
+      Interpreter.ValueChecker
       Parser.ExpParser
       Parser.MainParser
       Parser.TypeParser

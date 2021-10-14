@@ -48,6 +48,7 @@ declarationTypeChecker context exp = case exp of
   AExpFix s at ae -> aExpFixRule context s at ae
   AExpOut ae -> aExpOutRule context ae
   AExpInto ae at -> aExpIntoRule context ae at
+  _ -> Nothing
 
 aExpVarRule :: Context -> String -> Maybe AType
 aExpVarRule context s = case context of
