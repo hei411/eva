@@ -15,6 +15,7 @@
 
 ## Modules
 ### Import support - TODO
+compiled files, files waiting to be compiled,  imported functions, functions to be exported, functions to be compiled
 
 ## Enrich Type System
 ### Better Type Equality Checker - TODO

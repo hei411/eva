@@ -2,23 +2,6 @@ module TypeChecker.ValidChecker where
 
 import Datatype
 
-isValidProgramMain :: Program -> IO ()
-isValidProgramMain program =
-  ( do
-      let allValidTypes = isValidProgram program
-      case allValidTypes of
-        Right (s, t) -> fail (s ++ " has invalid type ascription: " ++ show (t) ++ "!")
-        Left _ -> return ()
-  )
-
-isValidProgram :: Program -> Either () (String, AType)
-isValidProgram l = case l of
-  [] -> Left ()
-  hd : tl -> case hd of
-    LetStatement s exp -> case isValidExp exp of
-      Left _ -> isValidProgram tl
-      Right t -> Right (s, t)
-
 isValidExp :: AExp -> Either () AType
 isValidExp e = case e of
   AExpLambda s t exp -> if not (isValidType t) then Right t else isValidExp exp

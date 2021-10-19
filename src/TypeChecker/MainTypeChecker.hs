@@ -6,21 +6,15 @@ import TypeChecker.LimitChecker
 import TypeChecker.StableChecker
 import TypeChecker.TypeFunctions
 
-mainTypeChecker :: Program -> IO TypeCheckedProgram
-mainTypeChecker l = case l of
-  [] -> return []
-  hd : tl -> case hd of
-    LetStatement var exp ->
-      do
-        let t = declarationTypeChecker (TokenlessContext []) exp
-        case t of
-          Nothing -> fail (var ++ " cannot be type-checked correctly.")
-          Just checkedType ->
-            do
-              rest <- mainTypeChecker tl
-              return ((var, exp, checkedType) : rest)
-    -- For future alternative statements
-    _ -> mainTypeChecker tl
+mainTypeChecker :: TypeCheckedProgram -> AExp -> Maybe AType
+mainTypeChecker typedFunctions exp =
+  declarationTypeChecker (TokenlessContext (removeExp typedFunctions)) exp
+  where
+    removeExp :: TypeCheckedProgram -> ContextElemList
+    removeExp l =
+      case l of
+        [] -> []
+        (var, _, t) : tl -> (var, t) : removeExp tl
 
 declarationTypeChecker :: Context -> AExp -> Maybe AType
 declarationTypeChecker context exp = case exp of
