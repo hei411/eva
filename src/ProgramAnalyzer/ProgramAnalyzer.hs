@@ -23,7 +23,7 @@ mainProgramAnalyzerHelper compiledFiles toCompileFiles importedFunctions toExpor
               do
                 let t = mainTypeChecker (importedFunctions ++ toExportFunctions) exp
                 case t of
-                  Nothing -> fail (var ++ " cannot be type-checked correctly.")
+                  Nothing -> fail (var ++ " cannot be type-checked.\n" ++ show (exp))
                   Just checkedType ->
                     mainProgramAnalyzerHelper compiledFiles toCompileFiles importedFunctions ((var, exp, checkedType) : toExportFunctions) tl
       -- For future alternative statements

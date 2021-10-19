@@ -1,4 +1,5 @@
 let zero = 0;
+let zero2= zero;
 let function = fun k:Nat => suc suc 0;
 let intofun = into 0 : Fix a -> Nat ;
 let inlfun = inl ( 0) : Nat + Unit;
