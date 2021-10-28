@@ -9,7 +9,10 @@ import Text.Parsec.Combinator (eof)
 import Text.Parsec.String
 
 statementParser :: Parser Statement
-statementParser = letStatementParser
+statementParser =
+  try letStatementParser
+    <|> try typeStatementParser
+    <|> importStatementParser
 
 letStatementParser :: Parser Statement
 letStatementParser = do
@@ -25,6 +28,28 @@ letStatementParser = do
   char ';'
   spaces
   return (LetStatement var exp)
+
+typeStatementParser :: Parser Statement
+typeStatementParser = do
+  spaces
+  string "type"
+  skipMany1 space
+  -- some code
+  spaces
+  char ';'
+  spaces
+  error "type statements not supported yet"
+
+importStatementParser :: Parser Statement
+importStatementParser = do
+  spaces
+  string "import"
+  skipMany1 space
+  -- some code
+  spaces
+  char ';'
+  spaces
+  error "import statements not supported yet"
 
 programParser :: Parser Program
 programParser = do
