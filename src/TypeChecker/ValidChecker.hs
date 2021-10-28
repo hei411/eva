@@ -2,8 +2,8 @@ module TypeChecker.ValidChecker where
 
 import Datatype
 
-isValidExp :: AExp -> Either () AType
-isValidExp e = case e of
+isValidExp :: TypenameList -> AExp -> Maybe BExp
+isValidExp typenameList e = case e of
   AExpLambda s t exp -> if not (isValidType t) then Right t else isValidExp exp
   AExpApplication exp1 exp2 -> case isValidExp exp1 of
     Left _ -> isValidExp exp2
@@ -45,7 +45,7 @@ isValidExp e = case e of
   AExpInto exp t -> if not (isValidType t) then Right t else isValidExp exp
   _ -> Left ()
 
-isValidType :: AType -> Bool
+isValidType :: BType -> Bool
 isValidType t = isValidHelper t []
   where
     isValidHelper t l = case t of
