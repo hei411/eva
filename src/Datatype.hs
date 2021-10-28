@@ -2,7 +2,8 @@ module Datatype where
 
 type Program = [Statement]
 
-type TypeCheckedProgram = [(String, AExp, AType)]
+type TypeCheckedProgram = [(String, CExp, BType)]
+type TypenameList = [(String, BType)]
 
 data Statement
   = LetStatement String AExp
@@ -55,9 +56,11 @@ data AType
   | ATypeFix String AType
   | ATypeUntil AType AType
   | ATypeApplication AType AType
+  | ATypeLambda String AType
   deriving (Show, Eq)
 
--- Substitute all typenames, convert variables in DB indices and remove all applications
+-- Substitute all typenames, convert variables in DB indices 
+-- (Can have applications and lambda, e.g. typenames, therefore need function to check validity of ascriptions)
 data BType
   = 
   BTypeIndex Integer 
@@ -71,6 +74,8 @@ data BType
   | BTypeAt BType
   | BTypeFix  BType
   | BTypeUntil BType BType
+  | BTypeApplication BType BType
+  | BTypeLambda BType
   deriving (Show, Eq)
 
 -- BExp are AExp except all type ascriptions are valid

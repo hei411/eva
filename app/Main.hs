@@ -9,15 +9,21 @@ import TypeChecker.ValidChecker
 
 main :: IO ()
 main = do
+  -- Get file name from arguments
   (file_name : _) <- getArgs
+  -- Read from file
   file_content <- readFile file_name
-  let parse_tree = mainParser (commentRemover file_content)
+  -- Remove comments
+  let clean_file_content = commentRemover file_content
+  -- Create parse tree
+  let parse_tree = mainParser clean_file_content
   case parse_tree of
+    -- Error in parsing
     Left parseError -> putStrLn (show (parseError))
     Right program -> do
-      --putStrLn (show (program))
+      -- Parsing succeeded
       putStrLn ("Program is parsed correctly")
-      typeCheckedProgram <- mainProgramAnalyzer program
+      (compiledFiles, toCompileFiles, typeCheckedProgram, typenameList) <- mainProgramAnalyzer file_name program
       putStrLn ("Program is type-checked correctly.")
 
 --putStrLn (show (typeCheckedProgram))
