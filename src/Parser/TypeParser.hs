@@ -10,6 +10,11 @@ typeVarParser = do
   str <- varParser
   return (ATypeVar str)
 
+typeNameParser :: Parser AType
+typeNameParser = do
+  str <- upperVarParser
+  return (ATypeName str)
+
 typeParser :: Parser AType
 typeParser = do
   try fixTypeParser
@@ -269,6 +274,7 @@ type5'Parser =
           return (ATypeBox t)
       )
     <|> try typeVarParser
+    <|> try typeNameParser
     <|> ( do
             string "Nat"
             return ATypeNat
