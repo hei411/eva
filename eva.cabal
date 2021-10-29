@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      AscriptionSimplifier.AscriptionSimplifier
       Datatype
       ExpTypeConverters.ABExpConverter
       ExpTypeConverters.ABTypeConverter
@@ -44,6 +45,7 @@ library
       TypeChecker.StableChecker
       TypeChecker.TypeFunctions
       TypeChecker.ValidChecker
+      TypeFunctions.TypeSubstitute
   other-modules:
       Paths_eva
   hs-source-dirs:

@@ -1,5 +1,6 @@
 module ProgramAnalyzer.ProgramAnalyzer where
 
+import AscriptionSimplifier.AscriptionSimplifier
 import Datatype
 import ExpTypeConverters.ABExpConverter
 
@@ -27,8 +28,8 @@ mainProgramAnalyzerHelper currentFile compiledFilesData toCompileFiles importedF
         do
           --Step 1: Convert AExp to BExp, i.e. type ascriptions are converted to BTypes
           let bExp = abExpConverter (importedTypenames ++ toExportTypenames) aexp
-
           --Step 2: beta reduce BTypes ascriptions
+          let bExpSimplified = simplifyBExp bExp
           --Step 3: Type check BExp while producing CExp
           --Step 4: Interpret CExp
           --Ignore below
