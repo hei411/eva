@@ -55,4 +55,6 @@ upperVarParser =
       case str of
         "Fix" -> fail "Fix cannot be type variable name."
         "Until" -> fail "Until cannot be type variable name."
+        "Nat" -> fail "Nat cannot be type variable name."
+        "Unit" -> fail "Unit cannot be type variable name."
         _ -> return (start : rest)

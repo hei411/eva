@@ -3,7 +3,9 @@ module Datatype where
 type Program = [Statement]
 
 type TypeCheckedProgram = [(String, CExp, BType)]
+
 type TypenameList = [(String, BType)]
+
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
@@ -39,9 +41,6 @@ data AExp
   | AExpOut AExp
   | AExpInto AExp AType
   deriving (Show, Eq)
-   --Removed to be added in CExp
-  -- |  AExpLocation Integer
-  
 
 data AType
   = ATypeVar String
@@ -60,11 +59,10 @@ data AType
   | ATypeLambda String AType
   deriving (Show, Eq)
 
--- Substitute all typenames, convert variables in DB indices 
+-- Substitute all typenames, convert variables in DB indices
 -- (Can have applications and lambda, e.g. typenames, therefore need function to check validity of ascriptions)
 data BType
-  = 
-  BTypeIndex Integer 
+  = BTypeIndex Integer
   | BTypeUnit
   | BTypeNat
   | BTypeProduct BType BType
@@ -73,7 +71,7 @@ data BType
   | BTypeBox BType
   | BTypeArrow BType
   | BTypeAt BType
-  | BTypeFix  BType
+  | BTypeFix BType
   | BTypeUntil BType BType
   | BTypeApplication BType BType
   | BTypeLambda BType
@@ -109,16 +107,16 @@ data BExp
 
 -- CExp are for interpretation, i,e, no type ascriptions, free variables are rewritten and db indices
 data CExp
-  = CExpIndex Integer 
+  = CExpIndex Integer
   | CExpUnit
-  | CExpLambda  CExp
+  | CExpLambda CExp
   | CExpApplication CExp CExp
   | CExpProduct CExp CExp
   | CExpFst CExp
   | CExpSnd CExp
-  | CExpInl CExp 
-  | CExpInr CExp 
-  | CExpMatch CExp  CExp  CExp
+  | CExpInl CExp
+  | CExpInr CExp
+  | CExpMatch CExp CExp CExp
   | CExpZero
   | CExpSuc CExp
   | CExpPrimrec CExp CExp CExp
@@ -127,12 +125,13 @@ data CExp
   | CExpAdv CExp
   | CExpBox CExp
   | CExpUnbox CExp
-  | CExpNow CExp 
+  | CExpNow CExp
   | CExpWait CExp CExp
-  | CExpUrec CExp  CExp  CExp
+  | CExpUrec CExp CExp CExp
   | CExpFix CExp
   | CExpOut CExp
   | CExpInto CExp
+  | CExpLocation Integer
   deriving (Show, Eq)
 
 -- Type checking
@@ -147,7 +146,7 @@ data Context
   | AtContext ContextElemList ContextElemList ContextElemList
 
 -- Interpreter
-type StoreElem = (Integer, AExp)
+type StoreElem = (Integer, CExp)
 
 type StoreElemList = [StoreElem]
 

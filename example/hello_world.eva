@@ -4,6 +4,7 @@ let function = fun k:Nat => suc suc 0;
 let intofun = into 0 : Fix a -> Nat ;
 let inlfun = inl ( 0) : Nat + Unit;
 //This is a comment
+
 let q = fix e: [] Fix a -> Nat + a => into (inr (unbox e): (Nat + >Fix a -> Nat + a )) :  Fix a -> Nat + a;
 
 let primrectry = fun x :Nat => primrec x with 

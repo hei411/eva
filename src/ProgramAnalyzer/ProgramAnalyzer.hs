@@ -27,13 +27,14 @@ mainProgramAnalyzerHelper currentFile compiledFilesData toCompileFiles importedF
         do
           --Step 1: Convert AExp to BExp, i.e. type ascriptions are converted to BTypes
           let bExp = abExpConverter (importedTypenames ++ toExportTypenames) aexp
-          return (compiledFilesData)
-      --Step 2: beta reduce BTypes ascriptions
-      --Step 3: Type check BExp while producing CExp
-      --Step 4: Interpret CExp
-      --Ignore below
-      -- Resolve all type ascriptions
 
+          --Step 2: beta reduce BTypes ascriptions
+          --Step 3: Type check BExp while producing CExp
+          --Step 4: Interpret CExp
+          --Ignore below
+          -- Resolve all type ascriptions
+          putStrLn (show (bExp))
+          return (compiledFilesData)
       {-
         let validTypes = isValidExp (importedTypenames ++ toExportTypenames) exp
         case validTypes of
