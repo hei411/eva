@@ -1,5 +1,8 @@
+--Module to be deleted
+
 module TypeChecker.TypeFunctions where
 
+{-
 import Datatype
 
 position :: String -> [String] -> Integer
@@ -46,3 +49,5 @@ fixUnfold t =
     ATypeFix a a' ->
       return (substituteType a' a (ATypeArrow t))
     _ -> Nothing
+
+-}

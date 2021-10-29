@@ -4,6 +4,7 @@ type Program = [Statement]
 
 type TypeCheckedProgram = [(String, CExp, BType)]
 type TypenameList = [(String, BType)]
+type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
   = LetStatement String AExp
@@ -135,7 +136,7 @@ data CExp
   deriving (Show, Eq)
 
 -- Type checking
-type ContextElem = (String, AType)
+type ContextElem = (String, BType)
 
 type ContextElemList = [ContextElem]
 

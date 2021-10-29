@@ -1,5 +1,8 @@
+-- Module to be modified
+
 module Interpreter.EvaluationInterpreter where
 
+{-
 import Datatype
 import Interpreter.ExpFunctions
 import Interpreter.StoreFunctions
@@ -202,3 +205,5 @@ aExpIntoEval t tascrip s =
   do
     let (v, s') = evaluationInterpreter t s
     (AExpInto v tascrip, s')
+
+    -}

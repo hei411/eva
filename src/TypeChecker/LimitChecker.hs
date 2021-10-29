@@ -1,5 +1,7 @@
+--module to be modified
 module TypeChecker.LimitChecker where
 
+{-
 import Datatype
 
 isLimit :: AType -> Bool
@@ -15,3 +17,5 @@ isLimit t = case t of
   ATypeFunction x y -> isLimit y
   ATypeFix x y -> isLimit y
   _ -> False
+
+-}

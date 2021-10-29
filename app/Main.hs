@@ -4,8 +4,6 @@ import Parser.MainParser
 import ProgramAnalyzer.ProgramAnalyzer (mainProgramAnalyzer)
 import StringFunctions.CommentHandler
 import System.Environment (getArgs)
-import TypeChecker.MainTypeChecker (mainTypeChecker)
-import TypeChecker.ValidChecker
 
 main :: IO ()
 main = do
@@ -23,7 +21,7 @@ main = do
     Right program -> do
       -- Parsing succeeded
       putStrLn ("Program is parsed correctly")
-      (compiledFiles, toCompileFiles, typeCheckedProgram, typenameList) <- mainProgramAnalyzer file_name program
+      (compiledFilesData) <- mainProgramAnalyzer file_name program
       putStrLn ("Program is type-checked correctly.")
 
 --putStrLn (show (typeCheckedProgram))

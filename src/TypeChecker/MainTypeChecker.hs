@@ -1,5 +1,8 @@
+--Module to be MODIFIED
+
 module TypeChecker.MainTypeChecker where
 
+{-
 import Datatype
 import TypeChecker.ContextFunctions
 import TypeChecker.LimitChecker
@@ -301,3 +304,5 @@ aExpIntoRule c exp t =
         t' <- fixUnfold t
         if areEqualTypes target t' then return t else Nothing
     _ -> Nothing
+
+-}

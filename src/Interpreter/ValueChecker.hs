@@ -1,5 +1,8 @@
+--Module to be deleted
+
 module Interpreter.ValueChecker where
 
+{-
 import Datatype
 
 isValue :: AExp -> Bool
@@ -20,3 +23,5 @@ isValue exp = case exp of
   AExpNow exp' t -> isValue exp'
   AExpWait exp1 exp2 -> isValue exp1 && isValue exp2
   _ -> False
+
+-}

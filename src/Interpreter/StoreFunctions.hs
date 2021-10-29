@@ -1,5 +1,8 @@
+--Module to be modified
+
 module Interpreter.StoreFunctions where
 
+{-
 import Datatype
 
 elemStore :: StoreElemList -> Integer -> Maybe AExp
@@ -29,3 +32,5 @@ removeStoreElem s n =
   case s of
     [] -> error "Should not happen! Cannot find a particular store element to remove"
     (ind, exp) : tl -> if ind == n then tl else (ind, exp) : (removeStoreElem tl n)
+
+-}

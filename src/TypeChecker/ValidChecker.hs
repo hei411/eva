@@ -1,7 +1,13 @@
+--Module to be deleted
+
 module TypeChecker.ValidChecker where
+
+{-
 
 import Datatype
 
+-- convert db indices while converting atype to btype + checking type ascrtipions are valid
+-- need to call abTypeConverter
 isValidExp :: TypenameList -> AExp -> Maybe BExp
 isValidExp typenameList e = case e of
   AExpLambda s t exp -> if not (isValidType t) then Right t else isValidExp exp
@@ -45,6 +51,7 @@ isValidExp typenameList e = case e of
   AExpInto exp t -> if not (isValidType t) then Right t else isValidExp exp
   _ -> Left ()
 
+-- Check whether a btype is a valid type ascription, i.e. no lambda and applications
 isValidType :: BType -> Bool
 isValidType t = isValidHelper t []
   where
@@ -59,3 +66,5 @@ isValidType t = isValidHelper t []
       ATypeArrow x -> (isValidHelper x l)
       ATypeAt x -> (isValidHelper x l)
       _ -> True
+
+-}

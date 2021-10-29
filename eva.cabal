@@ -26,6 +26,8 @@ source-repository head
 library
   exposed-modules:
       Datatype
+      ExpTypeConverters.ABExpConverter
+      ExpTypeConverters.ABTypeConverter
       Interpreter.EvaluationInterpreter
       Interpreter.ExpFunctions
       Interpreter.StoreFunctions
