@@ -2,6 +2,7 @@ module TypeChecker.ContextFunctions where
 
 import Datatype
 
+{-
 elemContext :: ContextElemList -> String -> Maybe BType
 elemContext l s = case l of
   [] -> Nothing
@@ -20,3 +21,4 @@ addContextElem c cell = case c of
   StableContext x0 x1 -> StableContext x0 (cell : x1)
   ArrowContext x0 x1 x2 -> ArrowContext x0 x1 (cell : x2)
   AtContext x0 x1 x2 -> AtContext x0 x1 (cell : x2)
+-}

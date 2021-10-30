@@ -2,6 +2,13 @@
 
 module TypeChecker.MainTypeChecker where
 
+import Datatype
+import TypeChecker.LimitChecker
+import TypeChecker.StableChecker
+
+mainTypeChecker :: TypeCheckedProgram -> Context -> BExp -> (CExp, BType)
+mainTypeChecker functionsList context bExp = error "TODO"
+
 {-
 import Datatype
 import TypeChecker.ContextFunctions

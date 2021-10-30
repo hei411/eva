@@ -9,6 +9,8 @@ main :: IO ()
 main = do
   -- Get file name from arguments
   (file_name : _) <- getArgs
+
+  -- Start of real program
   -- Read from file
   file_content <- readFile file_name
   -- Remove comments

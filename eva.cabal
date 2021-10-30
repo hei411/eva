@@ -45,6 +45,7 @@ library
       TypeChecker.StableChecker
       TypeChecker.TypeFunctions
       TypeChecker.ValidChecker
+      TypeFunctions.TypeCompare
       TypeFunctions.TypeSubstitute
   other-modules:
       Paths_eva

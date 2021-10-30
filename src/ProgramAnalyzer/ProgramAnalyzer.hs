@@ -3,6 +3,7 @@ module ProgramAnalyzer.ProgramAnalyzer where
 import AscriptionSimplifier.AscriptionSimplifier
 import Datatype
 import ExpTypeConverters.ABExpConverter
+import TypeChecker.MainTypeChecker
 
 mainProgramAnalyzer :: String -> Program -> IO CompiledFilesData
 mainProgramAnalyzer file_name l =
@@ -30,11 +31,12 @@ mainProgramAnalyzerHelper currentFile compiledFilesData toCompileFiles importedF
           let bExp = abExpConverter (importedTypenames ++ toExportTypenames) aexp
           --Step 2: beta reduce BTypes ascriptions
           let bExpSimplified = simplifyBExp bExp
-          --Step 3: Type check BExp while producing CExp
+          --Step 3: Type check BExp while producing CExp that is substituted with correct previously declared functions
+          let (cExp, bType) = mainTypeChecker (importedFunctions ++ toExportFunctions) (TokenlessContext []) bExpSimplified
           --Step 4: Interpret CExp
           --Ignore below
           -- Resolve all type ascriptions
-          putStrLn (show (bExp))
+          putStrLn (show (cExp))
           return (compiledFilesData)
       {-
         let validTypes = isValidExp (importedTypenames ++ toExportTypenames) exp
