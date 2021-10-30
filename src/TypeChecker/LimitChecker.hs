@@ -18,22 +18,3 @@ isLimit t = case t of
   BTypeUntil bt bt' -> False
   BTypeApplication bt bt' -> error "Should not check limit of a BTypeApplication"
   BTypeLambda bt -> error "Should not check limit of a BTypeLambda"
-
-{-
-import Datatype
-
-isLimit :: AType -> Bool
-isLimit t = case t of
-  ATypeVar _ -> True
-  ATypeUnit -> True
-  ATypeNat -> True
-  ATypeArrow _ -> True
-  ATypeAt x -> isLimit x
-  ATypeBox x -> isLimit x
-  ATypeProduct x y -> (isLimit x) && (isLimit y)
-  ATypeSum x y -> (isLimit x) && (isLimit y)
-  ATypeFunction x y -> isLimit y
-  ATypeFix x y -> isLimit y
-  _ -> False
-
--}
