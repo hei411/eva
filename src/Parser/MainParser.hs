@@ -136,7 +136,7 @@ importStatementParser = do
   spaces
   char ';'
   spaces
-  let processedFilePath = processFilePath s
+  let processedFilePath = (processFilePath s) ++ ".eva"
   return (ImportStatement processedFilePath)
 
 processFilePath :: FilePath -> FilePath
