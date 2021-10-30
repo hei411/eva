@@ -175,11 +175,18 @@ matchParser = do
   exp2 <- expParser
   return (AExpMatch exp v1 exp1 v2 exp2)
 
-zeroParser :: Parser AExp
-zeroParser = do
-  char '0'
+numberParser :: Parser AExp
+numberParser = do
+  n <- many1 digit
   notFollowedBy letter
-  return AExpZero
+  let num = read n :: Integer
+  return (wrapSuc num)
+
+wrapSuc :: Integer -> AExp
+wrapSuc n =
+  case n of
+    0 -> AExpZero
+    _ -> AExpSuc (wrapSuc (n -1))
 
 sucParser :: Parser AExp
 sucParser = do
@@ -376,7 +383,7 @@ oneExpParser =
     <|> try inlParser
     <|> try inrParser
     <|> try matchParser
-    <|> try zeroParser
+    <|> try numberParser
     <|> try sucParser
     <|> try primrecParser
     <|> try arrowParser
