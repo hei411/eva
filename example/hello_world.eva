@@ -1,5 +1,5 @@
 let two = 2;
-let primrectry <ut, Stable gh> = primrec xs<Nat, Unit ,Types(Nat) *Unit > with
+let primrectry <ut, Stable gh, Limit po, Stable Limit p, Limit Stable j> = primrec xs<Nat, Unit ,Types(Nat) *Unit > with
     |0 => 0
     |suc k fby t => t;
 
