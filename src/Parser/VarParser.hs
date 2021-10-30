@@ -14,7 +14,7 @@ varParser =
     )
     <|> do
       start <- lower
-      rest <- many alphaNum
+      rest <- many (choice [alphaNum, oneOf "_"])
       let str = start : rest
       case str of
         "fun" -> fail "fun cannot be variable name."
@@ -50,7 +50,7 @@ upperVarParser =
     )
     <|> do
       start <- upper
-      rest <- many alphaNum
+      rest <- many (choice [alphaNum, oneOf "_"])
       let str = start : rest
       case str of
         "Fix" -> fail "Fix cannot be type variable name."

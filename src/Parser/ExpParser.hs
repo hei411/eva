@@ -23,7 +23,8 @@ expParser =
 lambdaParser :: Parser AExp
 lambdaParser = do
   string "fun"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   v <- varParser
   spaces
   char ':'
@@ -199,7 +200,8 @@ sucParser = do
 primrecParser :: Parser AExp
 primrecParser = do
   string "primrec"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
   skipMany1 space
   string "with"
@@ -289,7 +291,8 @@ waitParser = do
 urecParser :: Parser AExp
 urecParser = do
   string "urec"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
   skipMany1 space
   string "with"
