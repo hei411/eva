@@ -15,7 +15,7 @@ main = do
   case parse_tree of
     Left parseError -> putStrLn (show (parseError))
     Right program -> do
-      --putStrLn (show (program))
+      putStrLn (show (program))
       putStrLn ("Program is parsed correctly")
       typeCheckedProgram <- mainProgramAnalyzer program
       putStrLn ("Program is type-checked correctly.")
