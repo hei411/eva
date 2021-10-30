@@ -17,8 +17,8 @@ type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
   = LetStatement String [(TypeProperty, String)] AExp
-  | TypeStatement
-  | ImportStatement
+  | TypeStatement String [String] AType
+  | ImportStatement String
   deriving (Show)
 
 -- First Parse
@@ -68,6 +68,7 @@ data AType
 data BType
   = BTypeIndex Integer
   | BTypeParametric Integer
+  | BTypeNameParam Integer
   | BTypeUnit
   | BTypeNat
   | BTypeProduct BType BType

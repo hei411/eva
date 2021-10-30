@@ -97,22 +97,63 @@ typeStatementParser = do
   spaces
   string "type"
   skipMany1 space
-  -- TODO: some code
+  str <- upperVarParser
+  spaces
+  parameters <- optionMaybe (try typenameParameterParser)
+  spaces
+  char '='
+  spaces
+  t <- typeParser
   spaces
   char ';'
   spaces
-  error "type statements not supported yet"
+  case parameters of
+    Nothing -> return (TypeStatement str [] t)
+    Just ss -> return (TypeStatement str ss t)
+
+typenameParameterParser :: Parser [String]
+typenameParameterParser = do
+  char '('
+  spaces
+  l <- sepBy1 varParser (try commaParser)
+  spaces
+  char ')'
+  return l
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
 
 importStatementParser :: Parser Statement
 importStatementParser = do
   spaces
   string "import"
   skipMany1 space
-  -- some code
+  s <- fileNameParser
   spaces
   char ';'
   spaces
-  error "import statements not supported yet"
+  let processedFilePath = processFilePath s
+  return (ImportStatement processedFilePath)
+
+processFilePath :: FilePath -> FilePath
+processFilePath s =
+  case s of
+    [] -> error "Did not provide file path!"
+    _ ->
+      replace_separator s
+  where
+    replace_separator s =
+      case s of
+        [] -> []
+        hd : tl -> if hd == '.' then '/' : replace_separator tl else hd : replace_separator tl
+
+fileNameParser :: Parser FilePath
+fileNameParser =
+  many (choice [alphaNum, oneOf "-_."])
 
 programParser :: Parser Program
 programParser = do

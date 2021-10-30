@@ -2,6 +2,9 @@ let primrectry <ut, Stable gh> = primrec xs<Nat, Unit ,Types(Nat) *Unit > with
     |0 => 0
     |suc k fby t => t;
 
+import ervrev.erg.erv;
+type Kef(s,b) = Nat;
+type K=Unit;
 
 let zero = 0;
 let zero2= zero;
