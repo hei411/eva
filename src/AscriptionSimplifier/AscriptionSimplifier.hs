@@ -1,5 +1,6 @@
 module AscriptionSimplifier.AscriptionSimplifier where
 
+{-
 import Datatype
 import TypeFunctions.TypeSubstitute
 
@@ -51,3 +52,4 @@ simplifyBType bType = case bType of
           simplifyBType (substituteBType body 0 simplifiedArg)
         _ -> BTypeApplication (simplifyBType bt) simplifiedArg
   BTypeLambda bt -> BTypeLambda (simplifyBType bt)
+-}

@@ -1,5 +1,6 @@
 module ExpTypeConverters.ABTypeConverter where
 
+{-
 import Datatype
 
 abTypeConverter :: TypenameList -> AType -> BType
@@ -35,3 +36,5 @@ findTypename typenameList s =
   case typenameList of
     [] -> error ("Typename " ++ s ++ " in type cannot be resolved")
     (typename, bType) : tl -> if typename == s then bType else findTypename tl s
+
+-}

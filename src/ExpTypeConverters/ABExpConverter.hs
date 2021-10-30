@@ -1,5 +1,6 @@
 module ExpTypeConverters.ABExpConverter where
 
+{-
 import Datatype
 import ExpTypeConverters.ABTypeConverter
 
@@ -33,3 +34,5 @@ abExpConverter typenamesList aExp =
   where
     curabExpConverter = abExpConverter typenamesList
     curabTypeConverter = abTypeConverter typenamesList
+
+-}

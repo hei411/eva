@@ -25,18 +25,16 @@ mainProgramAnalyzerHelper currentFile compiledFilesData toCompileFiles importedF
     -- return compiled files and their functions,  type names and functions
     [] -> return (compiledFilesData)
     hd : tl -> case hd of
-      LetStatement var aexp ->
+      LetStatement var parameterList aexp ->
         do
-          --Step 1: Convert AExp to BExp, i.e. type ascriptions are converted to BTypes
-          let bExp = abExpConverter (importedTypenames ++ toExportTypenames) aexp
-          --Step 2: beta reduce BTypes ascriptions
-          let bExpSimplified = simplifyBExp bExp
-          --Step 3: Type check BExp while producing CExp that is substituted with correct previously declared functions
-          let (cExp, bType) = mainTypeChecker (importedFunctions ++ toExportFunctions) (TokenlessContext []) bExpSimplified
-          --Step 4: Interpret CExp
+          --Step 1: Convert AExp to BExp, i.e. type ascriptions are converted to BTypes (all db indices, even forall)
+          --let bExp = abExpConverter (importedTypenames ++ toExportTypenames) aexp
+          --Step 2: Type check BExp while producing CExp that is substituted with correct previously declared functions
+          -- let (cExp, bType) = mainTypeChecker (importedFunctions ++ toExportFunctions) (TokenlessContext []) bExpSimplified
+          --Step 3: Interpret CExp
           --Ignore below
           -- Resolve all type ascriptions
-          putStrLn (show (cExp))
+          --putStrLn (show (cExp))
           return (compiledFilesData)
       {-
         let validTypes = isValidExp (importedTypenames ++ toExportTypenames) exp

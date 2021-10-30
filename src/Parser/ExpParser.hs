@@ -337,7 +337,32 @@ intoParser = do
 expVarParser :: Parser AExp
 expVarParser = do
   str <- varParser
-  return (AExpVar str)
+  spaces
+  return (AExpVar str [])
+
+{-
+parameters <- optionMaybe (try expParameterParser)
+spaces
+case parameters of
+  Nothing -> return (AExpVar str [])
+  Just ats -> return (AExpVar str ats)-}
+
+expParameterParser :: Parser [AType]
+expParameterParser =
+  do
+    char '<'
+    spaces
+    l <- sepBy1 typeParser commaParser
+    spaces
+    char '>'
+    return l
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
 
 unitParser :: Parser AExp
 unitParser = do

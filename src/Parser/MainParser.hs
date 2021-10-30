@@ -21,20 +21,85 @@ letStatementParser = do
   skipMany1 space
   var <- varParser
   spaces
+  --parameters <- optionMaybe (try parameterParser)
+  spaces
+  -- TODO: syntactic sugar for functions
+  spaces
   char '='
   spaces
   exp <- expParser
   spaces
   char ';'
   spaces
-  return (LetStatement var exp)
+  return (LetStatement var [] exp)
+
+{-case parameters of
+  Nothing -> return (LetStatement var [] exp)
+  Just ss -> return (LetStatement var ss exp)-}
+
+parameterParser :: Parser [(TypeProperty, String)]
+parameterParser =
+  do
+    char '<'
+    spaces
+    l <- sepBy1 oneParameterParser commaParser
+    spaces
+    char '>'
+    return l
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
+
+oneParameterParser :: Parser (TypeProperty, String)
+oneParameterParser =
+  try
+    ( do
+        v <- varParser
+        return (None, v)
+    )
+    <|> try
+      ( do
+          string "Stable"
+          skipMany1 space
+          v <- varParser
+          return (Stable, v)
+      )
+    <|> try
+      ( do
+          string "Limit"
+          skipMany1 space
+          v <- varParser
+          return (Limit, v)
+      )
+    <|> try
+      ( do
+          string "Limit"
+          skipMany1 space
+          string "Stable"
+          skipMany1 space
+          v <- varParser
+          return (Both, v)
+      )
+    <|> try
+      ( do
+          string "Stable"
+          skipMany1 space
+          string "Limit"
+          skipMany1 space
+          v <- varParser
+          return (Both, v)
+      )
 
 typeStatementParser :: Parser Statement
 typeStatementParser = do
   spaces
   string "type"
   skipMany1 space
-  -- some code
+  -- TODO: some code
   spaces
   char ';'
   spaces

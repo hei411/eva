@@ -57,4 +57,6 @@ upperVarParser =
         "Until" -> fail "Until cannot be type variable name."
         "Nat" -> fail "Nat cannot be type variable name."
         "Unit" -> fail "Unit cannot be type variable name."
+        "Stable" -> fail "Stable cannot be type variable name."
+        "Limit" -> fail "Limit cannot be type variable name."
         _ -> return (start : rest)

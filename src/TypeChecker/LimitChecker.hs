@@ -1,6 +1,7 @@
 --module to be modified
 module TypeChecker.LimitChecker where
 
+{-
 import Datatype
 
 isLimit :: BType -> Bool
@@ -18,3 +19,4 @@ isLimit t = case t of
   BTypeUntil bt bt' -> False
   BTypeApplication bt bt' -> error "Should not check limit of a BTypeApplication"
   BTypeLambda bt -> error "Should not check limit of a BTypeLambda"
+-}

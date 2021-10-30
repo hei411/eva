@@ -1,3 +1,8 @@
+let primrectry = primrec xs with
+    |0 => 0
+    |suc k fby t => t;
+
+
 let zero = 0;
 let zero2= zero;
 let function = fun k:Nat => suc suc 0;
@@ -7,11 +12,11 @@ let inlfun = inl ( 0) : Nat + Unit;
 
 let q = fix e: [] Fix a -> Nat + a => into (inr (unbox e): (Nat + >Fix a -> Nat + a )) :  Fix a -> Nat + a;
 
-let primrectry = fun x :Nat => primrec x with 
+let primrectry = fun x :Nat => primrec (x) with 
     |0 => 0
     |suc k fby t => t;
 
-let urectry =  [] fun x: Nat Until Nat => urec x with 
+let urectry =  [] fun x: Nat Until Nat => urec (x) with 
     |now x => suc 0
     |wait x y fby z => 0;
 

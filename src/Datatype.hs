@@ -2,21 +2,28 @@ module Datatype where
 
 type Program = [Statement]
 
-type TypeCheckedProgram = [(String, CExp, BType)]
+type TypeCheckedProgram = [(String, CExp, BType, [TypeProperty])]
 
-type TypenameList = [(String, BType)]
+type TypenameList = [(String, BType, Integer)]
+
+data TypeProperty
+  = Limit
+  | Stable
+  | None
+  | Both
+  deriving (Show)
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
-  = LetStatement String AExp
+  = LetStatement String [(TypeProperty, String)] AExp
   | TypeStatement
   | ImportStatement
   deriving (Show)
 
 -- First Parse
 data AExp
-  = AExpVar String
+  = AExpVar String [AType]
   | AExpUnit
   | AExpLambda String AType AExp
   | AExpApplication AExp AExp
@@ -44,7 +51,7 @@ data AExp
 
 data AType
   = ATypeVar String
-  | ATypeName String
+  | ATypeName String [AType]
   | ATypeUnit
   | ATypeNat
   | ATypeProduct AType AType
@@ -55,14 +62,12 @@ data AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
-  | ATypeApplication AType AType
-  | ATypeLambda String AType
   deriving (Show, Eq)
 
--- Substitute all typenames, convert variables in DB indices
--- (Can have applications and lambda, e.g. typenames, therefore need function to check validity of ascriptions)
+-- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
 data BType
   = BTypeIndex Integer
+  | BTypeParametric Integer
   | BTypeUnit
   | BTypeNat
   | BTypeProduct BType BType
@@ -73,13 +78,11 @@ data BType
   | BTypeAt BType
   | BTypeFix BType
   | BTypeUntil BType BType
-  | BTypeApplication BType BType
-  | BTypeLambda BType
   deriving (Show, Eq)
 
 -- BExp are AExp except all type ascriptions are valid
 data BExp
-  = BExpVar String
+  = BExpVar String [BType]
   | BExpUnit
   | BExpLambda String BType BExp
   | BExpApplication BExp BExp
@@ -105,7 +108,7 @@ data BExp
   | BExpInto BExp BType
   deriving (Show, Eq)
 
--- CExp are for interpretation, i,e, no type ascriptions, free variables are rewritten and db indices
+-- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
 data CExp
   = CExpIndex Integer
   | CExpUnit

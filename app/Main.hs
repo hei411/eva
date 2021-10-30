@@ -22,7 +22,9 @@ main = do
     Left parseError -> putStrLn (show (parseError))
     Right program -> do
       -- Parsing succeeded
+      putStrLn (show (program))
       putStrLn ("Program is parsed correctly")
+
       (compiledFilesData) <- mainProgramAnalyzer file_name program
       putStrLn ("Program is type-checked correctly.")
 

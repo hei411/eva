@@ -2,6 +2,7 @@
 
 module TypeChecker.StableChecker where
 
+{-
 import Datatype
 
 isStable :: BType -> Bool
@@ -19,3 +20,4 @@ isStable t = case t of
   BTypeUntil bt bt' -> False
   BTypeApplication bt bt' -> error "Should not check stability of a BTypeApplication"
   BTypeLambda bt -> error "Should not check stability of a BTypeLambda"
+-}

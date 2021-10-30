@@ -8,12 +8,38 @@ import Text.Parsec.String
 typeVarParser :: Parser AType
 typeVarParser = do
   str <- varParser
+  -- TODO: Using <> for arguments
   return (ATypeVar str)
 
 typeNameParser :: Parser AType
 typeNameParser = do
   str <- upperVarParser
-  return (ATypeName str)
+  spaces
+  return (ATypeName str [])
+
+{-
+parameters <- optionMaybe (try typeNameParameterParser)
+spaces
+case parameters of
+  Nothing -> return (ATypeName str [])
+  Just ats -> return (ATypeName str ats)-}
+
+typeNameParameterParser :: Parser [(AType)]
+typeNameParameterParser =
+  do
+    char '('
+    spaces
+    l <- sepBy1 typeParser commaParser
+    spaces
+    char ')'
+    return l
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
 
 typeParser :: Parser AType
 typeParser = do
@@ -168,6 +194,8 @@ foldType3' l = case l of
       [] -> h
       hd : tl -> foldApplicationHelper (ATypeProduct h hd) tl
 
+-- removed since we replace lambda and application with <> for type synonyms
+{-
 type4Parser :: Parser AType
 type4Parser =
   try
@@ -204,40 +232,41 @@ foldType4' l = case l of
       [] -> h
       hd : tl -> foldApplicationHelper (ATypeApplication h hd) tl
 
+-}
 firstTypeParser :: Parser AType
 firstTypeParser =
   try fixTypeParser
-    <|> type5Parser
+    <|> type4Parser
     <|> fail "Can't parse FirstType"
 
-type5Parser :: Parser AType
-type5Parser =
+type4Parser :: Parser AType
+type4Parser =
   try
     ( do
         char '@'
         spaces
-        t <- type5Parser
+        t <- type4Parser
         return (ATypeAt t)
     )
     <|> try
       ( do
           char '>'
           spaces
-          t <- type5Parser
+          t <- type4Parser
           return (ATypeArrow t)
       )
     <|> try
       ( do
           string "[]"
           spaces
-          t <- type5Parser
+          t <- type4Parser
           return (ATypeBox t)
       )
     <|> fixTypeParser
-    <|> fail "Can't parse Type5"
+    <|> fail "Can't parse Type4"
 
-type5'Parser :: Parser AType
-type5'Parser =
+type4'Parser :: Parser AType
+type4'Parser =
   try
     ( do
         string "Unit"
@@ -256,21 +285,21 @@ type5'Parser =
       ( do
           char '@'
           spaces
-          t <- type5'Parser
+          t <- type4'Parser
           return (ATypeAt t)
       )
     <|> try
       ( do
           char '>'
           spaces
-          t <- type5'Parser
+          t <- type4'Parser
           return (ATypeArrow t)
       )
     <|> try
       ( do
           string "[]"
           spaces
-          t <- type5'Parser
+          t <- type4'Parser
           return (ATypeBox t)
       )
     <|> try typeVarParser
@@ -279,4 +308,4 @@ type5'Parser =
             string "Nat"
             return ATypeNat
         )
-    <|> fail "Can't parse Type5"
+    <|> fail "Can't parse Type4'"
