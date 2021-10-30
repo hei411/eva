@@ -21,7 +21,7 @@ letStatementParser = do
   skipMany1 space
   var <- varParser
   spaces
-  --parameters <- optionMaybe (try parameterParser)
+  parameters <- optionMaybe (try parameterParser)
   spaces
   -- TODO: syntactic sugar for functions
   spaces
@@ -31,18 +31,16 @@ letStatementParser = do
   spaces
   char ';'
   spaces
-  return (LetStatement var [] exp)
-
-{-case parameters of
-  Nothing -> return (LetStatement var [] exp)
-  Just ss -> return (LetStatement var ss exp)-}
+  case parameters of
+    Nothing -> return (LetStatement var [] exp)
+    Just ss -> return (LetStatement var ss exp)
 
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
   do
     char '<'
     spaces
-    l <- sepBy1 oneParameterParser commaParser
+    l <- sepBy1 oneParameterParser (try commaParser)
     spaces
     char '>'
     return l

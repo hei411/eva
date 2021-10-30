@@ -14,22 +14,18 @@ typeVarParser = do
 typeNameParser :: Parser AType
 typeNameParser = do
   str <- upperVarParser
-  spaces
-  return (ATypeName str [])
-
-{-
-parameters <- optionMaybe (try typeNameParameterParser)
-spaces
-case parameters of
-  Nothing -> return (ATypeName str [])
-  Just ats -> return (ATypeName str ats)-}
+  parameters <- optionMaybe (try typeNameParameterParser)
+  case parameters of
+    Nothing -> return (ATypeName str [])
+    Just ats -> return (ATypeName str ats)
 
 typeNameParameterParser :: Parser [(AType)]
 typeNameParameterParser =
   do
+    spaces
     char '('
     spaces
-    l <- sepBy1 typeParser commaParser
+    l <- sepBy1 typeParser (try commaParser)
     spaces
     char ')'
     return l
