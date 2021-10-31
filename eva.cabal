@@ -37,6 +37,7 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions

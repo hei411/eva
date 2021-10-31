@@ -1,5 +1,10 @@
 module ExpTypeConverters.ABTypeConverter where
 
+import Datatype
+
+abTypeConverter :: [(TypeProperty, String)] -> TypenameList -> AType -> BType
+abTypeConverter = error "TODO"
+
 {-
 import Datatype
 
