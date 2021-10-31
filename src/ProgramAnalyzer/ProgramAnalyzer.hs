@@ -29,7 +29,7 @@ mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles 
       Left parseError -> error (show (parseError))
       Right program -> do
         -- Parsing succeeded
-        putStrLn (show (program))
+        -- putStrLn (show (program))
         putStrLn (currentFile ++ " is parsed correctly")
         singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles [] [] [] [] [] program
 

@@ -32,7 +32,7 @@ abExpConverter polyParams definedTypenames aExp = case aExp of
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
   where
     abExpConverterCur = abExpConverter polyParams definedTypenames
-    abTypeConverterCur = (abTypeConverter polyParams definedTypenames)
+    abTypeConverterCur = (abTypeConverter polyParams definedTypenames [])
 
 {-
 import Datatype
