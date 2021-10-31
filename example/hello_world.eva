@@ -23,7 +23,7 @@ let primrectry =  fun x : Nat => primrec (x )with
 let urectry = [] fun x : Nat Until Nat => urec(x) with
                                          | now x => suc 0 | wait x y fby z => 0;
 
-let embed = [] fun x : @Nat => > (adv x);
+let embed = [] fun x : @Nat  => > (adv x);
 /*Comment block
 heya
 */
