@@ -1,12 +1,16 @@
---module to be modified
 module TypeChecker.LimitChecker where
 
-{-
 import Datatype
 
 isLimit :: BType -> Bool
-isLimit t = case t of
+isLimit bType = case bType of
   BTypeIndex n -> True
+  BTypeParametric n tp -> case tp of
+    Limit -> True
+    Stable -> False
+    None -> False
+    Both -> True
+  BTypeNameParam n -> error "Should not happen! Found a typename parameter index when checking whether overall type is limit"
   BTypeUnit -> True
   BTypeNat -> True
   BTypeProduct bt bt' -> (isLimit bt) && (isLimit bt')
@@ -17,6 +21,3 @@ isLimit t = case t of
   BTypeAt bt -> isLimit bt
   BTypeFix bt -> isLimit bt
   BTypeUntil bt bt' -> False
-  BTypeApplication bt bt' -> error "Should not check limit of a BTypeApplication"
-  BTypeLambda bt -> error "Should not check limit of a BTypeLambda"
--}

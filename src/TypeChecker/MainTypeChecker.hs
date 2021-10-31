@@ -6,8 +6,9 @@ import Datatype
 import TypeChecker.LimitChecker
 import TypeChecker.StableChecker
 
-mainTypeChecker :: TypeCheckedProgram -> Context -> BExp -> (CExp, BType)
-mainTypeChecker functionsList context bExp = error "TODO"
+mainTypeChecker :: FilePath -> String -> TypeCheckedProgram -> Context -> BExp -> (CExp, BType)
+mainTypeChecker file functionName definedFunctions context bExp =
+  error "TODO type checker to be implemented"
 
 {-
 import Datatype
