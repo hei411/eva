@@ -21,9 +21,13 @@ letStatementParser = do
   skipMany1 space
   var <- varParser
   spaces
-  parameters <- optionMaybe (try parameterParser)
+  polyParameters <- optionMaybe (try parameterParser)
   spaces
-  -- TODO: syntactic sugar for functions
+  firstParameters <- many (annoVarParser)
+  spaces
+  pound <- optionMaybe (try (char '#'))
+  spaces
+  secondParameters <- many (annoVarParser)
   spaces
   char '='
   spaces
@@ -31,9 +35,46 @@ letStatementParser = do
   spaces
   char ';'
   spaces
-  case parameters of
-    Nothing -> return (LetStatement var [] exp)
-    Just ss -> return (LetStatement var ss exp)
+  let modifiedexp = modifyExp firstParameters pound secondParameters exp
+  case polyParameters of
+    Nothing -> return (LetStatement var [] modifiedexp)
+    Just ss -> return (LetStatement var ss modifiedexp)
+
+annoVarParser :: Parser (String, AType)
+annoVarParser =
+  try
+    ( do
+        char '('
+        spaces
+        p <- annoVarParser
+        spaces
+        char ')'
+        return p
+    )
+    <|> try
+      ( do
+          s <- varParser
+          spaces
+          char ':'
+          spaces
+          t <- typeParser
+          spaces
+          return (s, t)
+      )
+
+modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
+modifyExp firstParameters pound secondParameters exp =
+  addLambda firstParameters (addPound pound (addLambda secondParameters exp))
+
+addLambda :: [(String, AType)] -> AExp -> AExp
+addLambda l exp = case l of
+  [] -> exp
+  (s, t) : tl -> AExpLambda s t (addLambda tl exp)
+
+addPound :: Maybe Char -> AExp -> AExp
+addPound p exp = case p of
+  Nothing -> exp
+  Just s -> AExpBox exp
 
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =

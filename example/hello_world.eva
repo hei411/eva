@@ -1,7 +1,10 @@
 let two_test = 2;
-let primrectry<ut, Stable gh, Limit po, Stable Limit p, Limit Stable j> = primrec xs<Nat, Unit, Types(Nat) *Unit> with | 0 => 0 | suc k fby t => t;
+let primrectry<ut, Stable gh, Limit po, Stable Limit p, Limit Stable j> 
+    a:Nat b:Unit +Unit # (d:Fix a->a) 
+    = primrec xs<Nat, Unit, Types(Nat) *Unit> with | 0 => 0 | suc k fby t => t;
 
 import ervrev.erg.erv;
+/*
 type Kef(s, b) = Nat;
 type K = Unit;
 
@@ -12,7 +15,7 @@ let intofun = into 0 : Fix a ->Nat;
 let inlfun = inl(0) : Nat + Unit;
 //This is a comment
 
-let q = fix e : [] Fix a -> Nat + a => into(inr(unbox e)
+let q = fix e : # Fix a -> Nat + a => into(inr(unbox e)
                                              : (Nat + > Fix a->Nat + a)) : Fix a->Nat
                                             + a;
 
@@ -20,10 +23,10 @@ let primrectry =  fun x : Nat => primrec (x )with
                                | 0 => 0 
                                | suc k fby t => t;
 
-let urectry = [] fun x : Nat Until Nat => urec(x) with
+let urectry =#fun x : Nat Until Nat => urec(x) with
                                          | now x => suc 0 | wait x y fby z => 0;
 
-let embed = [] fun x : @Nat  => > (adv x);
+let embed = # fun x : @Nat  => > (adv x);
 /*Comment block
 heya
 */

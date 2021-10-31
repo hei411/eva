@@ -253,7 +253,7 @@ type4Parser =
       )
     <|> try
       ( do
-          string "[]"
+          string "#"
           spaces
           t <- type4Parser
           return (ATypeBox t)
@@ -293,7 +293,7 @@ type4'Parser =
       )
     <|> try
       ( do
-          string "[]"
+          string "#"
           spaces
           t <- type4'Parser
           return (ATypeBox t)

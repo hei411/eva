@@ -261,7 +261,7 @@ unboxParser = do
 
 boxParser :: Parser AExp
 boxParser = do
-  string "[]"
+  string "#"
   spaces
   exp <- firstExpParser
   return (AExpBox exp)
