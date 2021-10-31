@@ -11,7 +11,7 @@ data TypeProperty
   | Stable
   | None
   | Both
-  deriving (Show)
+  deriving (Show, Eq)
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
@@ -67,7 +67,7 @@ data AType
 -- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
 data BType
   = BTypeIndex Integer
-  | BTypeParametric Integer
+  | BTypeParametric Integer TypeProperty
   | BTypeNameParam Integer
   | BTypeUnit
   | BTypeNat
