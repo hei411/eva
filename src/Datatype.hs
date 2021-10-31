@@ -139,7 +139,7 @@ data CExp
   deriving (Show, Eq)
 
 -- Type checking
-type ContextElem = (String, BType)
+type ContextElem = (String, BType, Maybe (CExp, [TypeProperty]))
 
 type ContextElemList = [ContextElem]
 

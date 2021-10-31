@@ -79,11 +79,11 @@ addPound p exp = case p of
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
   do
-    char '<'
+    char '['
     spaces
     l <- sepBy1 oneParameterParser (try commaParser)
     spaces
-    char '>'
+    char ']'
     return l
   where
     commaParser :: Parser ()

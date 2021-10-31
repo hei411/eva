@@ -1,14 +1,102 @@
---Module to be MODIFIED
-
 module TypeChecker.MainTypeChecker where
 
 import Datatype
 import TypeChecker.LimitChecker
 import TypeChecker.StableChecker
 
-mainTypeChecker :: FilePath -> String -> TypeCheckedProgram -> Context -> BExp -> (CExp, BType)
-mainTypeChecker file functionName definedFunctions context bExp =
-  error "TODO type checker to be implemented"
+mainTypeChecker :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+mainTypeChecker file functionName context varStack bExp = case bExp of
+  --varStack specifically for creating dbindices. Note that context may pop stuff out from context even we are not out of the range syntactically
+  BExpVar s bts -> varRule file functionName context varStack s bts
+  BExpUnit -> (CExpUnit, BTypeUnit)
+  BExpLambda s bt be -> lambdaRule file functionName context varStack s bt be
+  BExpApplication be be' -> applicationRule file functionName context varStack be be'
+  BExpProduct be be' -> productRule file functionName context varStack be be'
+  BExpFst be -> fstRule file functionName context varStack be
+  BExpSnd be -> sndRule file functionName context varStack be
+  BExpInl be bt -> inlRule file functionName context varStack be bt
+  BExpInr be bt -> inrRule file functionName context varStack be bt
+  BExpMatch be s be' str be2 -> matchRule file functionName context varStack be s be' str be2
+  BExpZero -> (CExpZero, BTypeNat)
+  BExpSuc be -> sucRule file functionName context varStack be
+  BExpPrimrec be be' s str be2 -> primrecRule file functionName context varStack be be' s str be2
+  BExpArrow be -> arrowRule file functionName context varStack be
+  BExpAt be -> atRule file functionName context varStack be
+  BExpAdv be -> advRule file functionName context varStack be
+  BExpBox be -> boxRule file functionName context varStack be
+  BExpUnbox be -> unboxRule file functionName context varStack be
+  BExpNow be bt -> nowRule file functionName context varStack be bt
+  BExpWait be be' -> waitRule file functionName context varStack be be'
+  BExpUrec be s be' str cs s' be2 -> urecrule file functionName context varStack be s be' str cs s' be2
+  BExpFix s bt be -> fixRule file functionName context varStack s bt be
+  BExpOut be -> outRule file functionName context varStack be
+  BExpInto be bt -> intoRule file functionName context varStack be bt
+
+varRule :: FilePath -> String -> Context -> [String] -> String -> [BType] -> (CExp, BType)
+varRule file functionName context varStack varName typeArguments = error "varRule not implemented"
+
+lambdaRule :: FilePath -> String -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
+lambdaRule file functionName context varStack varName varType body = error "lambdaRule not implemented"
+
+applicationRule :: FilePath -> String -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+applicationRule = error "not implemented"
+
+productRule :: FilePath -> String -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+productRule = error "not implemented"
+
+fstRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+fstRule = error "not implemented"
+
+sndRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+sndRule = error "not implemented"
+
+inlRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
+inlRule = error "not implemented"
+
+inrRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
+inrRule = error "not implemented"
+
+matchRule :: FilePath -> String -> Context -> [String] -> BExp -> String -> BExp -> String -> BExp -> (CExp, BType)
+matchRule = error "not implemented"
+
+sucRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+sucRule = error "not implemented"
+
+primrecRule :: FilePath -> String -> Context -> [String] -> BExp -> BExp -> String -> String -> BExp -> (CExp, BType)
+primrecRule = error "not implemented"
+
+arrowRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+arrowRule = error "not implemented"
+
+atRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+atRule = error "not implemented"
+
+advRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+advRule = error "not implemented"
+
+boxRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+boxRule = error "not implemented"
+
+unboxRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+unboxRule = error "not implemented"
+
+nowRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
+nowRule = error "not implemented"
+
+waitRule :: FilePath -> String -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+waitRule = error "not implemented"
+
+urecrule :: FilePath -> String -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+urecrule = error "not implemented"
+
+fixRule :: FilePath -> String -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
+fixRule = error "not implemented"
+
+outRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
+outRule = error "not implemented"
+
+intoRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
+intoRule = error "not implemented"
 
 {-
 import Datatype

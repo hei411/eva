@@ -245,16 +245,18 @@ atParser = do
 
 advParser :: Parser AExp
 advParser = do
-  string "adv"
-  notFollowedBy alphaNum
+  --string "adv"
+  --notFollowedBy alphaNum
+  char '<'
   spaces
   exp <- firstExpParser
   return (AExpAdv exp)
 
 unboxParser :: Parser AExp
 unboxParser = do
-  string "unbox"
-  notFollowedBy alphaNum
+  --string "unbox"
+  --notFollowedBy alphaNum
+  char '?'
   spaces
   exp <- firstExpParser
   return (AExpUnbox exp)
@@ -356,11 +358,11 @@ expParameterParser :: Parser [AType]
 expParameterParser =
   do
     spaces
-    char '<'
+    char '['
     spaces
     l <- sepBy1 typeParser (try commaParser)
     spaces
-    char '>'
+    char ']'
     return l
   where
     commaParser :: Parser ()
