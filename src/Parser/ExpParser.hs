@@ -152,7 +152,7 @@ matchParser = do
   string "match"
   skipMany1 space
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
@@ -203,7 +203,7 @@ primrecParser = do
   notFollowedBy alphaNum
   spaces
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
@@ -284,7 +284,7 @@ waitParser = do
   notFollowedBy alphaNum
   spaces
   exp1 <- oneExpParser
-  skipMany1 space
+  spaces
   exp2 <- firstExpParser
   return (AExpWait exp1 exp2)
 
@@ -294,7 +294,7 @@ urecParser = do
   notFollowedBy alphaNum
   spaces
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
