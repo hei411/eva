@@ -22,7 +22,7 @@ mainProgramAnalyzerHelper ::
   IO CompiledFilesData
 mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles =
   do
-    putStrLn ("Parsing " ++ src_path ++ currentFile)
+    --putStrLn ("Parsing " ++ src_path ++ currentFile)
     parse_tree <- readParse (src_path ++ currentFile)
     case parse_tree of
       -- Error in parsing
@@ -30,7 +30,7 @@ mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles 
       Right program -> do
         -- Parsing succeeded
         -- putStrLn (show (program))
-        putStrLn (currentFile ++ " is parsed correctly")
+        --putStrLn (currentFile ++ " is parsed correctly")
         singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles [] [] [] [] [] program
 
 readParse :: FilePath -> IO (Either Text.Parsec.Error.ParseError Program)
@@ -58,7 +58,7 @@ singleFileAnalyzer ::
 singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames program = case program of
   [] ->
     do
-      putStrLn (src_path ++ currentFile ++ " completely typechecked.")
+      --putStrLn (src_path ++ currentFile ++ " completely typechecked.")
       return ((src_path ++ currentFile, toExportFunctions, toExportTypenames) : compiledFilesData)
   hd : tl -> case hd of
     LetStatement str polyParams aExp -> letStatementAnalyzer str polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
@@ -114,8 +114,8 @@ letStatementAnalyzer ::
   IO CompiledFilesData
 letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
   do
-    checkFunctionNameExists (importedFunctions ++ toExportFunctions) functionName
-    let bExp = abExpConverter polyParams (importedTypenames ++ toExportTypenames) aExp
+    checkFunctionNameExists (src_path ++ currentFile) (importedFunctions ++ toExportFunctions) functionName
+    let bExp = abExpConverter (src_path ++ currentFile) functionName polyParams (importedTypenames ++ toExportTypenames) aExp
     putStrLn (show (bExp))
     error "TODO: let Statement analyzer in works"
 

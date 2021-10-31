@@ -2,7 +2,7 @@ module ProgramAnalyzer.LetStatementAnalyzerUtils where
 
 import Datatype
 
-checkFunctionNameExists :: TypeCheckedProgram -> String -> IO ()
-checkFunctionNameExists createdFunctionNames functionName = case createdFunctionNames of
+checkFunctionNameExists :: FilePath -> TypeCheckedProgram -> String -> IO ()
+checkFunctionNameExists file createdFunctionNames functionName = case createdFunctionNames of
   [] -> return ()
-  (str, _, _, _) : tl -> if str == functionName then error (functionName ++ " already defined or exported!") else checkFunctionNameExists tl functionName
+  (str, _, _, _) : tl -> if str == functionName then error (file ++ ": \"" ++ functionName ++ "\" already defined or exported!") else checkFunctionNameExists file tl functionName

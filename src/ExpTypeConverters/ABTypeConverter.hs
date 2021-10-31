@@ -3,10 +3,10 @@ module ExpTypeConverters.ABTypeConverter where
 import Data.List
 import Datatype
 
-abTypeConverter :: [(TypeProperty, String)] -> TypenameList -> [String] -> AType -> BType
-abTypeConverter polyParams definedTypenames varStack aType = case aType of
-  ATypeVar s -> resolveTypeVar polyParams varStack s
-  ATypeName s ats -> resolveTypeName definedTypenames s (map (abTypeConverterCur varStack) ats)
+abTypeConverter :: FilePath -> String -> [(TypeProperty, String)] -> TypenameList -> [String] -> AType -> BType
+abTypeConverter file functionName polyParams definedTypenames varStack aType = case aType of
+  ATypeVar s -> resolveTypeVar file functionName polyParams varStack s
+  ATypeName s ats -> resolveTypeName file functionName definedTypenames s (map (abTypeConverterCur varStack) ats)
   ATypeUnit -> BTypeUnit
   ATypeNat -> BTypeNat
   ATypeProduct at at' -> BTypeProduct (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
@@ -18,10 +18,10 @@ abTypeConverter polyParams definedTypenames varStack aType = case aType of
   ATypeFix s at -> BTypeFix (abTypeConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
   where
-    abTypeConverterCur = abTypeConverter polyParams definedTypenames
+    abTypeConverterCur = abTypeConverter file functionName polyParams definedTypenames
 
-resolveTypeVar :: [(TypeProperty, String)] -> [String] -> String -> BType
-resolveTypeVar polyParams varStack str =
+resolveTypeVar :: FilePath -> String -> [(TypeProperty, String)] -> [String] -> String -> BType
+resolveTypeVar file functionName polyParams varStack str =
   do
     let stackIndex = elemIndex str varStack
     case stackIndex of
@@ -29,7 +29,7 @@ resolveTypeVar polyParams varStack str =
         do
           let polyParamsIndexPair = findPolyParam 0 polyParams str
           case polyParamsIndexPair of
-            Nothing -> error ("Cannot resolve the typevariable " ++ str ++ " with polymorphic parameters or Fix variables.")
+            Nothing -> error (file ++ ": " ++ "Cannot resolve the typevariable \"" ++ str ++ "\" with polymorphic parameters or Fix variables in \"" ++ functionName ++ "\"")
             Just (n, prop) -> BTypeParametric n prop
       Just n -> BTypeIndex (toInteger n)
   where
@@ -38,15 +38,15 @@ resolveTypeVar polyParams varStack str =
       [] -> Nothing
       (prop, name) : tl -> if name == str then Just (currentIndex, prop) else findPolyParam (currentIndex + 1) tl str
 
-resolveTypeName :: TypenameList -> String -> [BType] -> BType
-resolveTypeName definedTypenames name typeArguments =
+resolveTypeName :: FilePath -> String -> TypenameList -> String -> [BType] -> BType
+resolveTypeName file functionName definedTypenames name typeArguments =
   do
     let typenamePair = lookupTypename definedTypenames name
     case typenamePair of
-      Nothing -> error ("Cannot resolve the type synonym " ++ name)
+      Nothing -> error (file ++ ": " ++ "Cannot resolve the type synonym \"" ++ name ++ "\" in \"" ++ functionName ++ "\"")
       Just (bType, num) ->
         if num /= (toInteger (length typeArguments))
-          then error ("Provide wrong number of type arguments to the type synonym " ++ name)
+          then error (file ++ ": " ++ "Provide wrong number of type arguments to the type synonym \"" ++ name ++ "\" in \"" ++ functionName ++ "\"")
           else foldl (substituteTypenameArg 0) bType typeArguments
   where
     lookupTypename :: TypenameList -> String -> Maybe (BType, Integer)
@@ -77,7 +77,7 @@ substituteTypenameArg levelNum bType arg = case bType of
       BTypeIndex n ->
         if n >= current then BTypeIndex (n + levelNum) else BTypeIndex n
       BTypeParametric n tp -> BTypeParametric n tp
-      BTypeNameParam n -> error "Not sure, but there should not be any BTypeNameParam in an argument passed to a type synonym, as all arguments should be resolved"
+      BTypeNameParam n -> error "Should probably not happen, there should not be any BTypeNameParam in an argument passed to a type synonym, as all arguments should be resolved"
       BTypeUnit -> BTypeUnit
       BTypeNat -> BTypeNat
       BTypeProduct bt bt' -> BTypeProduct (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
