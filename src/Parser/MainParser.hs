@@ -10,9 +10,9 @@ import Text.Parsec.String
 
 statementParser :: Parser Statement
 statementParser =
-  try letStatementParser
+  try importStatementParser
     <|> try typeStatementParser
-    <|> importStatementParser
+    <|> letStatementParser
 
 letStatementParser :: Parser Statement
 letStatementParser = do

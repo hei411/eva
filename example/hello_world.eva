@@ -1,7 +1,7 @@
 //let two_test = 2;
 let primrectry[a, Stable gh, Limit po, Stable Limit p, Limit Stable j]
     a:Nat b:Unit +j # (d:Fix a->a) 
-    = primrec xs[gh+a, po, Fix a->a *Unit] with | 0 => <>?#@@0 | suc k fby t => <? t;
+    = primrec xs[gh+a, po, Fix a->a *Unit ] with | 0 => <>?#@@0 | suc k fby t => <? t;
 
 import ervrev.erg.erv;
 /*
