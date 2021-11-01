@@ -67,15 +67,15 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
                   StableContext x0 x1 ->
                     if isStable monoBType
                       then (cExp, monoBType)
-                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and cannot blocked by token(s) in Stable Context")
+                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in Stable Context")
                   ArrowContext x0 x1 x2 ->
                     if isStable monoBType
                       then (cExp, monoBType)
-                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and cannot blocked by token(s) in Arrow Context")
+                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in Arrow Context")
                   AtContext x0 x1 x2 ->
                     if isStable monoBType
                       then (cExp, monoBType)
-                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and cannot blocked by token(s) in At Context")
+                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in At Context")
   where
     findDefinedFunctions :: Integer -> TypeCheckedProgram -> Maybe (Integer, CExp, BType, [TypeProperty])
     findDefinedFunctions index functionList = case functionList of
