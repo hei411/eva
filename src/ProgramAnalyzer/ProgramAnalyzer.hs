@@ -118,6 +118,7 @@ letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledF
     let bExp = abExpConverter (src_path ++ currentFile) functionName polyParams (importedTypenames ++ toExportTypenames) aExp
     let (cExp, bType) = mainTypeChecker (src_path ++ currentFile) functionName (TokenlessContext (toContextElemList (importedFunctions ++ toExportFunctions))) [] bExp
     putStrLn (show (bExp))
+    putStrLn (show (cExp))
     error "TODO: let Statement analyzer in works"
   where
     toContextElemList :: TypeCheckedProgram -> ContextElemList

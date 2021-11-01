@@ -47,7 +47,7 @@ library
       TypeChecker.TypeFunctions
       TypeChecker.ValidChecker
       TypeFunctions.TypeCompare
-      TypeFunctions.TypeSubstitute
+      TypeFunctions.TypeUnfold
   other-modules:
       Paths_eva
   hs-source-dirs:

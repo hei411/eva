@@ -5,6 +5,7 @@ import TypeChecker.ContextFunctions
 import TypeChecker.LimitChecker
 import TypeChecker.StableChecker
 import TypeFunctions.TypeCompare
+import TypeFunctions.TypeUnfold
 
 mainTypeChecker :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
 mainTypeChecker file functionName context varStack bExp = case bExp of
@@ -29,7 +30,7 @@ mainTypeChecker file functionName context varStack bExp = case bExp of
   BExpUnbox be -> unboxRule file functionName context varStack be
   BExpNow be bt -> nowRule file functionName context varStack be bt
   BExpWait be be' -> waitRule file functionName context varStack be be'
-  BExpUrec be s be' str cs s' be2 -> urecrule file functionName context varStack be s be' str cs s' be2
+  BExpUrec be s be' str cs s' be2 -> urecRule file functionName context varStack be s be' str cs s' be2
   BExpRec s bt be -> recRule file functionName context varStack s bt be
   BExpOut be -> outRule file functionName context varStack be
   BExpInto be bt -> intoRule file functionName context varStack be bt
@@ -138,34 +139,149 @@ primrecRule file functionName context varStack e e1 var1 var2 e2 =
       _ -> typeCheckerErrorMsg file functionName "primrecRule applied to a non-Nat type"
 
 arrowRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-arrowRule = error "not implemented"
+arrowRule file functionName context varStack e =
+  case context of
+    TokenlessContext x0 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  tokenless context"
+    StableContext x0 x1 ->
+      do
+        let (eExp, eType) = mainTypeChecker file functionName (ArrowContext x0 x1 []) varStack e
+        (CExpArrow eExp, BTypeArrow eType)
+    ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  arrow context"
+    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  atcontext"
 
 atRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-atRule = error "not implemented"
+atRule file functionName context varStack e =
+  case context of
+    TokenlessContext x0 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  tokenless context"
+    StableContext x0 x1 ->
+      do
+        let (eExp, eType) = mainTypeChecker file functionName (AtContext x0 x1 []) varStack e
+        (CExpAt eExp, BTypeAt eType)
+    ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  arrow context"
+    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  atcontext"
 
 advRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-advRule = error "not implemented"
+advRule file functionName context varStack e =
+  case context of
+    TokenlessContext x0 -> typeCheckerErrorMsg file functionName "advRule applied to a non-tickful context, i.e.  tokenlesscontext"
+    StableContext x0 x1 -> typeCheckerErrorMsg file functionName "advRule applied to a non-tickful context, i.e.  stablecontext"
+    ArrowContext x0 x1 x2 ->
+      do
+        let (eExp, eType) = mainTypeChecker file functionName (StableContext x0 x1) varStack e
+        case eType of
+          BTypeArrow a -> (CExpAdv eExp, a)
+          BTypeAt a -> (CExpAdv eExp, a)
+          _ -> typeCheckerErrorMsg file functionName "advRule applied to a non-delay type"
+    AtContext x0 x1 x2 ->
+      do
+        let (eExp, eType) = mainTypeChecker file functionName (StableContext x0 x1) varStack e
+        case eType of
+          BTypeArrow a ->
+            if isLimit a
+              then (CExpAdv eExp, a)
+              else typeCheckerErrorMsg file functionName "Failure to type a non-limit arrow-delay type in an atcontext"
+          BTypeAt a -> (CExpAdv eExp, a)
+          _ -> typeCheckerErrorMsg file functionName "advRule applied to a non-delay type"
 
 boxRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-boxRule = error "not implemented"
+boxRule file functionName context varStack e = case context of
+  TokenlessContext x0 ->
+    do
+      let (eExp, eType) = mainTypeChecker file functionName (StableContext x0 []) varStack e
+      (CExpBox eExp, BTypeBox eType)
+  StableContext x0 x1 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  stablecontext"
+  ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  ArrowContext"
+  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  AtContext"
 
 unboxRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-unboxRule = error "not implemented"
+unboxRule file functionName context varStack e = case context of
+  TokenlessContext x0 -> typeCheckerErrorMsg file functionName "unboxRule applied to a tokenless context"
+  StableContext x0 x1 ->
+    do
+      let (eExp, eType) = mainTypeChecker file functionName (TokenlessContext x0) varStack e
+      case eType of
+        BTypeBox a -> (CExpUnbox eExp, a)
+        _ -> typeCheckerErrorMsg file functionName "boxRule applied to a non-boxed type"
+  ArrowContext x0 x1 x2 ->
+    do
+      let (eExp, eType) = mainTypeChecker file functionName (TokenlessContext x0) varStack e
+      case eType of
+        BTypeBox a -> (CExpUnbox eExp, a)
+        _ -> typeCheckerErrorMsg file functionName "boxRule applied to a non-boxed type"
+  AtContext x0 x1 x2 ->
+    do
+      let (eExp, eType) = mainTypeChecker file functionName (TokenlessContext x0) varStack e
+      case eType of
+        BTypeBox a -> (CExpUnbox eExp, a)
+        _ -> typeCheckerErrorMsg file functionName "boxRule applied to a non-boxed type"
 
 nowRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
-nowRule = error "not implemented"
+nowRule file functionName context varStack e ascription =
+  do
+    let (eExp, eType) = mainTypeChecker file functionName context varStack e
+    case ascription of
+      BTypeUntil a b ->
+        if generalBTypeCompare eType b
+          then (CExpNow eExp, ascription)
+          else typeCheckerErrorMsg file functionName "nowRule type ascription does not match intended until type"
+      _ -> typeCheckerErrorMsg file functionName "nowRule type ascription is not until type"
 
 waitRule :: FilePath -> String -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
-waitRule = error "not implemented"
+waitRule file functionName context varStack e1 e2 =
+  do
+    let (e1Exp, e1Type) = mainTypeChecker file functionName context varStack e1
+    let (e2Exp, e2Type) = mainTypeChecker file functionName context varStack e2
+    case e2Type of
+      BTypeAt (BTypeUntil a b) ->
+        if generalBTypeCompare a e1Type
+          then (CExpWait e1Exp e2Exp, BTypeUntil a b)
+          else typeCheckerErrorMsg file functionName "waitRule two arguments do not match"
+      _ -> typeCheckerErrorMsg file functionName "waitRule's second argument is not an at-delayed Until type"
 
-urecrule :: FilePath -> String -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
-urecrule = error "not implemented"
+urecRule :: FilePath -> String -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+urecRule file functionName context varStack e nowVar e1 waitVar1 waitVar2 fbyVar e2 = case context of
+  TokenlessContext x0 -> typeCheckerErrorMsg file functionName "urecRule applied to a tokenless context"
+  StableContext x0 x1 -> urecRuleHelper x0
+  ArrowContext x0 x1 x2 -> urecRuleHelper x0
+  AtContext x0 x1 x2 -> urecRuleHelper x0
+  where
+    urecRuleHelper firstContextList =
+      do
+        let (eExp, eType) = mainTypeChecker file functionName context varStack e
+        case eType of
+          BTypeUntil a b ->
+            do
+              let (e1Exp, e1Type) = mainTypeChecker file functionName (StableContext firstContextList [(nowVar, b, Nothing)]) (nowVar : varStack) e1
+              let extendedContext = StableContext firstContextList [(fbyVar, BTypeAt e1Type, Nothing), (waitVar2, BTypeAt eType, Nothing), (waitVar1, a, Nothing)]
+              let (e2Exp, e2Type) = mainTypeChecker file functionName extendedContext (fbyVar : waitVar2 : waitVar1 : varStack) e1
+              if generalBTypeCompare e2Type e1Type
+                then (CExpUrec eExp e1Exp e2Exp, e1Type)
+                else typeCheckerErrorMsg file functionName "urecRule branches' types do not match"
+          _ -> typeCheckerErrorMsg file functionName "urecRule not applied to an until type"
 
 recRule :: FilePath -> String -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
-recRule = error "not implemented"
+recRule file functionName context varStack var ascription e = case context of
+  TokenlessContext x0 ->
+    case ascription of
+      BTypeBox a ->
+        do
+          let (eExp, eType) = mainTypeChecker file functionName (StableContext ((var, BTypeBox (BTypeArrow a), Nothing) : x0) []) (var : varStack) e
+          if generalBTypeCompare eType a
+            then (CExpRec eExp, ascription)
+            else typeCheckerErrorMsg file functionName "recRule type ascription does not match target type"
+      _ -> typeCheckerErrorMsg file functionName "recRule type ascription is not box type"
+  StableContext x0 x1 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. StableContext"
+  ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. ArrowContext"
+  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. AtContext"
 
 outRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
-outRule = error "not implemented"
+outRule file functionName context varStack e =
+  do
+    let (eExp, eType) = mainTypeChecker file functionName context varStack e
+    case eType of
+      BTypeFix t ->
+        (CExpOut eExp, unfoldBType eType)
+      _ -> typeCheckerErrorMsg file functionName "outRule not applied to an Fix type"
 
 intoRule :: FilePath -> String -> Context -> [String] -> BExp -> BType -> (CExp, BType)
 intoRule = error "not implemented"
