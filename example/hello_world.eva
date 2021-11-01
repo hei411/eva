@@ -1,5 +1,5 @@
 //let two_test = 2;
-let zero =0;
+let test [a,b] f:a->b x:a=f x;
 let primrectry[a, Stable gh, Limit po, Stable Limit p, Limit Stable j]
     a:Nat b:Unit +j # (d:Fix a->a) (fe:p)
     = primrec xs[gh+a, po, Fix a->a *Unit ] with | 0 => <>?#@@ (rec (t:Nat) => 0) | suc k fby t => <? fun (r:Unit) t:Nat+(Nat)=> 0;

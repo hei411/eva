@@ -1,4 +1,4 @@
-module TypeChecker.StableChecker where
+module TypeFunctions.StableChecker where
 
 import Datatype
 

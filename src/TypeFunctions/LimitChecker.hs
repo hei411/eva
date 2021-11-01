@@ -1,4 +1,4 @@
-module TypeChecker.LimitChecker where
+module TypeFunctions.LimitChecker where
 
 import Datatype
 

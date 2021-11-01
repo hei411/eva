@@ -41,12 +41,14 @@ library
       ProgramAnalyzer.ProgramAnalyzer
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions
-      TypeChecker.LimitChecker
       TypeChecker.MainTypeChecker
-      TypeChecker.StableChecker
       TypeChecker.TypeFunctions
       TypeChecker.ValidChecker
+      TypeFunctions.LimitChecker
+      TypeFunctions.StableChecker
+      TypeFunctions.SubstituteParametric
       TypeFunctions.TypeCompare
+      TypeFunctions.TypePropertyChecker
       TypeFunctions.TypeUnfold
   other-modules:
       Paths_eva

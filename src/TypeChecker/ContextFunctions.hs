@@ -9,12 +9,12 @@ addContextElem c cell = case c of
   ArrowContext x0 x1 x2 -> ArrowContext x0 x1 (cell : x2)
   AtContext x0 x1 x2 -> AtContext x0 x1 (cell : x2)
 
-{-
 elemContext :: ContextElemList -> String -> Maybe BType
 elemContext l s = case l of
   [] -> Nothing
   (var, t) : x1 -> if var == s then Just t else elemContext x1 s
 
+{-
 isTickFree :: Context -> Bool
 isTickFree c = case c of
   TokenlessContext x0 -> True
