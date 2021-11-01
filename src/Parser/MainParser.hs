@@ -40,36 +40,9 @@ letStatementParser = do
     Nothing -> return (LetStatement var [] modifiedexp)
     Just ss -> return (LetStatement var ss modifiedexp)
 
-annoVarParser :: Parser (String, AType)
-annoVarParser =
-  try
-    ( do
-        char '('
-        spaces
-        p <- annoVarParser
-        spaces
-        char ')'
-        return p
-    )
-    <|> try
-      ( do
-          s <- varParser
-          spaces
-          char ':'
-          spaces
-          t <- typeParser
-          spaces
-          return (s, t)
-      )
-
 modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
 modifyExp firstParameters pound secondParameters exp =
   addLambda firstParameters (addPound pound (addLambda secondParameters exp))
-
-addLambda :: [(String, AType)] -> AExp -> AExp
-addLambda l exp = case l of
-  [] -> exp
-  (s, t) : tl -> AExpLambda s t (addLambda tl exp)
 
 addPound :: Maybe Char -> AExp -> AExp
 addPound p exp = case p of

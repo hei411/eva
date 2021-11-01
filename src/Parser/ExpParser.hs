@@ -25,27 +25,18 @@ lambdaParser = do
   string "fun"
   notFollowedBy alphaNum
   spaces
-  v <- varParser
-  spaces
-  char ':'
-  spaces
-  t <- typeParser
-  spaces
+  l <- many1 (annoVarParser)
   string "=>"
   spaces
   exp <- expParser
-  return (AExpLambda v t exp)
+  return (addLambda l exp)
 
 recParser :: Parser AExp
 recParser = do
   string "rec"
-  skipMany1 space
-  v <- varParser
+  notFollowedBy alphaNum
   spaces
-  char ':'
-  spaces
-  t <- typeParser
-  spaces
+  (v, t) <- annoVarParser
   string "=>"
   spaces
   exp <- expParser
@@ -404,3 +395,31 @@ oneExpParser =
     <|> try expVarParser
     <|> unitParser
     <|> fail "Can't parse OneExp"
+
+annoVarParser :: Parser (String, AType)
+annoVarParser =
+  try
+    ( do
+        char '('
+        spaces
+        p <- annoVarParser
+        spaces
+        char ')'
+        spaces
+        return p
+    )
+    <|> try
+      ( do
+          s <- varParser
+          spaces
+          char ':'
+          spaces
+          t <- typeParser
+          spaces
+          return (s, t)
+      )
+
+addLambda :: [(String, AType)] -> AExp -> AExp
+addLambda l exp = case l of
+  [] -> exp
+  (s, t) : tl -> AExpLambda s t (addLambda tl exp)

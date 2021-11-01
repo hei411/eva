@@ -266,6 +266,7 @@ type4'Parser =
   try
     ( do
         string "Unit"
+        notFollowedBy alphaNum
         return ATypeUnit
     )
     <|> try
@@ -302,6 +303,7 @@ type4'Parser =
     <|> try typeNameParser
     <|> ( do
             string "Nat"
+            notFollowedBy alphaNum
             return ATypeNat
         )
     <|> fail "Can't parse Type4'"
