@@ -30,7 +30,7 @@ mainTypeChecker file functionName context varStack bExp = case bExp of
   BExpNow be bt -> nowRule file functionName context varStack be bt
   BExpWait be be' -> waitRule file functionName context varStack be be'
   BExpUrec be s be' str cs s' be2 -> urecrule file functionName context varStack be s be' str cs s' be2
-  BExpFix s bt be -> fixRule file functionName context varStack s bt be
+  BExpRec s bt be -> recRule file functionName context varStack s bt be
   BExpOut be -> outRule file functionName context varStack be
   BExpInto be bt -> intoRule file functionName context varStack be bt
 
@@ -161,8 +161,8 @@ waitRule = error "not implemented"
 urecrule :: FilePath -> String -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
 urecrule = error "not implemented"
 
-fixRule :: FilePath -> String -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
-fixRule = error "not implemented"
+recRule :: FilePath -> String -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
+recRule = error "not implemented"
 
 outRule :: FilePath -> String -> Context -> [String] -> BExp -> (CExp, BType)
 outRule = error "not implemented"

@@ -27,7 +27,7 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpNow ae at -> BExpNow (abExpConverterCur ae) (abTypeConverterCur at)
   AExpWait ae ae' -> BExpWait (abExpConverterCur ae) (abExpConverterCur ae')
   AExpUrec ae s ae' str cs s' ae2 -> BExpUrec (abExpConverterCur ae) s (abExpConverterCur ae') str cs s' (abExpConverterCur ae2)
-  AExpFix s at ae -> BExpFix s (abTypeConverterCur at) (abExpConverterCur ae)
+  AExpRec s at ae -> BExpRec s (abTypeConverterCur at) (abExpConverterCur ae)
   AExpOut ae -> BExpOut (abExpConverterCur ae)
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
   where

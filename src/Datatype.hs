@@ -44,7 +44,7 @@ data AExp
   | AExpNow AExp AType
   | AExpWait AExp AExp
   | AExpUrec AExp String AExp String String String AExp
-  | AExpFix String AType AExp
+  | AExpRec String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
   deriving (Show, Eq)
@@ -104,7 +104,7 @@ data BExp
   | BExpNow BExp BType
   | BExpWait BExp BExp
   | BExpUrec BExp String BExp String String String BExp
-  | BExpFix String BType BExp
+  | BExpRec String BType BExp
   | BExpOut BExp
   | BExpInto BExp BType
   deriving (Show, Eq)
@@ -132,7 +132,7 @@ data CExp
   | CExpNow CExp
   | CExpWait CExp CExp
   | CExpUrec CExp CExp CExp
-  | CExpFix CExp
+  | CExpRec CExp
   | CExpOut CExp
   | CExpInto CExp
   | CExpLocation Integer

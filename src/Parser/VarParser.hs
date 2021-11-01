@@ -31,7 +31,7 @@ varParser =
         --"unbox" -> fail "unbox cannot be variable name."
         "now" -> fail "now cannot be variable name."
         "urec" -> fail "urec cannot be variable name."
-        "fix" -> fail "fix cannot be variable name."
+        "rec" -> fail "rec cannot be variable name."
         "into" -> fail "into cannot be variable name."
         "out" -> fail "out cannot be variable name."
         "import" -> fail "import cannot be variable name."

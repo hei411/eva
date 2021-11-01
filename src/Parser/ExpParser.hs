@@ -36,9 +36,9 @@ lambdaParser = do
   exp <- expParser
   return (AExpLambda v t exp)
 
-fixParser :: Parser AExp
-fixParser = do
-  string "fix"
+recParser :: Parser AExp
+recParser = do
+  string "rec"
   skipMany1 space
   v <- varParser
   spaces
@@ -49,12 +49,12 @@ fixParser = do
   string "=>"
   spaces
   exp <- expParser
-  return (AExpFix v t exp)
+  return (AExpRec v t exp)
 
 bindExpParser :: Parser AExp
 bindExpParser =
   try lambdaParser
-    <|> fixParser
+    <|> recParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
 
 appExpParser :: Parser AExp
