@@ -33,8 +33,8 @@ letStatementParser = do
   spaces
   exp <- expParser
   spaces
-  char ';'
-  spaces
+  -- char ';'
+  -- spaces
   let modifiedexp = modifyExp firstParameters pound secondParameters exp
   case polyParameters of
     Nothing -> return (LetStatement var [] modifiedexp)
@@ -119,8 +119,8 @@ typeStatementParser = do
   spaces
   t <- typeParser
   spaces
-  char ';'
-  spaces
+  --char ';'
+  --spaces
   case parameters of
     Nothing -> return (TypeStatement str [] t)
     Just ss -> return (TypeStatement str ss t)
@@ -148,8 +148,8 @@ importStatementParser = do
   skipMany1 space
   s <- fileNameParser
   spaces
-  char ';'
-  spaces
+  --char ';'
+  --spaces
   let processedFilePath = (processFilePath s) ++ ".eva"
   return (ImportStatement processedFilePath)
 
@@ -175,5 +175,5 @@ programParser = do
   eof
   return p
 
-mainParser :: String -> Either ParseError Program
-mainParser = parse programParser "Unable to parse file"
+mainParser :: FilePath -> String -> Either ParseError Program
+mainParser file = parse programParser ("Unable to parse file: " ++ file)

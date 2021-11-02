@@ -43,7 +43,7 @@ readParse fileName =
     -- Remove comments
     let clean_file_content = commentRemover file_content
     -- Create parse tree
-    return (mainParser clean_file_content)
+    return (mainParser fileName clean_file_content)
 
 singleFileAnalyzer ::
   FilePath ->
