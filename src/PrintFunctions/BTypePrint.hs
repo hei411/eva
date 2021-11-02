@@ -38,7 +38,7 @@ printBType n bType =
             else printBType n bt
         )
           ++ " -> "
-          ++ ( if bTypeLevel bt' <= currentLevel
+          ++ ( if bTypeLevel bt' < currentLevel
                  then "(" ++ (printBType n bt') ++ ")"
                  else printBType n bt'
              )
