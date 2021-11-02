@@ -11,5 +11,5 @@ main = do
   let src_path = ""
   -- Start of real program
   compiledFilesData <- mainProgramAnalyzer src_path file_name
-  putStrLn(show(compiledFilesData))
+  putStrLn (show (compiledFilesData))
   return ()
