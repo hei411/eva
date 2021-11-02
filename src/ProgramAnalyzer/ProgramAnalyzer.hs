@@ -5,6 +5,7 @@ import Datatype
 import ExpTypeConverters.ABExpConverter
 import ExpTypeConverters.TypeSynonymConverter
 import Parser.MainParser
+import ProgramAnalyzer.ImportStatementAnalyzerUtils
 import ProgramAnalyzer.LetStatementAnalyzerUtils
 import ProgramAnalyzer.TypeStatementAnalyzerUtils
 import StringFunctions.CommentHandler
@@ -158,5 +159,80 @@ importStatementAnalyzer ::
   TypenameList ->
   Program ->
   IO CompiledFilesData
-importStatementAnalyzer toImportFile src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
-  error "importStatementAnalyzer not implemented yet"
+importStatementAnalyzer
+  toImportFile
+  src_path
+  currentFile
+  compiledFilesData
+  toCompileFiles
+  importedFiles
+  importedFunctions
+  toExportFunctions
+  importedTypenames
+  toExportTypenames
+  tl =
+    do
+      checkCircularDependency toImportFile (src_path ++ currentFile) toCompileFiles
+      if elem toImportFile importedFiles
+        then do
+          putStrLn ((src_path ++ currentFile) ++ ": " ++ toImportFile ++ " already imported.")
+          singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+        else do
+          let fileData = findFileData toImportFile compiledFilesData
+          let newImportedFiles = toImportFile : importedFiles
+          case fileData of
+            Nothing ->
+              do
+                newCompiledFilesData <- mainProgramAnalyzerHelper src_path toImportFile compiledFilesData (toImportFile : toCompileFiles)
+
+                let newFileData = findFileData toImportFile newCompiledFilesData
+                case newFileData of
+                  Nothing -> error (src_path ++ currentFile ++ ": Should not happen! Cannot find " ++ src_path ++ toImportFile ++ " data after importing it!")
+                  Just (functions, typeSynonyms) ->
+                    addImportedFileData functions typeSynonyms toImportFile src_path currentFile newCompiledFilesData toCompileFiles newImportedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+            Just (functions, typeSynonyms) ->
+              addImportedFileData functions typeSynonyms toImportFile src_path currentFile compiledFilesData toCompileFiles newImportedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+
+addImportedFileData ::
+  TypeCheckedProgram ->
+  TypenameList ->
+  FilePath ->
+  FilePath ->
+  FilePath ->
+  CompiledFilesData ->
+  [FilePath] ->
+  [FilePath] ->
+  TypeCheckedProgram ->
+  TypeCheckedProgram ->
+  TypenameList ->
+  TypenameList ->
+  Program ->
+  IO CompiledFilesData
+addImportedFileData
+  toAddFunctions
+  toAddTypeSynonyms
+  toImportFile
+  src_path
+  currentFile
+  compiledFilesData
+  toCompileFiles
+  importedFiles
+  importedFunctions
+  toExportFunctions
+  importedTypenames
+  toExportTypenames
+  tl =
+    do
+      let newImportedFunctions = addFunctions (src_path ++ currentFile) toImportFile toAddFunctions importedFunctions toExportFunctions
+      let newImportedTypenames = addTypenames (src_path ++ currentFile) toImportFile toAddTypeSynonyms importedTypenames toExportTypenames
+      singleFileAnalyzer
+        src_path
+        currentFile
+        compiledFilesData
+        toCompileFiles
+        importedFiles
+        newImportedFunctions
+        toExportFunctions
+        newImportedTypenames
+        toExportTypenames
+        tl

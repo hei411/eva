@@ -39,6 +39,7 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      ProgramAnalyzer.ImportStatementAnalyzerUtils
       ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
       ProgramAnalyzer.TypeStatementAnalyzerUtils
