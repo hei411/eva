@@ -1,0 +1,2 @@
+type Str(a) = Fix b-> a*b
+type Ev(a) = Fix b-> a+b

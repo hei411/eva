@@ -171,6 +171,7 @@ importStatementAnalyzer
   toExportTypenames
   tl =
     do
+      putStrLn ("Attempting to import " ++ src_path ++ toImportFile ++ " from " ++ src_path ++ currentFile)
       checkCircularDependency toImportFile (src_path ++ currentFile) toCompileFiles
       if elem toImportFile importedFiles
         then do

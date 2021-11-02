@@ -1,0 +1,7 @@
+import stdlib.typedef.commonprimitives
+
+let hd [a] # stream:Str(a) = 
+    fst (out stream)
+
+let tl [a] # stream:Str(a) = 
+    snd (out stream)
