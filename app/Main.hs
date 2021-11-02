@@ -1,5 +1,6 @@
 module Main where
 
+import PrintFunctions.FileDataPrint
 import ProgramAnalyzer.ProgramAnalyzer (mainProgramAnalyzer)
 import System.Environment (getArgs)
 
@@ -11,5 +12,5 @@ main = do
   let src_path = ""
   -- Start of real program
   compiledFilesData <- mainProgramAnalyzer src_path file_name
-  putStrLn (show (compiledFilesData))
+  putStrLn (fileDataPrint (compiledFilesData))
   return ()

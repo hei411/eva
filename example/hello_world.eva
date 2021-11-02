@@ -1,9 +1,9 @@
 //let two_test = 2;
-let test [a,b] f:a->b x:a=f x;
-let test2 = test [Nat,Unit];
-let inlInsert [ a,b] # (var:a) = inl var :a+b;
-type Nattest (f,e) = Nat;
-type Weird(e,g) = e*(g+g);
+let test [a,b] f:a->b x:a=f x
+let test2 = test [Nat,Unit]
+let inlInsert [ a,b] # (var:a) = inl var :a+b
+type Nattest (f,e) = Nat
+type Weird(e,g) = e*(g+g)
 //import ervrev.erg.erv;
 /*
 type Kef(s, b) = Nat;

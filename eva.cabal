@@ -38,6 +38,8 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      PrintFunctions.BTypePrint
+      PrintFunctions.FileDataPrint
       ProgramAnalyzer.ImportStatementAnalyzerUtils
       ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
