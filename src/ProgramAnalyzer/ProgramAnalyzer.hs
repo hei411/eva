@@ -3,8 +3,10 @@ module ProgramAnalyzer.ProgramAnalyzer where
 import AscriptionSimplifier.AscriptionSimplifier
 import Datatype
 import ExpTypeConverters.ABExpConverter
+import ExpTypeConverters.TypeSynonymConverter
 import Parser.MainParser
 import ProgramAnalyzer.LetStatementAnalyzerUtils
+import ProgramAnalyzer.TypeStatementAnalyzerUtils
 import StringFunctions.CommentHandler
 import qualified Text.Parsec as Text.Parsec.Error
 import TypeChecker.MainTypeChecker
@@ -117,10 +119,9 @@ letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledF
     checkFunctionNameExists (src_path ++ currentFile) (importedFunctions ++ toExportFunctions) functionName
     let bExp = abExpConverter (src_path ++ currentFile) functionName polyParams (importedTypenames ++ toExportTypenames) aExp
     let (cExp, bType) = mainTypeChecker (src_path ++ currentFile) functionName (importedFunctions ++ toExportFunctions) (TokenlessContext []) [] bExp
-    putStrLn (show (bExp))
-    putStrLn (show (cExp))
-    putStrLn (show (bType))
-    error "TODO: let Statement analyzer in works"
+    let typeProperties = map fst polyParams
+    let newToExportFunctions = (functionName, cExp, bType, typeProperties) : toExportFunctions
+    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions newToExportFunctions importedTypenames toExportTypenames tl
 
 typeStatementAnalyzer ::
   String ->
@@ -138,7 +139,11 @@ typeStatementAnalyzer ::
   Program ->
   IO CompiledFilesData
 typeStatementAnalyzer typeSynonymName typeVariables aType src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
-  error "typeStatementAnalyzer not implemented yet"
+  do
+    checkTypeSynonymNameExists (src_path ++ currentFile) (importedTypenames ++ toExportTypenames) typeSynonymName
+    let bType = typeSynonymConverter (src_path ++ currentFile) typeSynonymName typeVariables (importedTypenames ++ toExportTypenames) [] aType
+    let newToExportTypenames = (typeSynonymName, bType, toInteger (length typeVariables)) : toExportTypenames
+    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames newToExportTypenames tl
 
 importStatementAnalyzer ::
   FilePath ->

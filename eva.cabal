@@ -29,6 +29,8 @@ library
       Datatype
       ExpTypeConverters.ABExpConverter
       ExpTypeConverters.ABTypeConverter
+      ExpTypeConverters.TypeNameResolveUtils
+      ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
       Interpreter.ExpFunctions
       Interpreter.StoreFunctions
@@ -39,6 +41,7 @@ library
       Parser.VarParser
       ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
+      ProgramAnalyzer.TypeStatementAnalyzerUtils
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions
       TypeChecker.MainTypeChecker

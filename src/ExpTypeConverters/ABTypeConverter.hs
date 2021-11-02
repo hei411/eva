@@ -2,10 +2,11 @@ module ExpTypeConverters.ABTypeConverter where
 
 import Data.List
 import Datatype
+import ExpTypeConverters.TypeNameResolveUtils
 
 abTypeConverter :: FilePath -> String -> [(TypeProperty, String)] -> TypenameList -> [String] -> AType -> BType
 abTypeConverter file functionName polyParams definedTypenames varStack aType = case aType of
-  ATypeVar s -> resolveTypeVar file functionName polyParams varStack s
+  ATypeVar s -> resolveTypeVarLet file functionName polyParams varStack s
   ATypeName s ats -> resolveTypeName file functionName definedTypenames s (map (abTypeConverterCur varStack) ats)
   ATypeUnit -> BTypeUnit
   ATypeNat -> BTypeNat
@@ -20,8 +21,8 @@ abTypeConverter file functionName polyParams definedTypenames varStack aType = c
   where
     abTypeConverterCur = abTypeConverter file functionName polyParams definedTypenames
 
-resolveTypeVar :: FilePath -> String -> [(TypeProperty, String)] -> [String] -> String -> BType
-resolveTypeVar file functionName polyParams varStack str =
+resolveTypeVarLet :: FilePath -> String -> [(TypeProperty, String)] -> [String] -> String -> BType
+resolveTypeVarLet file functionName polyParams varStack str =
   do
     let stackIndex = elemIndex str varStack
     case stackIndex of
@@ -37,56 +38,3 @@ resolveTypeVar file functionName polyParams varStack str =
     findPolyParam currentIndex polyParams str = case polyParams of
       [] -> Nothing
       (prop, name) : tl -> if name == str then Just (currentIndex, prop) else findPolyParam (currentIndex + 1) tl str
-
-resolveTypeName :: FilePath -> String -> TypenameList -> String -> [BType] -> BType
-resolveTypeName file functionName definedTypenames name typeArguments =
-  do
-    let typenamePair = lookupTypename definedTypenames name
-    case typenamePair of
-      Nothing -> error (file ++ ": " ++ "Cannot resolve the type synonym \"" ++ name ++ "\" in \"" ++ functionName ++ "\"")
-      Just (bType, num) ->
-        if num /= (toInteger (length typeArguments))
-          then error (file ++ ": " ++ "Provide wrong number of type arguments to the type synonym \"" ++ name ++ "\" in \"" ++ functionName ++ "\"")
-          else foldl (substituteTypenameArg 0) bType typeArguments
-  where
-    lookupTypename :: TypenameList -> String -> Maybe (BType, Integer)
-    lookupTypename definedTypenames name = case definedTypenames of
-      [] -> Nothing
-      (key, bType, num) : tl -> if key == name then Just (bType, num) else lookupTypename tl name
-
-substituteTypenameArg :: Integer -> BType -> BType -> BType
-substituteTypenameArg levelNum bType arg = case bType of
-  BTypeIndex n -> BTypeIndex n
-  BTypeParametric n tp -> BTypeParametric n tp
-  BTypeNameParam n ->
-    --really tricky bit. if n == 0 substitute, otherwise subtract one for next typename param
-    if n == 0 then promoteFreeVariables levelNum 0 arg else BTypeNameParam (n -1)
-  BTypeUnit -> BTypeUnit
-  BTypeNat -> BTypeNat
-  BTypeProduct bt bt' -> BTypeProduct (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
-  BTypeSum bt bt' -> BTypeSum (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
-  BTypeFunction bt bt' -> BTypeFunction (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
-  BTypeBox bt -> BTypeBox (substituteTypenameArg levelNum bt arg)
-  BTypeArrow bt -> BTypeArrow (substituteTypenameArg levelNum bt arg)
-  BTypeAt bt -> BTypeAt (substituteTypenameArg levelNum bt arg)
-  BTypeFix bt -> BTypeFix (substituteTypenameArg (levelNum + 1) bt arg)
-  BTypeUntil bt bt' -> BTypeUntil (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
-  where
-    promoteFreeVariables :: Integer -> Integer -> BType -> BType
-    promoteFreeVariables levelNum current bType = case bType of
-      BTypeIndex n ->
-        if n >= current then BTypeIndex (n + levelNum) else BTypeIndex n
-      BTypeParametric n tp -> BTypeParametric n tp
-      BTypeNameParam n -> error "Should probably not happen, there should not be any BTypeNameParam in an argument passed to a type synonym, as all arguments should be resolved"
-      BTypeUnit -> BTypeUnit
-      BTypeNat -> BTypeNat
-      BTypeProduct bt bt' -> BTypeProduct (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
-      BTypeSum bt bt' -> BTypeSum (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
-      BTypeFunction bt bt' -> BTypeFunction (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
-      BTypeBox bt -> BTypeBox (promoteFreeVariablesHelper bt)
-      BTypeArrow bt -> BTypeArrow (promoteFreeVariablesHelper bt)
-      BTypeAt bt -> BTypeAt (promoteFreeVariablesHelper bt)
-      BTypeFix bt -> BTypeFix (promoteFreeVariables levelNum (current + 1) bt)
-      BTypeUntil bt bt' -> BTypeUntil (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
-      where
-        promoteFreeVariablesHelper = promoteFreeVariables levelNum current
