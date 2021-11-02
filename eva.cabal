@@ -26,6 +26,10 @@ source-repository head
 library
   exposed-modules:
       Datatype
+      ExpTypeConverters.ABExpConverter
+      ExpTypeConverters.ABTypeConverter
+      ExpTypeConverters.TypeNameResolveUtils
+      ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
       Interpreter.ExpFunctions
       Interpreter.StoreFunctions
@@ -34,14 +38,19 @@ library
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
+      ProgramAnalyzer.ImportStatementAnalyzerUtils
+      ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
+      ProgramAnalyzer.TypeStatementAnalyzerUtils
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions
-      TypeChecker.LimitChecker
       TypeChecker.MainTypeChecker
-      TypeChecker.StableChecker
-      TypeChecker.TypeFunctions
-      TypeChecker.ValidChecker
+      TypeFunctions.LimitChecker
+      TypeFunctions.StableChecker
+      TypeFunctions.SubstituteParametric
+      TypeFunctions.TypeCompare
+      TypeFunctions.TypePropertyChecker
+      TypeFunctions.TypeUnfold
   other-modules:
       Paths_eva
   hs-source-dirs:

@@ -2,12 +2,28 @@ module Datatype where
 
 type Program = [Statement]
 
-type TypeCheckedProgram = [(String, AExp, AType)]
+type TypeCheckedProgram = [(String, CExp, BType, [TypeProperty])]
 
-data Statement = LetStatement String AExp deriving (Show)
+type TypenameList = [(String, BType, Integer)]
 
+data TypeProperty
+  = Limit
+  | Stable
+  | None
+  | Both
+  deriving (Show, Eq)
+
+type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
+
+data Statement
+  = LetStatement String [(TypeProperty, String)] AExp
+  | TypeStatement String [String] AType
+  | ImportStatement String
+  deriving (Show)
+
+-- First Parse
 data AExp
-  = AExpVar String
+  = AExpVar String [AType]
   | AExpUnit
   | AExpLambda String AType AExp
   | AExpApplication AExp AExp
@@ -28,15 +44,14 @@ data AExp
   | AExpNow AExp AType
   | AExpWait AExp AExp
   | AExpUrec AExp String AExp String String String AExp
-  | AExpFix String AType AExp
+  | AExpRec String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
-  | --Special exp for interpreter
-    AExpLocation Integer
   deriving (Show, Eq)
 
 data AType
   = ATypeVar String
+  | ATypeName String [AType]
   | ATypeUnit
   | ATypeNat
   | ATypeProduct AType AType
@@ -47,10 +62,84 @@ data AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
-  | ATypeApplication AType AType
   deriving (Show, Eq)
 
-type ContextElem = (String, AType)
+-- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
+data BType
+  = BTypeIndex Integer
+  | BTypeParametric Integer TypeProperty
+  | BTypeNameParam Integer
+  | BTypeUnit
+  | BTypeNat
+  | BTypeProduct BType BType
+  | BTypeSum BType BType
+  | BTypeFunction BType BType
+  | BTypeBox BType
+  | BTypeArrow BType
+  | BTypeAt BType
+  | BTypeFix BType
+  | BTypeUntil BType BType
+  deriving (Show, Eq)
+
+-- BExp are AExp except all type ascriptions are valid
+data BExp
+  = BExpVar String [BType]
+  | BExpUnit
+  | BExpLambda String BType BExp
+  | BExpApplication BExp BExp
+  | BExpProduct BExp BExp
+  | BExpFst BExp
+  | BExpSnd BExp
+  | BExpInl BExp BType
+  | BExpInr BExp BType
+  | BExpMatch BExp String BExp String BExp
+  | BExpZero
+  | BExpSuc BExp
+  | BExpPrimrec BExp BExp String String BExp
+  | BExpArrow BExp
+  | BExpAt BExp
+  | BExpAdv BExp
+  | BExpBox BExp
+  | BExpUnbox BExp
+  | BExpNow BExp BType
+  | BExpWait BExp BExp
+  | BExpUrec BExp String BExp String String String BExp
+  | BExpRec String BType BExp
+  | BExpOut BExp
+  | BExpInto BExp BType
+  deriving (Show, Eq)
+
+-- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
+data CExp
+  = CExpIndex Integer
+  | CExpUnit
+  | CExpLambda CExp
+  | CExpApplication CExp CExp
+  | CExpProduct CExp CExp
+  | CExpFst CExp
+  | CExpSnd CExp
+  | CExpInl CExp
+  | CExpInr CExp
+  | CExpMatch CExp CExp CExp
+  | CExpZero
+  | CExpSuc CExp
+  | CExpPrimrec CExp CExp CExp
+  | CExpArrow CExp
+  | CExpAt CExp
+  | CExpAdv CExp
+  | CExpBox CExp
+  | CExpUnbox CExp
+  | CExpNow CExp
+  | CExpWait CExp CExp
+  | CExpUrec CExp CExp CExp
+  | CExpRec CExp
+  | CExpOut CExp
+  | CExpInto CExp
+  | CExpLocation Integer
+  deriving (Show, Eq)
+
+-- Type checking
+type ContextElem = (String, BType)
 
 type ContextElemList = [ContextElem]
 
@@ -60,7 +149,8 @@ data Context
   | ArrowContext ContextElemList ContextElemList ContextElemList
   | AtContext ContextElemList ContextElemList ContextElemList
 
-type StoreElem = (Integer, AExp)
+-- Interpreter
+type StoreElem = (Integer, CExp)
 
 type StoreElemList = [StoreElem]
 

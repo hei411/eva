@@ -14,7 +14,7 @@ varParser =
     )
     <|> do
       start <- lower
-      rest <- many alphaNum
+      rest <- many (choice [alphaNum, oneOf "_"])
       let str = start : rest
       case str of
         "fun" -> fail "fun cannot be variable name."
@@ -26,14 +26,37 @@ varParser =
         "match" -> fail "match cannot be variable name."
         "with" -> fail "with cannot be variable name."
         "primrec" -> fail "primrec cannot be variable name."
-        "let" -> fail "let cannot be variable name."
-        "type" -> fail "type cannot be variable name."
         "fby" -> fail "fby cannot be variable name."
-        "adv" -> fail "adv cannot be variable name."
-        "unbox" -> fail "unbox cannot be variable name."
+        --"adv" -> fail "adv cannot be variable name."
+        --"unbox" -> fail "unbox cannot be variable name."
         "now" -> fail "now cannot be variable name."
         "urec" -> fail "urec cannot be variable name."
-        "fix" -> fail "fix cannot be variable name."
+        "rec" -> fail "rec cannot be variable name."
         "into" -> fail "into cannot be variable name."
         "out" -> fail "out cannot be variable name."
+        "import" -> fail "import cannot be variable name."
+        "let" -> fail "let cannot be variable name."
+        "type" -> fail "type cannot be variable name."
+        _ -> return (start : rest)
+
+upperVarParser :: Parser String
+upperVarParser =
+  try
+    ( do
+        char '('
+        str <- upperVarParser
+        char ')'
+        return str
+    )
+    <|> do
+      start <- upper
+      rest <- many (choice [alphaNum, oneOf "_"])
+      let str = start : rest
+      case str of
+        "Fix" -> fail "Fix cannot be type variable name."
+        "Until" -> fail "Until cannot be type variable name."
+        "Nat" -> fail "Nat cannot be type variable name."
+        "Unit" -> fail "Unit cannot be type variable name."
+        "Stable" -> fail "Stable cannot be type variable name."
+        "Limit" -> fail "Limit cannot be type variable name."
         _ -> return (start : rest)

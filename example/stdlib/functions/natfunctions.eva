@@ -1,0 +1,15 @@
+let add # x:Nat y:Nat = 
+    primrec x with 
+        | 0 => y
+        | suc z fby rest => suc rest 
+
+let mult # x:Nat y:Nat = 
+    primrec x with 
+        | 0 => 0
+        | suc z fby rest => ?add y rest 
+
+let exp # x:Nat y:Nat = 
+    primrec y with 
+        | 0 => 0
+        | suc z fby rest => ?mult x rest
+

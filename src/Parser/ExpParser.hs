@@ -23,37 +23,29 @@ expParser =
 lambdaParser :: Parser AExp
 lambdaParser = do
   string "fun"
-  skipMany1 space
-  v <- varParser
+  notFollowedBy alphaNum
   spaces
-  char ':'
-  spaces
-  t <- typeParser
-  spaces
+  l <- many1 (annoVarParser)
   string "=>"
   spaces
   exp <- expParser
-  return (AExpLambda v t exp)
+  return (addLambda l exp)
 
-fixParser :: Parser AExp
-fixParser = do
-  string "fix"
-  skipMany1 space
-  v <- varParser
+recParser :: Parser AExp
+recParser = do
+  string "rec"
+  notFollowedBy alphaNum
   spaces
-  char ':'
-  spaces
-  t <- typeParser
-  spaces
+  (v, t) <- annoVarParser
   string "=>"
   spaces
   exp <- expParser
-  return (AExpFix v t exp)
+  return (AExpRec v t exp)
 
 bindExpParser :: Parser AExp
 bindExpParser =
   try lambdaParser
-    <|> fixParser
+    <|> recParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
 
 appExpParser :: Parser AExp
@@ -151,7 +143,7 @@ matchParser = do
   string "match"
   skipMany1 space
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
@@ -175,11 +167,18 @@ matchParser = do
   exp2 <- expParser
   return (AExpMatch exp v1 exp1 v2 exp2)
 
-zeroParser :: Parser AExp
-zeroParser = do
-  char '0'
+numberParser :: Parser AExp
+numberParser = do
+  n <- many1 digit
   notFollowedBy letter
-  return AExpZero
+  let num = read n :: Integer
+  return (wrapSuc num)
+
+wrapSuc :: Integer -> AExp
+wrapSuc n =
+  case n of
+    0 -> AExpZero
+    _ -> AExpSuc (wrapSuc (n -1))
 
 sucParser :: Parser AExp
 sucParser = do
@@ -192,9 +191,10 @@ sucParser = do
 primrecParser :: Parser AExp
 primrecParser = do
   string "primrec"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
@@ -236,23 +236,25 @@ atParser = do
 
 advParser :: Parser AExp
 advParser = do
-  string "adv"
-  notFollowedBy alphaNum
+  --string "adv"
+  --notFollowedBy alphaNum
+  char '<'
   spaces
   exp <- firstExpParser
   return (AExpAdv exp)
 
 unboxParser :: Parser AExp
 unboxParser = do
-  string "unbox"
-  notFollowedBy alphaNum
+  --string "unbox"
+  --notFollowedBy alphaNum
+  char '?'
   spaces
   exp <- firstExpParser
   return (AExpUnbox exp)
 
 boxParser :: Parser AExp
 boxParser = do
-  string "[]"
+  string "#"
   spaces
   exp <- firstExpParser
   return (AExpBox exp)
@@ -275,16 +277,17 @@ waitParser = do
   notFollowedBy alphaNum
   spaces
   exp1 <- oneExpParser
-  skipMany1 space
+  spaces
   exp2 <- firstExpParser
   return (AExpWait exp1 exp2)
 
 urecParser :: Parser AExp
 urecParser = do
   string "urec"
-  skipMany1 space
+  notFollowedBy alphaNum
+  spaces
   exp <- expParser
-  skipMany1 space
+  spaces
   string "with"
   spaces
   char '|'
@@ -337,7 +340,28 @@ intoParser = do
 expVarParser :: Parser AExp
 expVarParser = do
   str <- varParser
-  return (AExpVar str)
+  parameters <- optionMaybe (try expParameterParser)
+  case parameters of
+    Nothing -> return (AExpVar str [])
+    Just ats -> return (AExpVar str ats)
+
+expParameterParser :: Parser [AType]
+expParameterParser =
+  do
+    spaces
+    char '['
+    spaces
+    l <- sepBy1 typeParser (try commaParser)
+    spaces
+    char ']'
+    return l
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
 
 unitParser :: Parser AExp
 unitParser = do
@@ -355,7 +379,7 @@ oneExpParser =
     <|> try inlParser
     <|> try inrParser
     <|> try matchParser
-    <|> try zeroParser
+    <|> try numberParser
     <|> try sucParser
     <|> try primrecParser
     <|> try arrowParser
@@ -371,3 +395,31 @@ oneExpParser =
     <|> try expVarParser
     <|> unitParser
     <|> fail "Can't parse OneExp"
+
+annoVarParser :: Parser (String, AType)
+annoVarParser =
+  try
+    ( do
+        char '('
+        spaces
+        p <- annoVarParser
+        spaces
+        char ')'
+        spaces
+        return p
+    )
+    <|> try
+      ( do
+          s <- varParser
+          spaces
+          char ':'
+          spaces
+          t <- typeParser
+          spaces
+          return (s, t)
+      )
+
+addLambda :: [(String, AType)] -> AExp -> AExp
+addLambda l exp = case l of
+  [] -> exp
+  (s, t) : tl -> AExpLambda s t (addLambda tl exp)

@@ -1,5 +1,8 @@
+--Module to be modified
+
 module Interpreter.ExpFunctions where
 
+{-
 import Datatype
 
 substituteExp :: AExp -> String -> AExp -> AExp
@@ -49,3 +52,5 @@ substituteExp exp s exp' = case exp of
   AExpOut ae -> AExpOut (substituteExp ae s exp')
   AExpInto ae at -> AExpInto (substituteExp ae s exp') at
   AExpLocation n -> AExpLocation n
+
+  -}
