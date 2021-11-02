@@ -1,6 +1,5 @@
 module ProgramAnalyzer.ProgramAnalyzer where
 
-import AscriptionSimplifier.AscriptionSimplifier
 import Datatype
 import ExpTypeConverters.ABExpConverter
 import ExpTypeConverters.TypeSynonymConverter
