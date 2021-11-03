@@ -6,11 +6,11 @@ cabal-version: 1.12
 
 name:           eva
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/eva#readme>
-homepage:       https://github.com/githubuser/eva#readme
-bug-reports:    https://github.com/githubuser/eva/issues
-author:         Author name here
-maintainer:     example@example.com
+description:    Please see the README on GitHub at <https://github.com/hei411/eva/blob/main/README.md>
+homepage:       https://github.com/hei411/eva#readme
+bug-reports:    https://github.com/hei411/eva/issues
+author:         Hei Li
+maintainer:     Hei.Li@cl.cam.ac.uk
 copyright:      2021 Author name here
 license:        BSD3
 license-file:   LICENSE
@@ -18,10 +18,11 @@ build-type:     Simple
 extra-source-files:
     README.md
     ChangeLog.md
+    TODO.md
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/eva
+  location: https://github.com/hei411/eva
 
 library
   exposed-modules:
