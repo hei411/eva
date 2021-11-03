@@ -59,7 +59,7 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
             let typePropertyCorrect = checkTypeProperty tp typeArguments
             case typePropertyCorrect of
               Right (wrongType, intendedTP) ->
-                typeCheckerErrorMsg file functionName ("The parametric parameter  " ++ show (wrongType) ++ " does not have type property" ++ show (intendedTP) ++ " for " ++ varName)
+                typeCheckerErrorMsg file functionName ("The parametric parameter  " ++ show (wrongType) ++ " does not have type property " ++ show (intendedTP) ++ " for " ++ varName)
               Left () -> do
                 let monoBType = substituteParametric 0 bType typeArguments
                 case context of
