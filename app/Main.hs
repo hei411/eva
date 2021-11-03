@@ -1,5 +1,6 @@
 module Main where
 
+import Datatype
 import PrintFunctions.FileDataPrint
 import ProgramAnalyzer.ProgramAnalyzer (mainProgramAnalyzer)
 import System.Environment (getArgs)
@@ -13,4 +14,6 @@ main = do
   -- Start of real program
   compiledFilesData <- mainProgramAnalyzer src_path file_name
   putStrLn (fileDataPrint (compiledFilesData))
+  let interpreterType = Simple
+  --case interpreterType of
   return ()

@@ -2,6 +2,84 @@
 
 module Interpreter.EvaluationInterpreter where
 
+import Datatype
+
+evaluationInterpreter :: CExp -> Store -> (CExp, Store)
+evaluationInterpreter exp store = case exp of
+  CExpIndex n -> error "Should not happen, evaluation interpreter called on a variable"
+  CExpUnit -> (CExpUnit, store)
+  CExpLambda ce -> (CExpLambda ce, store)
+  CExpApplication ce ce' -> applicationEval ce ce' store
+  CExpProduct ce ce' -> productEval ce ce' store
+  CExpFst ce -> fstEval ce store
+  CExpSnd ce -> sndEval ce store
+  CExpInl ce -> inlEval ce store
+  CExpInr ce -> inrEval ce store
+  CExpMatch ce ce' ce2 -> matchEval ce ce' ce2 store
+  CExpZero -> (CExpZero, store)
+  CExpSuc ce -> sucEval ce store
+  CExpPrimrec ce ce' ce2 -> primrecEval ce ce' ce2 store
+  CExpArrow ce -> (CExpArrow ce, store)
+  CExpAt ce -> (CExpAt ce, store)
+  CExpAdv ce -> advEval ce store
+  CExpBox ce -> (CExpBox ce, store)
+  CExpUnbox ce -> unboxEval ce store
+  CExpNow ce -> nowEval ce store
+  CExpWait ce ce' -> waitEval ce ce' store
+  CExpUrec ce ce' ce2 -> urecEval ce ce' ce2 store
+  CExpRec ce -> (CExpRec ce, store)
+  CExpOut ce -> outEval ce store
+  CExpInto ce -> intoEval ce store
+  CExpLocation n -> error "Should not happen. evaluation interpreter called on a location directly (not sure)"
+
+applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
+applicationEval = error "not implemented"
+
+productEval :: CExp -> CExp -> Store -> (CExp, Store)
+productEval = error "not implemented"
+
+fstEval :: CExp -> Store -> (CExp, Store)
+fstEval = error "not implemented"
+
+sndEval :: CExp -> Store -> (CExp, Store)
+sndEval = error "not implemented"
+
+inlEval :: CExp -> Store -> (CExp, Store)
+inlEval = error "not implemented"
+
+inrEval :: CExp -> Store -> (CExp, Store)
+inrEval = error "not implemented"
+
+matchEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+matchEval = error "not implemented"
+
+sucEval :: CExp -> Store -> (CExp, Store)
+sucEval = error "not implemented"
+
+primrecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+primrecEval = error "not implemented"
+
+advEval :: CExp -> Store -> (CExp, Store)
+advEval = error "not implemented"
+
+unboxEval :: CExp -> Store -> (CExp, Store)
+unboxEval = error "not implemented"
+
+nowEval :: CExp -> Store -> (CExp, Store)
+nowEval = error "not implemented"
+
+waitEval :: CExp -> CExp -> Store -> (CExp, Store)
+waitEval = error "not implemented"
+
+urecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+urecEval = error "not implemented"
+
+outEval :: CExp -> Store -> (CExp, Store)
+outEval = error "not implemented"
+
+intoEval :: CExp -> Store -> (CExp, Store)
+intoEval = error "not implemented"
+
 {-
 import Datatype
 import Interpreter.ExpFunctions

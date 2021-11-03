@@ -150,6 +150,15 @@ data Context
   | AtContext ContextElemList ContextElemList ContextElemList
 
 -- Interpreter
+data InterpreterMode
+  = Simple
+  | Safe
+  | Lively
+  | Fair
+  | ISafe
+  | ILively
+  | IFair
+
 type StoreElem = (Integer, CExp)
 
 type StoreElemList = [StoreElem]
