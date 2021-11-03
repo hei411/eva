@@ -10,6 +10,6 @@ let mult # x:Nat y:Nat =
 
 let exp # x:Nat y:Nat = 
     primrec y with 
-        | 0 => 0
+        | 0 => 1
         | suc z fby rest => ?mult x rest
 

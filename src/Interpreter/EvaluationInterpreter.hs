@@ -3,6 +3,7 @@
 module Interpreter.EvaluationInterpreter where
 
 import Datatype
+import ExpFunctions.SubstituteCExp
 
 evaluationInterpreter :: CExp -> Store -> (CExp, Store)
 evaluationInterpreter exp store = case exp of
@@ -33,31 +34,77 @@ evaluationInterpreter exp store = case exp of
   CExpLocation n -> error "Should not happen. evaluation interpreter called on a location directly (not sure)"
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
-applicationEval = error "not implemented"
+applicationEval e1 e2 s = do
+  let (lambda, s') = evaluationInterpreter e1 s
+  let (v, s'') = evaluationInterpreter lambda s'
+  case lambda of
+    CExpLambda body ->
+      do
+        let newBody = substituteCExp v 0 body
+        evaluationInterpreter newBody s''
+    _ -> error "Should not happen! application of expressions applied to a non-lambda abstraction"
 
 productEval :: CExp -> CExp -> Store -> (CExp, Store)
-productEval = error "not implemented"
+productEval e1 e2 s = do
+  let (v1, s') = evaluationInterpreter e1 s
+  let (v2, s'') = evaluationInterpreter e2 s'
+  (CExpProduct v1 v2, s'')
 
 fstEval :: CExp -> Store -> (CExp, Store)
-fstEval = error "not implemented"
+fstEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpProduct a _ -> (a, s')
+    _ -> error "Should not happen! fst applied to a non product expression"
 
 sndEval :: CExp -> Store -> (CExp, Store)
-sndEval = error "not implemented"
+sndEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpProduct _ b -> (b, s')
+    _ -> error "Should not happen! snd applied to a non product expression"
 
 inlEval :: CExp -> Store -> (CExp, Store)
-inlEval = error "not implemented"
+inlEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInl e', s')
 
 inrEval :: CExp -> Store -> (CExp, Store)
-inrEval = error "not implemented"
+inrEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInr e', s')
 
 matchEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
-matchEval = error "not implemented"
+matchEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInl a -> do
+      let e1' = substituteCExp a 0 e1
+      evaluationInterpreter e1' s'
+    CExpInr b -> do
+      let e2' = substituteCExp b 0 e2
+      evaluationInterpreter e2' s'
+    _ -> error "Should not happen! match applied to a non sum expression"
 
 sucEval :: CExp -> Store -> (CExp, Store)
-sucEval = error "not implemented"
+sucEval e s =
+  do
+    let (e', s') = evaluationInterpreter e s
+    (CExpSuc e', s')
 
 primrecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
-primrecEval = error "not implemented"
+primrecEval e e1 e2 s =
+  do
+    let (e', s') = evaluationInterpreter e s
+    case e' of
+      CExpZero -> evaluationInterpreter e1 s'
+      CExpSuc pred -> do
+        let fbyExp = CExpPrimrec pred e1 e2
+        let (fbyValue, s'') = evaluationInterpreter fbyExp s'
+        let e2' = substituteCExp fbyValue 0 e2
+        let e2'' = substituteCExp pred 1 e2'
+        evaluationInterpreter e2'' s''
+      _ -> error "Should not happen! primrec applied to a non nat expression"
 
 advEval :: CExp -> Store -> (CExp, Store)
 advEval = error "not implemented"

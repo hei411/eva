@@ -26,14 +26,13 @@ source-repository head
 library
   exposed-modules:
       Datatype
+      ExpFunctions.SubstituteCExp
       ExpTypeConverters.ABExpConverter
       ExpTypeConverters.ABTypeConverter
       ExpTypeConverters.TypeNameResolveUtils
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
-      Interpreter.ExpFunctions
       Interpreter.StoreFunctions
-      Interpreter.ValueChecker
       Parser.ExpParser
       Parser.MainParser
       Parser.TypeParser
