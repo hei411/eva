@@ -4,7 +4,7 @@ module Interpreter.EvaluationInterpreter where
 
 import Datatype
 import ExpFunctions.SubstituteCExp
-import Interpreter.StoreFunctions (elemStore)
+import Interpreter.StoreFunctions
 
 evaluationInterpreter :: CExp -> Store -> (CExp, Store)
 evaluationInterpreter exp store = case exp of
@@ -107,7 +107,9 @@ primrecEval e e1 e2 s =
       _ -> error "Should not happen! primrec applied to a non nat expression"
 
 delayEval :: CExp -> Store -> (CExp, Store)
-delayEval e s = error "Not implemented"
+delayEval e s = do
+  let (s', location) = addStoreElem s e
+  (location, s')
 
 advEval :: CExp -> Store -> (CExp, Store)
 advEval e s = case s of
