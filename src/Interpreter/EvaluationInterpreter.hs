@@ -2,6 +2,7 @@
 
 module Interpreter.EvaluationInterpreter where
 
+import Control.Exception (evaluate)
 import Datatype
 import ExpFunctions.SubstituteCExp
 import Interpreter.StoreFunctions
@@ -124,22 +125,58 @@ advEval e s = case s of
       _ -> error "Should not happen! adv expression doesnt produce a location"
 
 unboxEval :: CExp -> Store -> (CExp, Store)
-unboxEval = error "not implemented"
+unboxEval e s = do
+  case s of
+    NullStore -> error "Should not happen! unbox applied in a nullstore"
+    _ -> do
+      let (e', s') = evaluationInterpreter e NullStore
+      case e' of
+        CExpBox body ->
+          evaluationInterpreter body s'
+        CExpRec body -> do
+          let arg = CExpBox (CExpDelay (CExpUnbox e'))
+          let e'' = substituteCExp arg 0 body
+          evaluationInterpreter e'' s'
+        _ -> error "Should not happen! unbox applied to a non box/rec expression"
 
 nowEval :: CExp -> Store -> (CExp, Store)
-nowEval = error "not implemented"
+nowEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpNow e', s')
 
 waitEval :: CExp -> CExp -> Store -> (CExp, Store)
-waitEval = error "not implemented"
+waitEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  (CExpWait e1' e2', s'')
 
 urecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
-urecEval = error "not implemented"
+urecEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpNow v -> do
+      let e1' = substituteCExp v 0 e1
+      evaluationInterpreter e1' s'
+    CExpWait v1 v2 -> do
+      let fbyExp = CExpUrec (CExpAdv v2) e1 e2
+      let (s'', location) = addStoreElem s' fbyExp
+      let e2_one = substituteCExp location 0 e2
+      let e2_two = substituteCExp v2 1 e2_one
+      let e2_three = substituteCExp v1 2 e2_two
+      evaluationInterpreter e2_three s''
+    _ -> error "Should not happen! urec applied to a until expression"
 
 outEval :: CExp -> Store -> (CExp, Store)
-outEval = error "not implemented"
+outEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInto v -> (v, s')
+    _ -> error "Should not happen! out applied to a non into expression"
 
 intoEval :: CExp -> Store -> (CExp, Store)
-intoEval = error "not implemented"
+intoEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInto e', s')
 
 {-
 import Datatype
