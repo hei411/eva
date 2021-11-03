@@ -4,6 +4,7 @@ module Interpreter.EvaluationInterpreter where
 
 import Datatype
 import ExpFunctions.SubstituteCExp
+import Interpreter.StoreFunctions (elemStore)
 
 evaluationInterpreter :: CExp -> Store -> (CExp, Store)
 evaluationInterpreter exp store = case exp of
@@ -107,7 +108,16 @@ primrecEval e e1 e2 s =
       _ -> error "Should not happen! primrec applied to a non nat expression"
 
 advEval :: CExp -> Store -> (CExp, Store)
-advEval = error "not implemented"
+advEval e s = case s of
+  NullStore -> error "Should not happen! adv applied to a nullstore"
+  TicklessStore x0 -> error "Should not happen! adv applied to a tickless store"
+  TickStore sN sL -> do
+    let (e', TicklessStore expList) = evaluationInterpreter e (TicklessStore sN)
+    case e' of
+      CExpLocation n -> do
+        let e'' = elemStore expList n
+        evaluationInterpreter e'' (TickStore expList sL)
+      _ -> error "Should not happen! adv expression doesnt produce a location"
 
 unboxEval :: CExp -> Store -> (CExp, Store)
 unboxEval = error "not implemented"

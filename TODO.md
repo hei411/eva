@@ -3,6 +3,8 @@
 ## Basic Type Checker - Completed
 ## Basic Interpreter - TODO
 
+
+Note: should we change arrow and at delay to simply delay for CExp?
 # Extensions
 ## Syntactic Sugar Stuff
 ### Parsing Numbers - TODO
