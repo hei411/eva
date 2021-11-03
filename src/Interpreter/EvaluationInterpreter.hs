@@ -21,8 +21,7 @@ evaluationInterpreter exp store = case exp of
   CExpZero -> (CExpZero, store)
   CExpSuc ce -> sucEval ce store
   CExpPrimrec ce ce' ce2 -> primrecEval ce ce' ce2 store
-  CExpArrow ce -> (CExpArrow ce, store)
-  CExpAt ce -> (CExpAt ce, store)
+  CExpDelay ce -> delayEval ce store
   CExpAdv ce -> advEval ce store
   CExpBox ce -> (CExpBox ce, store)
   CExpUnbox ce -> unboxEval ce store
@@ -106,6 +105,9 @@ primrecEval e e1 e2 s =
         let e2'' = substituteCExp pred 1 e2'
         evaluationInterpreter e2'' s''
       _ -> error "Should not happen! primrec applied to a non nat expression"
+
+delayEval :: CExp -> Store -> (CExp, Store)
+delayEval e s = error "Not implemented"
 
 advEval :: CExp -> Store -> (CExp, Store)
 advEval e s = case s of

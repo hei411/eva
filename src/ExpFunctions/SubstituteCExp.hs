@@ -17,8 +17,7 @@ substituteCExp arg level cExp = case cExp of
   CExpZero -> CExpZero
   CExpSuc ce -> CExpSuc (substituteCExpHelper ce)
   CExpPrimrec ce ce' ce2 -> CExpPrimrec (substituteCExpHelper ce) (substituteCExpHelper ce) (substituteCExp arg (level + 2) ce')
-  CExpArrow ce -> CExpArrow (substituteCExpHelper ce)
-  CExpAt ce -> CExpAt (substituteCExpHelper ce)
+  CExpDelay ce -> CExpDelay (substituteCExpHelper ce)
   CExpAdv ce -> CExpAdv (substituteCExpHelper ce)
   CExpBox ce -> CExpBox (substituteCExpHelper ce)
   CExpUnbox ce -> CExpUnbox (substituteCExpHelper ce)

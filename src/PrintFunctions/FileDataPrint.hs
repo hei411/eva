@@ -40,8 +40,8 @@ functionsPrint functions = case functions of
         ( case tp of
             Limit -> "Limit "
             Stable -> "Stable "
-            None -> "Limit Stable "
-            Both -> ""
+            Both -> "Limit Stable "
+            None -> ""
         )
           ++ "p"
           ++ show (n)

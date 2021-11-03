@@ -124,9 +124,8 @@ data CExp
   | CExpZero
   | CExpSuc CExp
   | CExpPrimrec CExp CExp CExp
-  | CExpArrow CExp
-  | CExpAt CExp
   | CExpAdv CExp
+  | CExpDelay CExp
   | CExpBox CExp
   | CExpUnbox CExp
   | CExpNow CExp
@@ -137,6 +136,9 @@ data CExp
   | CExpInto CExp
   | CExpLocation Integer
   deriving (Show, Eq)
+  -- | CExpAt CExp
+  -- | CExpArrow CExp
+  
 
 -- Type checking
 type ContextElem = (String, BType)

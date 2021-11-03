@@ -239,7 +239,7 @@ arrowRule file functionName definedFunctions context varStack e =
     StableContext x0 x1 ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions (ArrowContext x0 x1 []) varStack e
-        (CExpArrow eExp, BTypeArrow eType)
+        (CExpDelay eExp, BTypeArrow eType)
     ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  arrow context"
     AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  atcontext"
 
@@ -250,7 +250,7 @@ atRule file functionName definedFunctions context varStack e =
     StableContext x0 x1 ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions (AtContext x0 x1 []) varStack e
-        (CExpAt eExp, BTypeAt eType)
+        (CExpDelay eExp, BTypeAt eType)
     ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  arrow context"
     AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  atcontext"
 
