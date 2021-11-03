@@ -62,10 +62,7 @@ printBType n bType =
              )
       BTypeFix bt ->
         "Fix " ++ "\'" ++ show n ++ " -> "
-          ++ ( if bTypeLevel bt <= currentLevel
-                 then "(" ++ (printBType (n + 1) bt) ++ ")"
-                 else printBType (n + 1) bt
-             )
+          ++ printBType (n + 1) bt
       BTypeUntil bt bt' ->
         ( if bTypeLevel bt <= currentLevel
             then "(" ++ (printBType n bt) ++ ")"
