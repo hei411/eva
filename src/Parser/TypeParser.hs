@@ -7,13 +7,13 @@ import Text.Parsec.String
 
 typeVarParser :: Parser AType
 typeVarParser = do
-  str <- varParser
+  str <- potentialDotVarParser
   -- TODO: Using <> for arguments
   return (ATypeVar str)
 
 typeNameParser :: Parser AType
 typeNameParser = do
-  str <- upperVarParser
+  str <- potentialDotUpperVarParser
   parameters <- optionMaybe (try typeNameParameterParser)
   case parameters of
     Nothing -> return (ATypeName str [])

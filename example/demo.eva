@@ -1,4 +1,10 @@
-import stdlib.typedef.commonprimitives
+import stdlib.typedef.commonprimitives  
+type Test = Str(Nat)
+
+import stdlib.functions.natfunctions as nf 
+let h = nf.add
+
+
 let legal[Stable obj] x:obj #=x
 //let illegal [a] = legal[Str(a)]
 let now_legal =legal [Unit]

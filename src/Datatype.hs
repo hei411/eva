@@ -18,7 +18,7 @@ type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 data Statement
   = LetStatement String [(TypeProperty, String)] AExp
   | TypeStatement String [String] AType
-  | ImportStatement String
+  | ImportStatement String (Maybe String)
   deriving (Show)
 
 -- First Parse

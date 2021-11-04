@@ -16,14 +16,14 @@ findFileData toImportFile compiledFilesData = case compiledFilesData of
       then return (functions, typeSynonyms)
       else findFileData toImportFile tl
 
-addFunctions :: [Char] -> FilePath -> TypeCheckedProgram -> TypeCheckedProgram -> TypeCheckedProgram -> TypeCheckedProgram
-addFunctions currentFile toImportFile toImportFunctions importedFunctions toExportFunctions =
+addFunctions :: [Char] -> FilePath -> String -> TypeCheckedProgram -> TypeCheckedProgram -> TypeCheckedProgram -> TypeCheckedProgram
+addFunctions currentFile toImportFile alias toImportFunctions importedFunctions toExportFunctions =
   case toImportFunctions of
     [] -> importedFunctions
     (name, cExp, bType, typeProperties) : tl ->
       do
-        let _ = checkFunctionNameExists name (importedFunctions ++ toExportFunctions)
-        addFunctions currentFile toImportFile tl ((name, cExp, bType, typeProperties) : importedFunctions) toExportFunctions
+        let _ = checkFunctionNameExists (alias ++ name) (importedFunctions ++ toExportFunctions)
+        addFunctions currentFile toImportFile alias tl (((alias ++ name), cExp, bType, typeProperties) : importedFunctions) toExportFunctions
       where
         checkFunctionNameExists :: String -> TypeCheckedProgram -> ()
         checkFunctionNameExists name functionList = case functionList of
@@ -33,14 +33,14 @@ addFunctions currentFile toImportFile toImportFunctions importedFunctions toExpo
               then error (currentFile ++ ": Found same function name \"" ++ name ++ "\" imported or declared when importing " ++ toImportFile)
               else checkFunctionNameExists name tl
 
-addTypenames :: [Char] -> FilePath -> TypenameList -> TypenameList -> TypenameList -> TypenameList
-addTypenames currentFile toImportFile toImportTypenames importedTypenames toExportTypenames =
+addTypenames :: [Char] -> FilePath -> String -> TypenameList -> TypenameList -> TypenameList -> TypenameList
+addTypenames currentFile toImportFile alias toImportTypenames importedTypenames toExportTypenames =
   case toImportTypenames of
     [] -> importedTypenames
     (name, bType, num) : tl ->
       do
-        let _ = checkTypeNameExists name (importedTypenames ++ toExportTypenames)
-        addTypenames currentFile toImportFile tl ((name, bType, num) : importedTypenames) toExportTypenames
+        let _ = checkTypeNameExists (alias ++ name) (importedTypenames ++ toExportTypenames)
+        addTypenames currentFile toImportFile alias tl (((alias ++ name), bType, num) : importedTypenames) toExportTypenames
       where
         checkTypeNameExists :: String -> TypenameList -> ()
         checkTypeNameExists name typenameList = case typenameList of
@@ -49,3 +49,11 @@ addTypenames currentFile toImportFile toImportTypenames importedTypenames toExpo
             if otherName == name
               then error (currentFile ++ ": Found same type synonym name \"" ++ name ++ "\" imported or declared when importing " ++ toImportFile)
               else checkTypeNameExists name tl
+
+addAlias :: FilePath -> FilePath -> String -> [String] -> [String]
+addAlias currentFile toImportFile alias l = case l of
+  [] -> [alias]
+  s : ss ->
+    if s == alias
+      then error (currentFile ++ ": Found used alias \"" ++ alias ++ "\" when importing " ++ toImportFile)
+      else s : addAlias currentFile toImportFile alias ss

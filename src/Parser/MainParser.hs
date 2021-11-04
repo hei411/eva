@@ -148,10 +148,22 @@ importStatementParser = do
   skipMany1 space
   s <- fileNameParser
   spaces
+  alias <- optionMaybe aliasParser
   --char ';'
-  --spaces
+  spaces
   let processedFilePath = (processFilePath s) ++ ".eva"
-  return (ImportStatement processedFilePath)
+  return (ImportStatement processedFilePath alias)
+
+aliasParser :: Parser String
+aliasParser =
+  try
+    ( do
+        string "as"
+        skipMany1 space
+        alias <- many1 (choice [alphaNum, oneOf "_"])
+        checkedVar <- checkVar alias
+        checkUpperVar checkedVar
+    )
 
 processFilePath :: FilePath -> FilePath
 processFilePath s =

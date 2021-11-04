@@ -33,7 +33,7 @@ mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles 
         -- Parsing succeeded
         -- putStrLn (show (program))
         --putStrLn (currentFile ++ " is parsed correctly")
-        singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles [] [] [] [] [] program
+        singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles [] [] [] [] [] [] program
 
 readParse :: FilePath -> IO (Either Text.Parsec.Error.ParseError Program)
 readParse fileName =
@@ -51,21 +51,22 @@ singleFileAnalyzer ::
   CompiledFilesData ->
   [FilePath] ->
   [FilePath] ->
+  [String] ->
   TypeCheckedProgram ->
   TypeCheckedProgram ->
   TypenameList ->
   TypenameList ->
   Program ->
   IO CompiledFilesData
-singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames program = case program of
+singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames program = case program of
   [] ->
     do
       --putStrLn (src_path ++ currentFile ++ " completely typechecked.")
       return ((src_path ++ currentFile, toExportFunctions, toExportTypenames) : compiledFilesData)
   hd : tl -> case hd of
-    LetStatement str polyParams aExp -> letStatementAnalyzer str polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
-    TypeStatement str typeParams aType -> typeStatementAnalyzer str typeParams aType src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
-    ImportStatement fileName -> importStatementAnalyzer fileName src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+    LetStatement str polyParams aExp -> letStatementAnalyzer str polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+    TypeStatement str typeParams aType -> typeStatementAnalyzer str typeParams aType src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+    ImportStatement fileName potentialAlias -> importStatementAnalyzer fileName src_path currentFile potentialAlias compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
 
 {-case l of
           -- return compiled files and their functions,  type names and functions
@@ -108,20 +109,21 @@ letStatementAnalyzer ::
   CompiledFilesData ->
   [FilePath] ->
   [FilePath] ->
+  [String] ->
   TypeCheckedProgram ->
   TypeCheckedProgram ->
   TypenameList ->
   TypenameList ->
   Program ->
   IO CompiledFilesData
-letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
+letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
   do
     checkFunctionNameExists (src_path ++ currentFile) (importedFunctions ++ toExportFunctions) functionName
     let bExp = abExpConverter (src_path ++ currentFile) functionName polyParams (importedTypenames ++ toExportTypenames) aExp
     let (cExp, bType) = mainTypeChecker (src_path ++ currentFile) functionName (importedFunctions ++ toExportFunctions) (TokenlessContext []) [] bExp
     let typeProperties = map fst polyParams
     let newToExportFunctions = (functionName, cExp, bType, typeProperties) : toExportFunctions
-    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions newToExportFunctions importedTypenames toExportTypenames tl
+    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions newToExportFunctions importedTypenames toExportTypenames tl
 
 typeStatementAnalyzer ::
   String ->
@@ -132,26 +134,29 @@ typeStatementAnalyzer ::
   CompiledFilesData ->
   [FilePath] ->
   [FilePath] ->
+  [String] ->
   TypeCheckedProgram ->
   TypeCheckedProgram ->
   TypenameList ->
   TypenameList ->
   Program ->
   IO CompiledFilesData
-typeStatementAnalyzer typeSynonymName typeVariables aType src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
+typeStatementAnalyzer typeSynonymName typeVariables aType src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
   do
     checkTypeSynonymNameExists (src_path ++ currentFile) (importedTypenames ++ toExportTypenames) typeSynonymName
     let bType = typeSynonymConverter (src_path ++ currentFile) typeSynonymName typeVariables (importedTypenames ++ toExportTypenames) [] aType
     let newToExportTypenames = (typeSynonymName, bType, toInteger (length typeVariables)) : toExportTypenames
-    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames newToExportTypenames tl
+    singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames newToExportTypenames tl
 
 importStatementAnalyzer ::
   FilePath ->
   FilePath ->
   FilePath ->
+  Maybe (String) ->
   CompiledFilesData ->
   [FilePath] ->
   [FilePath] ->
+  [String] ->
   TypeCheckedProgram ->
   TypeCheckedProgram ->
   TypenameList ->
@@ -162,9 +167,11 @@ importStatementAnalyzer
   toImportFile
   src_path
   currentFile
+  potentialAlias
   compiledFilesData
   toCompileFiles
   importedFiles
+  usedAlias
   importedFunctions
   toExportFunctions
   importedTypenames
@@ -172,36 +179,42 @@ importStatementAnalyzer
   tl =
     do
       putStrLn ("Attempting to import " ++ src_path ++ toImportFile ++ " from " ++ src_path ++ currentFile)
-      checkCircularDependency toImportFile (src_path ++ currentFile) toCompileFiles
-      if elem toImportFile importedFiles
+      checkCircularDependency (src_path ++ toImportFile) (src_path ++ currentFile) toCompileFiles
+      if elem (src_path ++ toImportFile) importedFiles
         then do
-          putStrLn ((src_path ++ currentFile) ++ ": " ++ toImportFile ++ " already imported.")
-          singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+          putStrLn ((src_path ++ currentFile) ++ ": " ++ (src_path ++ toImportFile) ++ " already imported. Import statement is ignored.")
+          singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
         else do
-          let fileData = findFileData toImportFile compiledFilesData
-          let newImportedFiles = toImportFile : importedFiles
+          let fileData = findFileData (src_path ++ toImportFile) compiledFilesData
+          let newImportedFiles = (src_path ++ toImportFile) : importedFiles
+          let (newUsedAlias, alias) = case potentialAlias of
+                Nothing -> (usedAlias, "")
+                Just s -> (addAlias (src_path ++ currentFile) (src_path ++ toImportFile) s usedAlias, s ++ ['.'])
           case fileData of
             Nothing ->
               do
-                newCompiledFilesData <- mainProgramAnalyzerHelper src_path toImportFile compiledFilesData (toImportFile : toCompileFiles)
+                newCompiledFilesData <- mainProgramAnalyzerHelper src_path toImportFile compiledFilesData ((src_path ++ toImportFile) : toCompileFiles)
 
-                let newFileData = findFileData toImportFile newCompiledFilesData
+                let newFileData = findFileData (src_path ++ toImportFile) newCompiledFilesData
                 case newFileData of
                   Nothing -> error (src_path ++ currentFile ++ ": Should not happen! Cannot find " ++ src_path ++ toImportFile ++ " data after importing it!")
                   Just (functions, typeSynonyms) ->
-                    addImportedFileData functions typeSynonyms toImportFile src_path currentFile newCompiledFilesData toCompileFiles newImportedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+                    addImportedFileData functions typeSynonyms toImportFile alias src_path currentFile newCompiledFilesData toCompileFiles newImportedFiles newUsedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+            --already compiled
             Just (functions, typeSynonyms) ->
-              addImportedFileData functions typeSynonyms toImportFile src_path currentFile compiledFilesData toCompileFiles newImportedFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+              addImportedFileData functions typeSynonyms toImportFile alias src_path currentFile compiledFilesData toCompileFiles newImportedFiles newUsedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
 
 addImportedFileData ::
   TypeCheckedProgram ->
   TypenameList ->
   FilePath ->
+  String ->
   FilePath ->
   FilePath ->
   CompiledFilesData ->
   [FilePath] ->
   [FilePath] ->
+  [String] ->
   TypeCheckedProgram ->
   TypeCheckedProgram ->
   TypenameList ->
@@ -212,24 +225,27 @@ addImportedFileData
   toAddFunctions
   toAddTypeSynonyms
   toImportFile
+  alias
   src_path
   currentFile
   compiledFilesData
   toCompileFiles
   importedFiles
+  usedAlias
   importedFunctions
   toExportFunctions
   importedTypenames
   toExportTypenames
   tl =
     do
-      let newImportedFunctions = addFunctions (src_path ++ currentFile) toImportFile toAddFunctions importedFunctions toExportFunctions
-      let newImportedTypenames = addTypenames (src_path ++ currentFile) toImportFile toAddTypeSynonyms importedTypenames toExportTypenames
+      let newImportedFunctions = addFunctions (src_path ++ currentFile) (src_path ++ toImportFile) alias toAddFunctions importedFunctions toExportFunctions
+      let newImportedTypenames = addTypenames (src_path ++ currentFile) (src_path ++ toImportFile) alias toAddTypeSynonyms importedTypenames toExportTypenames
       singleFileAnalyzer
         src_path
         currentFile
         compiledFilesData
         toCompileFiles
+        usedAlias
         importedFiles
         newImportedFunctions
         toExportFunctions

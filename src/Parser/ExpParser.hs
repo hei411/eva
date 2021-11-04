@@ -339,7 +339,7 @@ intoParser = do
 
 expVarParser :: Parser AExp
 expVarParser = do
-  str <- varParser
+  str <- potentialDotVarParser
   parameters <- optionMaybe (try expParameterParser)
   case parameters of
     Nothing -> return (AExpVar str [])
