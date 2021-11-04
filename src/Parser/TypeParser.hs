@@ -49,7 +49,7 @@ fixTypeParser = do
   skipMany1 space
   v <- varParser
   spaces
-  string "->"
+  string "-->"
   spaces
   t <- typeParser
   return (ATypeFix v t)

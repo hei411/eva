@@ -12,7 +12,7 @@ statementParser :: Parser Statement
 statementParser =
   try importStatementParser
     <|> try typeStatementParser
-    <|> letStatementParser
+    <|> try letStatementParser
 
 letStatementParser :: Parser Statement
 letStatementParser = do
@@ -184,6 +184,7 @@ fileNameParser =
 programParser :: Parser Program
 programParser = do
   p <- many statementParser
+  spaces
   eof
   return p
 

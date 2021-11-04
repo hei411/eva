@@ -14,18 +14,19 @@ import TypeChecker.MainTypeChecker
 mainProgramAnalyzer :: String -> String -> IO CompiledFilesData
 mainProgramAnalyzer src_path file_name =
   --need to insert current file name into toCompileFiles
-  mainProgramAnalyzerHelper src_path file_name [] [file_name]
+  mainProgramAnalyzerHelper src_path file_name [] [file_name] True
 
 mainProgramAnalyzerHelper ::
   FilePath ->
   FilePath ->
   CompiledFilesData ->
   [FilePath] ->
+  Bool ->
   IO CompiledFilesData
-mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles =
+mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles ignoreSrcPath =
   do
     --putStrLn ("Parsing " ++ src_path ++ currentFile)
-    parse_tree <- readParse (src_path ++ currentFile)
+    parse_tree <- readParse (if ignoreSrcPath then currentFile else src_path ++ currentFile)
     case parse_tree of
       -- Error in parsing
       Left parseError -> error (show (parseError))
@@ -193,7 +194,7 @@ importStatementAnalyzer
           case fileData of
             Nothing ->
               do
-                newCompiledFilesData <- mainProgramAnalyzerHelper src_path toImportFile compiledFilesData ((src_path ++ toImportFile) : toCompileFiles)
+                newCompiledFilesData <- mainProgramAnalyzerHelper src_path toImportFile compiledFilesData ((src_path ++ toImportFile) : toCompileFiles) False
 
                 let newFileData = findFileData (src_path ++ toImportFile) newCompiledFilesData
                 case newFileData of
