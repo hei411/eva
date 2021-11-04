@@ -9,11 +9,8 @@ let mult =
         | 0 => 0
         | suc z fby rest => ?add y rest )
 
-/*
 
-let mult # x:Nat y:Nat = 
-    primrec */
-let exp   x:Nat # y:Nat = 
+let exp # x:Nat y:Nat = 
     primrec y with 
         | 0 => 1
         | suc z fby rest => ?mult x rest

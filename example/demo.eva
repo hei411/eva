@@ -1,3 +1,7 @@
+
+
+
+/*
 //Demo code
 import stdlib.typedef.commonprimitives  
 //type Test = Str(Nat)
@@ -5,7 +9,7 @@ import stdlib.typedef.commonprimitives
 import stdlib.functions.natfunctions as nf 
 let h = nf.add
 
-*/
+
 let f1[a] # x:@a  = > (< x)
 let f2[Limit a] # (x:>a) = @<x
 

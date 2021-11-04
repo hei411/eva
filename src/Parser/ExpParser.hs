@@ -93,6 +93,7 @@ productParser = do
   first <- expParser
   spaces
   char ','
+  spaces
   second <- expParser
   spaces
   char ')'
