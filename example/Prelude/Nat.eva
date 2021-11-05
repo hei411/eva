@@ -20,7 +20,78 @@ let pred # x:Nat =
         |0=> 0
         |suc y fby rest => y
 
-let subt # x:Nat y:Nat = 
+let minus # x:Nat y:Nat = 
     primrec y with 
         | 0=> x
         | suc z fby rest => ?pred rest
+
+import Prelude.Bool
+
+let isZero # x:Nat = 
+    primrec x with 
+        | 0 => true 
+        | suc z fby rest => false 
+
+let equalsNat # x:Nat y:Nat =
+    ?isZero (?add (?minus x y) (?minus y x))
+
+let rem # x:Nat y:Nat = 
+    primrec x with 
+        | 0 => 0
+        | suc m fby rest => 
+            ?if[Nat] (?equalsNat (?pred y) rest)
+                0
+                (suc rest) 
+
+let div # x:Nat y:Nat = 
+    primrec x with 
+        | 0=> 0
+        | suc m fby rest => 
+            ?if[Nat] (?equalsNat (?rem m y) (?pred y))
+                (suc rest)
+                rest
+
+let lessthan # x:Nat y:Nat = 
+    ?isZero (?minus (suc x) y)
+
+let leq #x:Nat y:Nat = 
+    ?isZero (?minus x y)
+
+let divisible # x:Nat y:Nat = 
+    ?isZero (?rem x y)
+
+let prime #x:Nat = 
+    ?if[Bool] (?leq x 1)
+        false 
+        (primrec x with 
+            | 0=> true 
+            | suc m fby rest => 
+                ?and rest
+                    (?or (?equalsNat (suc m) 1) 
+                        (?or (?equalsNat (suc m) x)
+                            (?not (?divisible x (suc m)))
+                        )
+                    )
+        )
+
+let min #x:Nat y:Nat = 
+    ?if[Nat] (?leq x y)
+        x
+        y
+
+let max #x:Nat y:Nat =
+    ?if[Nat] (?leq x y)
+        y 
+        x
+
+let gcd # x:Nat y:Nat =
+    primrec (?min x y) with 
+        |0=> 0
+        |suc m fby rest =>
+            ?if[Nat] (?and (?divisible x (suc m)) (?divisible y (suc m)))
+                (suc m)
+                rest
+
+let lcm # x:Nat y:Nat = 
+    ?div (?mult x y) (?gcd x y)
+    

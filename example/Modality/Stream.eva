@@ -48,3 +48,9 @@ let wrongDelayStr [Stable a] =
         => fun x:a str:Str(a)
             => ?conStr[a] x  > (<?m  (?hdStr[a] str)  <(?tlStr[a] str)) 
 */
+
+let scan[Stable a,b] f:#(a->b->a)  = 
+    rec m: # ( a -> Str(b)->Str(a))
+        => fun z:a str:Str(b) 
+            => ?conStr[a] (?f z (?hdStr[b] str))
+              ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )
