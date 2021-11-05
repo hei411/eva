@@ -15,3 +15,12 @@ let exp # x:Nat y:Nat =
         | 0 => 1
         | suc z fby rest => ?mult x rest
 
+let pred # x:Nat = 
+    primrec x with
+        |0=> 0
+        |suc y fby rest => y
+
+let subt # x:Nat y:Nat = 
+    primrec y with 
+        | 0=> x
+        | suc z fby rest => ?pred rest
