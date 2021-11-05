@@ -86,51 +86,54 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
           else findDefinedFunctions (index + 1) tl
 
 varRuleInVarStack :: FilePath -> String -> Context -> Integer -> String -> [BType] -> (CExp, BType)
-varRuleInVarStack file functionName context n varName typeArguments = case context of
-  TokenlessContext x0 -> do
-    let foundType = elemContext x0 varName
-    case foundType of
-      Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-      Just bt -> (CExpIndex n, bt)
-  StableContext x0 x1 -> do
-    let foundType = elemContext x1 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext x0 varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
-  ArrowContext x0 x1 x2 -> do
-    let foundType = elemContext x2 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext (x1 ++ x0) varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
-  AtContext x0 x1 x2 -> do
-    let foundType = elemContext x2 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext (x1 ++ x0) varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
+varRuleInVarStack file functionName context n varName typeArguments =
+  if length typeArguments > 0
+    then typeCheckerErrorMsg file functionName ("Wrong number of parametric parameters provided for " ++ varName)
+    else case context of
+      TokenlessContext x0 -> do
+        let foundType = elemContext x0 varName
+        case foundType of
+          Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+          Just bt -> (CExpIndex n, bt)
+      StableContext x0 x1 -> do
+        let foundType = elemContext x1 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext x0 varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
+      ArrowContext x0 x1 x2 -> do
+        let foundType = elemContext x2 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext (x1 ++ x0) varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
+      AtContext x0 x1 x2 -> do
+        let foundType = elemContext x2 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext (x1 ++ x0) varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
 
 lambdaRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
 lambdaRule file functionName definedFunctions context varStack varName varType body = case context of
