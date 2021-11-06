@@ -81,12 +81,24 @@ printCExp n cExp =
                  else printCExp (n + 1) ce2
              )
       CExpZero -> "0"
-      CExpSuc ce ->
-        "suc "
-          ++ ( if cExpLevel ce <= cExpLevel cExp
-                 then "(" ++ printCExp n ce ++ ")"
-                 else printCExp n ce
-             )
+      CExpSuc ce -> do
+        let maybeN = allSuc ce
+        case maybeN of
+          Nothing ->
+            "suc "
+              ++ ( if cExpLevel ce <= cExpLevel cExp
+                     then "(" ++ printCExp n ce ++ ")"
+                     else printCExp n ce
+                 )
+          Just n -> show (n + 1)
+        where
+          allSuc :: CExp -> Maybe Integer
+          allSuc cExp = case cExp of
+            CExpZero -> return 0
+            CExpSuc c -> do
+              rest <- allSuc c
+              return (rest + 1)
+            _ -> Nothing
       CExpPrimrec ce ce' ce2 ->
         "primrec "
           ++ ( if cExpLevel ce <= cExpLevel cExp
