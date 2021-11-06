@@ -5,11 +5,13 @@ import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
 import Text.Parsec.String
+import Text.ParserCombinators.Parsec (notFollowedBy)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 
 expParser :: Parser AExp
 expParser =
-  try bindExpParser
+  try letExpParser
+    <|> try bindExpParser
     <|> try
       ( do
           first <- appExpParser
@@ -19,6 +21,42 @@ expParser =
       )
     <|> appExpParser
     <|> fail "Cannot parse an expression"
+
+letExpParser :: Parser AExp
+letExpParser =
+  try
+    ( do
+        string "let"
+        notFollowedBy alphaNum
+        spaces
+        var <- varParser
+        spaces
+        firstParameters <- many (annoVarParser)
+        spaces
+        pound <- optionMaybe (try (char '#'))
+        spaces
+        secondParameters <- many (annoVarParser)
+        spaces
+        char '='
+        spaces
+        exp <- expParser
+        spaces
+        string "in"
+        notFollowedBy alphaNum
+        spaces
+        body <- expParser
+        let modifiedexp = modifyExp firstParameters pound secondParameters exp
+        return (AExpLet var modifiedexp body)
+    )
+
+modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
+modifyExp firstParameters pound secondParameters exp =
+  addLambda firstParameters (addPound pound (addLambda secondParameters exp))
+
+addPound :: Maybe Char -> AExp -> AExp
+addPound p exp = case p of
+  Nothing -> exp
+  Just s -> AExpBox exp
 
 lambdaParser :: Parser AExp
 lambdaParser = do

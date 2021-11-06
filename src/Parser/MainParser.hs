@@ -40,15 +40,6 @@ defStatementParser = do
     Nothing -> return (DefStatement var [] modifiedexp)
     Just ss -> return (DefStatement var ss modifiedexp)
 
-modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
-modifyExp firstParameters pound secondParameters exp =
-  addLambda firstParameters (addPound pound (addLambda secondParameters exp))
-
-addPound :: Maybe Char -> AExp -> AExp
-addPound p exp = case p of
-  Nothing -> exp
-  Just s -> AExpBox exp
-
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
   do

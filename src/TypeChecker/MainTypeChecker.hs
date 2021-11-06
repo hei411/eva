@@ -1,5 +1,6 @@
 module TypeChecker.MainTypeChecker where
 
+import Data.Functor.Contravariant (defaultEquivalence)
 import Data.List
 import Datatype
 import TypeChecker.ContextFunctions
@@ -37,6 +38,7 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpRec s bt be -> recRule file functionName definedFunctions context varStack s bt be
   BExpOut be -> outRule file functionName definedFunctions context varStack be
   BExpInto be bt -> intoRule file functionName definedFunctions context varStack be bt
+  BExpLet s be be' -> letRule file functionName definedFunctions context varStack s be be'
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -391,6 +393,19 @@ intoRule file functionName definedFunctions context varStack e ascription =
           then (CExpInto eExp, ascription)
           else typeCheckerErrorMsg file functionName "intoRule ascription doesnt match inner expression type"
     _ -> typeCheckerErrorMsg file functionName "intoRule ascription is not Fix type"
+
+letRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BExp -> BExp -> (CExp, BType)
+letRule file functionName definedFunctions context varStack str exp body =
+  -- Note. Currrently, we just simply rewriite let into a application rule. However I suspect this rule can be relaxed
+  -- one needs to think... perhaps setting the body within a context with a tick is allowed, since the lambda abstraction is
+  -- immediately applied?
+  case context of
+    ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Currently we disallow let to be used in angle contexts. Ask Hei Li about this..."
+    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Currently we disallow let to be used in at contexts. Ask Hei Li about this..."
+    _ -> do
+      let (_, eType) = mainTypeChecker file functionName definedFunctions context varStack exp
+      let newExp = BExpApplication (BExpLambda str eType body) exp
+      mainTypeChecker file functionName definedFunctions context varStack newExp
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

@@ -30,6 +30,7 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpRec s at ae -> BExpRec s (abTypeConverterCur at) (abExpConverterCur ae)
   AExpOut ae -> BExpOut (abExpConverterCur ae)
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
+  AExpLet s ae ae' -> BExpLet s (abExpConverterCur ae) (abExpConverterCur ae')
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

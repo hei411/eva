@@ -49,8 +49,33 @@ def wrongDelayStr [Stable a] =
             => ?conStr[a] x  > (<?m  (?hdStr[a] str)  <(?tlStr[a] str)) 
 */
 
+// With syntactic sugar!
+def delayStr2 [Stable a] = 
+    rec m: # (a -> Str (a) -> Str(a)) 
+        => fun x:a str:Str(a)
+            => (
+                let head = ?hdStr[a] str in 
+                let tail = > ( <?m head <(?tlStr[a] str) ) in 
+                ?conStr[a] x tail 
+                )
+           
+
+
+
 def scan[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => ?conStr[a] (?f z (?hdStr[b] str))
               ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )
+
+// With syntactic sugar!
+def scan2[Stable a,b] f:#(a->b->a)  = 
+    rec m: # ( a -> Str(b)->Str(a))
+        => fun z:a str:Str(b) 
+            => (
+                let head = ?f z (?hdStr[b] str) in 
+                let tail = > (<?m head (<(?tlStr[b] str))) in 
+                ?conStr[a] head tail
+            ) 
+            //?conStr[a] (?f z (?hdStr[b] str))
+             // ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )

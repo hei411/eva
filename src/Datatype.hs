@@ -47,6 +47,7 @@ data AExp
   | AExpRec String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
+  | AExpLet String AExp AExp
   deriving (Show, Eq)
 
 data AType
@@ -107,6 +108,7 @@ data BExp
   | BExpRec String BType BExp
   | BExpOut BExp
   | BExpInto BExp BType
+  | BExpLet String BExp BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
