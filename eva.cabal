@@ -33,7 +33,9 @@ library
       ExpTypeConverters.TypeNameResolveUtils
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
+      Interpreter.NormalInterpreter
       Interpreter.StoreFunctions
+      MainFunctions.GetMain
       Parser.ExpParser
       Parser.MainParser
       Parser.TypeParser

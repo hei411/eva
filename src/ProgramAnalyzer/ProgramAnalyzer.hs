@@ -11,6 +11,7 @@ import StringFunctions.CommentHandler
 import qualified Text.Parsec as Text.Parsec.Error
 import TypeChecker.MainTypeChecker
 
+--TODO: need to fix sourcepath outputs!
 mainProgramAnalyzer :: String -> String -> IO CompiledFilesData
 mainProgramAnalyzer src_path file_name =
   --need to insert current file name into toCompileFiles

@@ -155,7 +155,7 @@ data Context
 
 -- Interpreter
 data InterpreterMode
-  = Simple
+  = Normal
   | Safe
   | Lively
   | Fair

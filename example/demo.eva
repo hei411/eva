@@ -1,7 +1,8 @@
 //Streams
-//type Stream = Fix a --> Nat*a
+type Stream = Fix a --> Nat*a
 //def tl  (s: Stream) = snd (out s)
-
+import Prelude.Nat 
+def main = 90
 //Box
 //def accessData1 (x:Stream) # = x 
 //def accessData2 (x:#Stream)  # = ?x

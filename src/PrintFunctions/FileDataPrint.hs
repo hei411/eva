@@ -6,22 +6,22 @@ import PrintFunctions.CExpPrint
 
 fileDataPrint :: CompiledFilesData -> String
 fileDataPrint fileData = case fileData of
-  [] -> ""
+  [] -> "-------------------------------------------------------------------------------------"
   (fileName, functions, typenames) : tl ->
     do
       let rest = fileDataPrint tl
       let separator = "-------------------------------------------------------------------------------------\n"
       let functionString =
             ( case functions of
-                [] -> "No functions defined.\n\n"
-                _ -> "FUNCTIONS\n" ++ functionsPrint functions ++ "\n"
+                [] -> "No functions defined.\n"
+                _ -> "FUNCTIONS\n" ++ functionsPrint functions
             )
       let typenameString =
             ( case typenames of
                 [] -> "No type synonyms defined.\n\n"
                 _ -> "TYPE SYNONYMS\n" ++ typenamesPrint typenames ++ "\n\n"
             )
-      rest ++ separator ++ "File: " ++ fileName ++ "\n\n" ++ typenameString ++ functionString
+      rest ++ "File: " ++ fileName ++ "\n\n" ++ typenameString ++ functionString ++ separator
 
 functionsPrint :: TypeCheckedProgram -> String
 functionsPrint functions = case functions of
