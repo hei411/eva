@@ -259,12 +259,12 @@ primrecParser = do
   exp2 <- expParser
   return (AExpPrimrec exp exp1 v1 v2 exp2)
 
-arrowParser :: Parser AExp
-arrowParser = do
+angleParser :: Parser AExp
+angleParser = do
   char '>'
   spaces
   exp <- firstExpParser
-  return (AExpArrow exp)
+  return (AExpAngle exp)
 
 atParser :: Parser AExp
 atParser = do
@@ -421,7 +421,7 @@ oneExpParser =
     <|> try numberParser
     <|> try sucParser
     <|> try primrecParser
-    <|> try arrowParser
+    <|> try angleParser
     <|> try atParser
     <|> try advParser
     <|> try unboxParser

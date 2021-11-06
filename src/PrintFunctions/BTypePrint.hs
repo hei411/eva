@@ -48,7 +48,7 @@ printBType n bType =
                  then "(" ++ (printBType n bt) ++ ")"
                  else printBType n bt
              )
-      BTypeArrow bt ->
+      BTypeAngle bt ->
         ">"
           ++ ( if bTypeLevel bt < currentLevel
                  then "(" ++ (printBType n bt) ++ ")"
@@ -85,7 +85,7 @@ bTypeLevel bType = case bType of
   BTypeSum bt bt' -> 2
   BTypeFunction bt bt' -> 0
   BTypeBox bt -> 4
-  BTypeArrow bt -> 4
+  BTypeAngle bt -> 4
   BTypeAt bt -> 4
   BTypeFix bt -> -1
   BTypeUntil bt bt' -> 1

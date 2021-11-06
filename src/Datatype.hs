@@ -36,7 +36,7 @@ data AExp
   | AExpZero
   | AExpSuc AExp
   | AExpPrimrec AExp AExp String String AExp
-  | AExpArrow AExp
+  | AExpAngle AExp
   | AExpAt AExp
   | AExpAdv AExp
   | AExpBox AExp
@@ -59,7 +59,7 @@ data AType
   | ATypeSum AType AType
   | ATypeFunction AType AType
   | ATypeBox AType
-  | ATypeArrow AType
+  | ATypeAngle AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
@@ -76,7 +76,7 @@ data BType
   | BTypeSum BType BType
   | BTypeFunction BType BType
   | BTypeBox BType
-  | BTypeArrow BType
+  | BTypeAngle BType
   | BTypeAt BType
   | BTypeFix BType
   | BTypeUntil BType BType
@@ -97,7 +97,7 @@ data BExp
   | BExpZero
   | BExpSuc BExp
   | BExpPrimrec BExp BExp String String BExp
-  | BExpArrow BExp
+  | BExpAngle BExp
   | BExpAt BExp
   | BExpAdv BExp
   | BExpBox BExp
@@ -150,7 +150,7 @@ type ContextElemList = [ContextElem]
 data Context
   = TokenlessContext ContextElemList
   | StableContext ContextElemList ContextElemList
-  | ArrowContext ContextElemList ContextElemList ContextElemList
+  | AngleContext ContextElemList ContextElemList ContextElemList
   | AtContext ContextElemList ContextElemList ContextElemList
 
 -- Interpreter

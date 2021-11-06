@@ -249,7 +249,7 @@ type4Parser =
           char '>'
           spaces
           t <- type4Parser
-          return (ATypeArrow t)
+          return (ATypeAngle t)
       )
     <|> try
       ( do
@@ -290,7 +290,7 @@ type4'Parser =
           char '>'
           spaces
           t <- type4'Parser
-          return (ATypeArrow t)
+          return (ATypeAngle t)
       )
     <|> try
       ( do

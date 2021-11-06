@@ -17,7 +17,7 @@ isStable bType = case bType of
   BTypeSum bt bt' -> (isStable bt) && (isStable bt')
   BTypeFunction bt bt' -> False
   BTypeBox bt -> True
-  BTypeArrow bt -> False
+  BTypeAngle bt -> False
   BTypeAt bt -> False
   BTypeFix bt -> False
   BTypeUntil bt bt' -> False

@@ -7,7 +7,7 @@ unfoldBType t =
   case t of
     BTypeFix body ->
       -- do not contain special free variables (not including paramtric or typename parameters)
-      substituteBType 0 body (BTypeArrow t)
+      substituteBType 0 body (BTypeAngle t)
     _ -> error "Should not happen! Applied unfoldBType on a non Fix type"
 
 substituteBType :: Integer -> BType -> BType -> BType
@@ -21,7 +21,7 @@ substituteBType targetLevel body arg = case body of
   BTypeSum bt bt' -> BTypeSum (substituteBType targetLevel bt arg) (substituteBType targetLevel bt' arg)
   BTypeFunction bt bt' -> BTypeFunction (substituteBType targetLevel bt arg) (substituteBType targetLevel bt' arg)
   BTypeBox bt -> BTypeBox (substituteBType targetLevel bt arg)
-  BTypeArrow bt -> BTypeArrow (substituteBType targetLevel bt arg)
+  BTypeAngle bt -> BTypeAngle (substituteBType targetLevel bt arg)
   BTypeAt bt -> BTypeAt (substituteBType targetLevel bt arg)
   BTypeFix bt -> BTypeFix (substituteBType (targetLevel + 1) bt arg)
   BTypeUntil bt bt' -> BTypeUntil (substituteBType targetLevel bt arg) (substituteBType targetLevel bt' arg)

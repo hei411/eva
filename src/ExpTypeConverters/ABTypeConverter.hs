@@ -14,7 +14,7 @@ abTypeConverter file functionName polyParams definedTypenames varStack aType = c
   ATypeSum at at' -> BTypeSum (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
   ATypeFunction at at' -> BTypeFunction (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
   ATypeBox at -> BTypeBox (abTypeConverterCur varStack at)
-  ATypeArrow at -> BTypeArrow (abTypeConverterCur varStack at)
+  ATypeAngle at -> BTypeAngle (abTypeConverterCur varStack at)
   ATypeAt at -> BTypeAt (abTypeConverterCur varStack at)
   ATypeFix s at -> BTypeFix (abTypeConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
