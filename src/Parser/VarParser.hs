@@ -42,6 +42,8 @@ checkVar str =
     "out" -> fail "out cannot be variable name."
     "import" -> fail "import cannot be variable name."
     "let" -> fail "let cannot be variable name."
+    "def" -> fail "def cannot be variable name."
+    "in" -> fail "in cannot be variable name."
     "type" -> fail "type cannot be variable name."
     "as" -> fail "as cannot be variable name."
     _ -> return str

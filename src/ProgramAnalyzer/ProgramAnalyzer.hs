@@ -4,8 +4,8 @@ import Datatype
 import ExpTypeConverters.ABExpConverter
 import ExpTypeConverters.TypeSynonymConverter
 import Parser.MainParser
+import ProgramAnalyzer.DefStatementAnalyzerUtils
 import ProgramAnalyzer.ImportStatementAnalyzerUtils
-import ProgramAnalyzer.LetStatementAnalyzerUtils
 import ProgramAnalyzer.TypeStatementAnalyzerUtils
 import StringFunctions.CommentHandler
 import qualified Text.Parsec as Text.Parsec.Error
@@ -65,7 +65,7 @@ singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importe
       --putStrLn (src_path ++ currentFile ++ " completely typechecked.")
       return ((src_path ++ currentFile, toExportFunctions, toExportTypenames) : compiledFilesData)
   hd : tl -> case hd of
-    LetStatement str polyParams aExp -> letStatementAnalyzer str polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+    DefStatement str polyParams aExp -> defStatementAnalyzer str polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
     TypeStatement str typeParams aType -> typeStatementAnalyzer str typeParams aType src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
     ImportStatement fileName potentialAlias -> importStatementAnalyzer fileName src_path currentFile potentialAlias compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
 
@@ -101,7 +101,7 @@ singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importe
             -- For future alternative statements
             _ -> mainProgramAnalyzerHelper currentFile compiledFilesData toCompileFiles importedFunctions toExportFunctions importedTypenames toExportTypenames tl
 -}
-letStatementAnalyzer ::
+defStatementAnalyzer ::
   String ->
   [(TypeProperty, String)] ->
   AExp ->
@@ -117,7 +117,7 @@ letStatementAnalyzer ::
   TypenameList ->
   Program ->
   IO CompiledFilesData
-letStatementAnalyzer functionName polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
+defStatementAnalyzer functionName polyParams aExp src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
   do
     checkFunctionNameExists (src_path ++ currentFile) (importedFunctions ++ toExportFunctions) functionName
     let bExp = abExpConverter (src_path ++ currentFile) functionName polyParams (importedTypenames ++ toExportTypenames) aExp

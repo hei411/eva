@@ -1,4 +1,14 @@
+//Streams
+//type Stream = Fix a --> Nat*a
+//def tl  (s: Stream) = snd (out s)
 
+//Box
+//def accessData1 (x:Stream) # = x 
+//def accessData2 (x:#Stream)  # = ?x
+
+//> and @
+//def atToAngle[a] # x:@a  = > < x
+//def angleToAt[a] # x:>a = @<x
 
 
 /*
@@ -7,22 +17,22 @@ import stdlib.typedef.commonprimitives
 //type Test = Str(Nat)
 /*
 import stdlib.functions.natfunctions as nf 
-let h = nf.add
+def h = nf.add
 
 
-let f1[a] # x:@a  = > (< x)
-let f2[Limit a] # (x:>a) = @<x
+def f1[a] # x:@a  = > (< x)
+def f2[Limit a] # (x:>a) = @<x
 
-let legal[Stable aa,t2] x:aa # y:t2 =x
+def legal[Stable aa,t2] x:aa # y:t2 =x
 /*
-//let illegal [a] = legal[Str(a)]
-//let now_legal =legal [Unit]
-let f1[a] # x:@a  = > < x
-let f2 [a] # x:>a = @<x
+//def illegal [a] = legal[Str(a)]
+//def now_legal =legal [Unit]
+def f1[a] # x:@a  = > < x
+def f2 [a] # x:>a = @<x
 */
 
 /*
-let correct_f2 # x:>Nat = ?f2 [Nat] x
-//let cheeky_f2 [a,b] # x:>(a Until b) = ?f2 [a Until b] x 
+def correct_f2 # x:>Nat = ?f2 [Nat] x
+//def cheeky_f2 [a,b] # x:>(a Until b) = ?f2 [a Until b] x 
 
 */

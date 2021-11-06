@@ -40,8 +40,8 @@ library
       Parser.VarParser
       PrintFunctions.BTypePrint
       PrintFunctions.FileDataPrint
+      ProgramAnalyzer.DefStatementAnalyzerUtils
       ProgramAnalyzer.ImportStatementAnalyzerUtils
-      ProgramAnalyzer.LetStatementAnalyzerUtils
       ProgramAnalyzer.ProgramAnalyzer
       ProgramAnalyzer.TypeStatementAnalyzerUtils
       StringFunctions.CommentHandler

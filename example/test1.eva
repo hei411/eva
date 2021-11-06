@@ -1,2 +1,2 @@
 import example.test2
-let find = hiddenfunction
+def find = hiddenfunction

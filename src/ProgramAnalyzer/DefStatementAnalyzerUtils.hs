@@ -1,4 +1,4 @@
-module ProgramAnalyzer.LetStatementAnalyzerUtils where
+module ProgramAnalyzer.DefStatementAnalyzerUtils where
 
 import Datatype
 

@@ -6,7 +6,7 @@ import ExpTypeConverters.TypeNameResolveUtils
 
 abTypeConverter :: FilePath -> String -> [(TypeProperty, String)] -> TypenameList -> [String] -> AType -> BType
 abTypeConverter file functionName polyParams definedTypenames varStack aType = case aType of
-  ATypeVar s -> resolveTypeVarLet file functionName polyParams varStack s
+  ATypeVar s -> resolveTypeVarDef file functionName polyParams varStack s
   ATypeName s ats -> resolveTypeName file functionName definedTypenames s (map (abTypeConverterCur varStack) ats)
   ATypeUnit -> BTypeUnit
   ATypeNat -> BTypeNat
@@ -21,8 +21,8 @@ abTypeConverter file functionName polyParams definedTypenames varStack aType = c
   where
     abTypeConverterCur = abTypeConverter file functionName polyParams definedTypenames
 
-resolveTypeVarLet :: FilePath -> String -> [(TypeProperty, String)] -> [String] -> String -> BType
-resolveTypeVarLet file functionName polyParams varStack str =
+resolveTypeVarDef :: FilePath -> String -> [(TypeProperty, String)] -> [String] -> String -> BType
+resolveTypeVarDef file functionName polyParams varStack str =
   do
     let stackIndex = elemIndex str varStack
     case stackIndex of

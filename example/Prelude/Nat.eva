@@ -1,41 +1,41 @@
-let add # x:Nat y:Nat = 
+def add # x:Nat y:Nat = 
     primrec x with 
         | 0 => y
         | suc z fby rest => suc rest 
 
-let mult = 
+def mult = 
 #(fun (x:Nat) (y: Nat) => 
     primrec x with 
         | 0 => 0
         | suc z fby rest => ?add y rest )
 
 
-let exp # x:Nat y:Nat = 
+def exp # x:Nat y:Nat = 
     primrec y with 
         | 0 => 1
         | suc z fby rest => ?mult x rest
 
-let pred # x:Nat = 
+def pred # x:Nat = 
     primrec x with
         |0=> 0
         |suc y fby rest => y
 
-let minus # x:Nat y:Nat = 
+def minus # x:Nat y:Nat = 
     primrec y with 
         | 0=> x
         | suc z fby rest => ?pred rest
 
 import Prelude.Bool
 
-let isZero # x:Nat = 
+def isZero # x:Nat = 
     primrec x with 
         | 0 => true 
         | suc z fby rest => false 
 
-let equalsNat # x:Nat y:Nat =
+def equalsNat # x:Nat y:Nat =
     ?isZero (?add (?minus x y) (?minus y x))
 
-let rem # x:Nat y:Nat = 
+def rem # x:Nat y:Nat = 
     primrec x with 
         | 0 => 0
         | suc m fby rest => 
@@ -43,7 +43,7 @@ let rem # x:Nat y:Nat =
                 0
                 (suc rest) 
 
-let div # x:Nat y:Nat = 
+def div # x:Nat y:Nat = 
     primrec x with 
         | 0=> 0
         | suc m fby rest => 
@@ -51,16 +51,16 @@ let div # x:Nat y:Nat =
                 (suc rest)
                 rest
 
-let lessthan # x:Nat y:Nat = 
+def lessthan # x:Nat y:Nat = 
     ?isZero (?minus (suc x) y)
 
-let leq #x:Nat y:Nat = 
+def leq #x:Nat y:Nat = 
     ?isZero (?minus x y)
 
-let divisible # x:Nat y:Nat = 
+def divisible # x:Nat y:Nat = 
     ?isZero (?rem x y)
 
-let prime #x:Nat = 
+def prime #x:Nat = 
     ?if[Bool] (?leq x 1)
         false 
         (primrec x with 
@@ -74,17 +74,17 @@ let prime #x:Nat =
                     )
         )
 
-let min #x:Nat y:Nat = 
+def min #x:Nat y:Nat = 
     ?if[Nat] (?leq x y)
         x
         y
 
-let max #x:Nat y:Nat =
+def max #x:Nat y:Nat =
     ?if[Nat] (?leq x y)
         y 
         x
 
-let gcd # x:Nat y:Nat =
+def gcd # x:Nat y:Nat =
     primrec (?min x y) with 
         |0=> 0
         |suc m fby rest =>
@@ -92,6 +92,6 @@ let gcd # x:Nat y:Nat =
                 (suc m)
                 rest
 
-let lcm # x:Nat y:Nat = 
+def lcm # x:Nat y:Nat = 
     ?div (?mult x y) (?gcd x y)
     

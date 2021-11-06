@@ -16,7 +16,7 @@ data TypeProperty
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
-  = LetStatement String [(TypeProperty, String)] AExp
+  = DefStatement String [(TypeProperty, String)] AExp
   | TypeStatement String [String] AType
   | ImportStatement String (Maybe String)
   deriving (Show)

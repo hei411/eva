@@ -12,12 +12,12 @@ statementParser :: Parser Statement
 statementParser =
   try importStatementParser
     <|> try typeStatementParser
-    <|> try letStatementParser
+    <|> try defStatementParser
 
-letStatementParser :: Parser Statement
-letStatementParser = do
+defStatementParser :: Parser Statement
+defStatementParser = do
   skipMany space
-  string "let"
+  string "def"
   skipMany1 space
   var <- varParser
   spaces
@@ -37,8 +37,8 @@ letStatementParser = do
   -- spaces
   let modifiedexp = modifyExp firstParameters pound secondParameters exp
   case polyParameters of
-    Nothing -> return (LetStatement var [] modifiedexp)
-    Just ss -> return (LetStatement var ss modifiedexp)
+    Nothing -> return (DefStatement var [] modifiedexp)
+    Just ss -> return (DefStatement var ss modifiedexp)
 
 modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
 modifyExp firstParameters pound secondParameters exp =
