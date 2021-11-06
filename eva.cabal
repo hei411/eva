@@ -39,6 +39,7 @@ library
       Parser.TypeParser
       Parser.VarParser
       PrintFunctions.BTypePrint
+      PrintFunctions.CExpPrint
       PrintFunctions.FileDataPrint
       ProgramAnalyzer.DefStatementAnalyzerUtils
       ProgramAnalyzer.ImportStatementAnalyzerUtils

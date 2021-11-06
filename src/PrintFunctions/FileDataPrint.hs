@@ -2,6 +2,7 @@ module PrintFunctions.FileDataPrint where
 
 import Datatype
 import PrintFunctions.BTypePrint
+import PrintFunctions.CExpPrint
 
 fileDataPrint :: CompiledFilesData -> String
 fileDataPrint fileData = case fileData of
@@ -31,7 +32,7 @@ functionsPrint functions = case functions of
     let tpString = case tp of
           [] -> ""
           _ -> "[" ++ printtps 0 tp ++ "]"
-    rest ++ name ++ tpString ++ " : " ++ bTypeString ++ "\n"
+    rest ++ name ++ tpString ++ " : " ++ bTypeString ++ "\n" -- ++ printCExp 0 cExp ++ "\n"
   where
     printtps :: Integer -> [TypeProperty] -> String
     printtps n tps = case tps of
