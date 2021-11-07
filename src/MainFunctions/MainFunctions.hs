@@ -20,10 +20,10 @@ getInterpreter :: [String] -> InterpreterMode
 getInterpreter args = case args of
   [] -> Normal
   s : ss -> do
-    let head = take 14 s
-    if head == "--interpreter="
+    let head = take 7 s
+    if head == "--mode="
       then do
-        let tl = drop 14 s
+        let tl = drop 7 s
         case tl of
           "Normal" -> Normal
           "Safe" -> Safe
@@ -45,3 +45,14 @@ getStepNum args = case args of
         let tl = drop 10 s
         read tl :: Integer
       else getStepNum ss
+
+getSrcPath :: [String] -> FilePath
+getSrcPath args = case args of
+  [] -> ""
+  s : ss -> do
+    let head = take 6 s
+    if head == "--src="
+      then do
+        let tl = drop 6 s
+        if last tl /= '/' then tl ++ "/" else tl
+      else getSrcPath ss

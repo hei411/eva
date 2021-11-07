@@ -15,6 +15,7 @@ main = do
   -- get flag for src_path
   let src_path = ""
   -- Start of real program
+  let src_path = getSrcPath args
   compiledFilesData <- mainProgramAnalyzer src_path file_name
   putStr (fileDataPrint (compiledFilesData))
   let (mainExp, mainType) = getMain compiledFilesData
