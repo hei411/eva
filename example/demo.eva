@@ -6,7 +6,8 @@ type Stream = Fix a --> Nat*a
 //def accessData1 (x:Stream) # = x 
 //def accessData2 (x:#Stream)  # = ?x
 
+
 //> and @
-//def atToAngle[a] # x:@a  = > < x
-//def angleToAt[a] # x:>a = @<x
+def atToAngle[a] # x:@a  = > < x
+def angleToAt[ a] # x:>a = @<x
 

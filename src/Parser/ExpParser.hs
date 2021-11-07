@@ -155,27 +155,59 @@ sndParser = do
 
 inlParser :: Parser AExp
 inlParser = do
-  string "inl"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- inlParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInl exp t)
+  where
+    inlParserHelper :: Parser AExp
+    inlParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- inlParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "inl"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 inrParser :: Parser AExp
 inrParser = do
-  string "inr"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- inrParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInr exp t)
+  where
+    inrParserHelper :: Parser AExp
+    inrParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- inrParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "inr"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 matchParser :: Parser AExp
 matchParser = do
@@ -300,15 +332,31 @@ boxParser = do
 
 nowParser :: Parser AExp
 nowParser = do
-  string "now"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- nowParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpNow exp t)
+  where
+    nowParserHelper :: Parser AExp
+    nowParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- nowParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "now"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 waitParser :: Parser AExp
 waitParser = do
@@ -366,15 +414,31 @@ outParser = do
 
 intoParser :: Parser AExp
 intoParser = do
-  string "into"
-  notFollowedBy alphaNum
-  spaces
-  exp <- firstExpParser
+  exp <- intoParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInto exp t)
+  where
+    intoParserHelper :: Parser AExp
+    intoParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- intoParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "into"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 expVarParser :: Parser AExp
 expVarParser = do

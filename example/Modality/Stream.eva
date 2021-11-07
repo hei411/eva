@@ -62,6 +62,7 @@ def wrongDelayStr [Stable a] =
 
 
 
+
 def scan[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 

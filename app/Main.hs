@@ -1,6 +1,7 @@
 module Main where
 
 import Datatype
+import Interpreter.LivelyInterpreter
 import Interpreter.NormalInterpreter (normalInterpreter)
 import Interpreter.SafeInterpreter (safeInterpreter)
 import MainFunctions.MainFunctions
@@ -24,6 +25,7 @@ main = do
   case interpreterType of
     Normal -> normalInterpreter mainExp
     Safe -> safeInterpreter mainExp mainType stepNum
+    Lively -> livelyInterpreter mainExp mainType stepNum
     _ -> error "interpreter type not implemented"
 
   return ()

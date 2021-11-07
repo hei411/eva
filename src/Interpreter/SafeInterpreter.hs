@@ -8,7 +8,7 @@ import PrintFunctions.CExpPrint (printCExp)
 safeInterpreter :: CExp -> BType -> Integer -> IO ()
 safeInterpreter cExp bType stepNum =
   do
-    putStrLn "Running normal interpreter:"
+    putStrLn "Running safe interpreter (For stream types):"
     checkBTypeSafe bType
     safeInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1
 
