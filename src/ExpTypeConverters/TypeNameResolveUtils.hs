@@ -11,20 +11,19 @@ resolveTypeName file functionOrTypeSynonymName definedTypenames name typeArgumen
       Just (bType, num) ->
         if num /= (toInteger (length typeArguments))
           then error (file ++ ": " ++ "Provide wrong number of type arguments to the type synonym \"" ++ name ++ "\" in \"" ++ functionOrTypeSynonymName ++ "\"")
-          else foldl (substituteTypenameArg 0) bType typeArguments
+          else substituteTypenameArg 0 bType typeArguments
   where
     lookupTypename :: TypenameList -> String -> Maybe (BType, Integer)
     lookupTypename definedTypenames name = case definedTypenames of
       [] -> Nothing
       (key, bType, num) : tl -> if key == name then Just (bType, num) else lookupTypename tl name
 
-substituteTypenameArg :: Integer -> BType -> BType -> BType
+substituteTypenameArg :: Integer -> BType -> [BType] -> BType
 substituteTypenameArg levelNum bType arg = case bType of
   BTypeIndex n -> BTypeIndex n
   BTypeParametric n tp -> BTypeParametric n tp
   BTypeNameParam n ->
-    --really tricky bit. if n == 0 substitute, otherwise subtract one for next typename param
-    if n == 0 then promoteFreeVariables levelNum 0 arg else BTypeNameParam (n -1)
+    arg !! (fromInteger (n))
   BTypeUnit -> BTypeUnit
   BTypeNat -> BTypeNat
   BTypeProduct bt bt' -> BTypeProduct (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)

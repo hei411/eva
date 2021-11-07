@@ -16,7 +16,7 @@ varParser =
     )
     <|> do
       start <- lower
-      rest <- many (choice [alphaNum, oneOf "_"])
+      rest <- many (choice [alphaNum, oneOf "_'"])
       let str = start : rest
       checkVar str
 
@@ -61,7 +61,7 @@ upperVarParser =
     )
     <|> do
       start <- upper
-      rest <- many (choice [alphaNum, oneOf "_"])
+      rest <- many (choice [alphaNum, oneOf "_'"])
       let str = start : rest
       checkUpperVar str
 
@@ -89,16 +89,16 @@ potentialDotVarParser =
     <|> try
       ( do
           starthd <- alphaNum
-          starttl <- many (choice [alphaNum, oneOf "_"])
+          starttl <- many (choice [alphaNum, oneOf "_'"])
           c <- char '.'
           resthd <- lower
-          resttl <- many (choice [alphaNum, oneOf "_"])
+          resttl <- many (choice [alphaNum, oneOf "_'"])
           rest <- checkVar (resthd : resttl)
           return (starthd : starttl ++ ['.'] ++ rest)
       )
     <|> do
       start <- lower
-      rest <- many (choice [alphaNum, oneOf "_"])
+      rest <- many (choice [alphaNum, oneOf "_'"])
       let str = start : rest
       notFollowedBy (char '.')
       checkVar str
@@ -117,16 +117,16 @@ potentialDotUpperVarParser =
     <|> try
       ( do
           starthd <- alphaNum
-          starttl <- many (choice [alphaNum, oneOf "_"])
+          starttl <- many (choice [alphaNum, oneOf "_'"])
           c <- char '.'
           resthd <- upper
-          resttl <- many (choice [alphaNum, oneOf "_"])
+          resttl <- many (choice [alphaNum, oneOf "_'"])
           rest <- checkUpperVar (resthd : resttl)
           return (starthd : starttl ++ ['.'] ++ rest)
       )
     <|> do
       start <- upper
-      rest <- many (choice [alphaNum, oneOf "_"])
+      rest <- many (choice [alphaNum, oneOf "_'"])
       let str = start : rest
       notFollowedBy (char '.')
       checkUpperVar str

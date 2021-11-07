@@ -1,0 +1,2 @@
+type Fair (a,b) = Fix f --> a Until (b * > (b Until (a*f)))
+type Fair'(b,a) = b Until (a*>Fair(a,b))

@@ -63,7 +63,7 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
               Right (wrongType, intendedTP) ->
                 typeCheckerErrorMsg file functionName ("The parametric parameter  " ++ show (wrongType) ++ " does not have type property " ++ show (intendedTP) ++ " for " ++ varName)
               Left () -> do
-                let monoBType = substituteParametric 0 bType typeArguments
+                let monoBType = substituteParametric bType typeArguments
                 case context of
                   TokenlessContext x0 -> (cExp, monoBType)
                   StableContext x0 x1 ->
