@@ -6,7 +6,7 @@ import PrintFunctions.CExpPrint
 
 fileDataPrint :: CompiledFilesData -> String
 fileDataPrint fileData = case fileData of
-  [] -> "-------------------------------------------------------------------------------------"
+  [] -> "-------------------------------------------------------------------------------------\n"
   (fileName, functions, typenames) : tl ->
     do
       let rest = fileDataPrint tl

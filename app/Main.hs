@@ -15,7 +15,7 @@ main = do
   let src_path = ""
   -- Start of real program
   compiledFilesData <- mainProgramAnalyzer src_path file_name
-  putStrLn (fileDataPrint (compiledFilesData))
+  putStr (fileDataPrint (compiledFilesData))
   let mainExp = getMain compiledFilesData
   let interpreterType = Normal
   case interpreterType of
