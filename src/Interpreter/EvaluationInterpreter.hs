@@ -32,12 +32,12 @@ evaluationInterpreter exp store = case exp of
   CExpRec ce -> (CExpRec ce, store)
   CExpOut ce -> outEval ce store
   CExpInto ce -> intoEval ce store
-  CExpLocation n -> error "Should not happen. evaluation interpreter called on a location directly (not sure)"
+  CExpLocation n -> (CExpLocation n, store)
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
   let (lambda, s') = evaluationInterpreter e1 s
-  let (v, s'') = evaluationInterpreter lambda s'
+  let (v, s'') = evaluationInterpreter e2 s'
   case lambda of
     CExpLambda body ->
       do
@@ -127,16 +127,16 @@ advEval e s = case s of
 unboxEval :: CExp -> Store -> (CExp, Store)
 unboxEval e s = do
   case s of
-    NullStore -> error "Should not happen! unbox applied in a nullstore"
+    NullStore -> error ("Should not happen! unbox applied in a nullstore")
     _ -> do
       let (e', s') = evaluationInterpreter e NullStore
       case e' of
         CExpBox body ->
-          evaluationInterpreter body s'
+          evaluationInterpreter body s
         CExpRec body -> do
           let arg = CExpBox (CExpDelay (CExpUnbox e'))
           let e'' = substituteCExp arg 0 body
-          evaluationInterpreter e'' s'
+          evaluationInterpreter e'' s
         _ -> error "Should not happen! unbox applied to a non box/rec expression"
 
 nowEval :: CExp -> Store -> (CExp, Store)
