@@ -19,7 +19,7 @@ fileDataPrint fileData = case fileData of
       let typenameString =
             ( case typenames of
                 [] -> "No type synonyms defined.\n\n"
-                _ -> "TYPE SYNONYMS\n" ++ typenamesPrint typenames ++ "\n\n"
+                _ -> "TYPE SYNONYMS\n" ++ typenamesPrint typenames ++ "\n"
             )
       rest ++ "File: " ++ fileName ++ "\n\n" ++ typenameString ++ functionString ++ separator
 

@@ -3,6 +3,7 @@ def add # x:Nat y:Nat =
         | 0 => y
         | suc z fby rest => suc rest 
 
+
 def mult = 
 #(fun (x:Nat) (y: Nat) => 
     primrec x with 
