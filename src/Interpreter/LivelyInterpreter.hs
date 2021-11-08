@@ -5,11 +5,11 @@ import Interpreter.EvaluationInterpreter
 import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint
 
-livelyInterpreter :: CExp -> BType -> Integer -> IO ()
-livelyInterpreter cExp bType stepNum =
+livelyInterpreter :: CExp -> Integer -> IO ()
+livelyInterpreter cExp stepNum =
   do
     putStrLn "Running lively interpreter (For until types):"
-    checkBTypeLively bType
+    -- checkBTypeLively bType
     livelyInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1
 
 livelyInterpreterHelper :: CExp -> Store -> Integer -> Integer -> IO ()
@@ -40,8 +40,3 @@ untilStep cExp s = do
         CExpNow v -> (Nothing, TicklessStore x1, v)
         _ -> error "until Step semantics doesnt step into another until constructor"
     _ -> error "until step semantics doesnt produce a tickstore"
-
-checkBTypeLively :: BType -> IO ()
-checkBTypeLively bType = case bType of
-  BTypeBox (BTypeUntil _ _) -> return ()
-  _ -> error ("main function has type " ++ printBType 0 bType ++ " which is not a valid type for the lively interpreter")

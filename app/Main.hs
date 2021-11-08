@@ -20,12 +20,12 @@ main = do
   compiledFilesData <- mainProgramAnalyzer src_path file_name
   putStr (fileDataPrint (compiledFilesData))
   let (mainExp, mainType) = getMain compiledFilesData
-  let interpreterType = getInterpreter args
+  let interpreterType = getInterpreter mainType
   let stepNum = getStepNum args
   case interpreterType of
     Normal -> normalInterpreter mainExp
-    Safe -> safeInterpreter mainExp mainType stepNum
-    Lively -> livelyInterpreter mainExp mainType stepNum
+    Safe -> safeInterpreter mainExp  stepNum
+    Lively -> livelyInterpreter mainExp  stepNum
     _ -> error "interpreter type not implemented"
 
   return ()

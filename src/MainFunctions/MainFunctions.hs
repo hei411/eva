@@ -16,24 +16,12 @@ getMain compiledFilesData =
           then getMainHelper x1
           else if length tps /= 0 then error "main program can't be polymorphic!" else (cExp, bType)
 
-getInterpreter :: [String] -> InterpreterMode
-getInterpreter args = case args of
-  [] -> Normal
-  s : ss -> do
-    let head = take 7 s
-    if head == "--mode="
-      then do
-        let tl = drop 7 s
-        case tl of
-          "Normal" -> Normal
-          "Safe" -> Safe
-          "Lively" -> Lively
-          "Fair" -> Fair
-          "ISafe" -> ISafe
-          "ILively" -> ILively
-          "IFair" -> IFair
-          _ -> error "Cant detect interpreter type"
-      else getInterpreter ss
+getInterpreter :: BType -> InterpreterMode
+getInterpreter bType =
+  case bType of
+    BTypeBox (BTypeFix (BTypeProduct _ (BTypeIndex 0))) -> Safe
+    BTypeBox (BTypeUntil _ _) -> Lively
+    _ -> Normal
 
 getStepNum :: [String] -> Integer
 getStepNum args = case args of

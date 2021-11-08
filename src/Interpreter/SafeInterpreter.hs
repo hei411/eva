@@ -5,11 +5,11 @@ import Interpreter.EvaluationInterpreter
 import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint (printCExp)
 
-safeInterpreter :: CExp -> BType -> Integer -> IO ()
-safeInterpreter cExp bType stepNum =
+safeInterpreter :: CExp -> Integer -> IO ()
+safeInterpreter cExp stepNum =
   do
     putStrLn "Running safe interpreter (For stream types):"
-    checkBTypeSafe bType
+    --checkBTypeSafe bType
     safeInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1
 
 safeInterpreterHelper :: CExp -> Store -> Integer -> Integer -> IO ()
@@ -33,8 +33,3 @@ streamStep cExp s =
         TickStore x0 x1 -> (CExpAdv tl, TicklessStore x1, hd)
         _ -> error "stream step semantics doesnt produce a tickstore"
       _ -> error "stream Step semantics doesnt step into another stream"
-
-checkBTypeSafe :: BType -> IO ()
-checkBTypeSafe bType = case bType of
-  BTypeBox (BTypeFix (BTypeProduct _ (BTypeIndex 0))) -> return ()
-  _ -> error ("main function has type " ++ printBType 0 bType ++ " which is not a valid type for the safe interpreter")
