@@ -61,5 +61,5 @@ getSrcPath args = case args of
 getInputType :: BType -> BType
 getInputType bType =
   case bType of
-    BTypeBox (BTypeFunction input _) -> input
+    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct input _)) _) -> input
     _ -> error "Should not happen. Error in get input type function"

@@ -9,5 +9,6 @@ def tl  (s: Stream) = snd (out s)
 
 //> and @
 //def atToAngle[a] # x:@a  = > < x
-def angleToAt[ a] # x:>a = @<x
+//def angleToAt[ a] # x:>a = @<x
 
+def main # x:Stream = x

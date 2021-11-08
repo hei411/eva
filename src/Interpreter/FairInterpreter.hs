@@ -28,8 +28,10 @@ fairStep cExp s mode =
     let (maybeCExp', s', output) = untilStep cExp s
     case maybeCExp' of
       Nothing -> do
-        let CExpProduct v w = output
-        if mode == 1
-          then (CExpAdv w, s', 2, v)
-          else (CExpOut (CExpAdv w), s', 1, v)
+        case output of
+          CExpProduct v w ->
+            if mode == 1
+              then (CExpAdv w, s', 2, v)
+              else (CExpOut (CExpAdv w), s', 1, v)
+          _ -> error "fair Step semantics doesnt step into a product when the until step halts"
       Just ce -> (ce, s', mode, output)

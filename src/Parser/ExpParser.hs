@@ -8,6 +8,16 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec (notFollowedBy)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
 
+inputParser :: Parser AExp
+inputParser =
+  ( do
+      spaces
+      exp <- expParser
+      spaces
+      eof
+      return exp
+  )
+
 expParser :: Parser AExp
 expParser =
   try letExpParser

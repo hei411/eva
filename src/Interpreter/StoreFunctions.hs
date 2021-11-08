@@ -31,6 +31,19 @@ modifyStoreElem sList key cExp = case sList of
   [] -> []
   (key', load) : x1 -> if key' == key then (key, cExp) : x1 else (key', load) : modifyStoreElem x1 key cExp
 
+transformInputStore :: Store -> CExp -> CExp -> (Store, CExp)
+-- take a tickless store, input and l, produce a tickstore and l'
+transformInputStore s input l =
+  case s of
+    TicklessStore lis -> do
+      let (s', l') = addStoreElem (TickStore lis []) CExpUnit
+      let TickStore a b = s'
+      let CExpLocation n = l
+      let a' = modifyStoreElem a n (CExpInto (CExpProduct input l'))
+      let newStore = TickStore a' b
+      (newStore, l')
+    _ -> error "store passed to transform input store is not tickless"
+
 {-
 removeStoreElem :: StoreElemList -> Integer -> StoreElemList
 removeStoreElem s n =

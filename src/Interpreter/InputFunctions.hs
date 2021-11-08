@@ -11,7 +11,7 @@ import TypeFunctions.TypeCompare
 parseInputExp :: BType -> IO (CExp)
 parseInputExp bType = do
   input <- getLine
-  let parseResult = parse expParser "Error in parsing input" input
+  let parseResult = parse inputParser "Error in parsing input" input
   case parseResult of
     Left pe -> do
       putStrLn ("Error in parsing input! Try again!")
