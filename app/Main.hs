@@ -3,6 +3,7 @@ module Main where
 import Datatype
 import Foreign (finalizeForeignPtr)
 import Interpreter.FairInterpreter
+import Interpreter.ILivelyInterpreter (iLivelyInterpreter)
 import Interpreter.ISafeInterpreter
 import Interpreter.LivelyInterpreter
 import Interpreter.NormalInterpreter (normalInterpreter)
@@ -31,6 +32,7 @@ main = do
     Lively -> livelyInterpreter mainExp stepNum
     Fair -> fairInterpreter mainExp stepNum
     ISafe -> iSafeInterpreter mainExp (getInputType mainType)
+    ILively -> iLivelyInterpreter mainExp (getInputType mainType)
     _ -> error "interpreter type not implemented"
 
   return ()

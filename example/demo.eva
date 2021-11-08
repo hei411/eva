@@ -11,4 +11,4 @@ def tl  (s: Stream) = snd (out s)
 //def atToAngle[a] # x:@a  = > < x
 //def angleToAt[ a] # x:>a = @<x
 
-def main # x:Stream = x
+def main # x:Stream = wait () (@now 0:Unit Until Nat)
