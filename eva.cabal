@@ -33,6 +33,7 @@ library
       ExpTypeConverters.TypeNameResolveUtils
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
+      Interpreter.FairInterpreter
       Interpreter.LivelyInterpreter
       Interpreter.NormalInterpreter
       Interpreter.SafeInterpreter

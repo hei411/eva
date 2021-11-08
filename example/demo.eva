@@ -1,6 +1,6 @@
 //Streams
 type Stream = Fix a --> Nat*a
-//def tl  (s: Stream) = snd (out s)
+def tl  (s: Stream) = snd (out s)
 
 //Box
 //def accessData1 (x:Stream) # = x 
@@ -8,6 +8,6 @@ type Stream = Fix a --> Nat*a
 
 
 //> and @
-def atToAngle[a] # x:@a  = > < x
+//def atToAngle[a] # x:@a  = > < x
 def angleToAt[ a] # x:>a = @<x
 

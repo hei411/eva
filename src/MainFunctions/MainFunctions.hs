@@ -1,6 +1,7 @@
 module MainFunctions.MainFunctions where
 
 import Datatype
+import TypeFunctions.TypeCompare
 
 getMain :: CompiledFilesData -> (CExp, BType)
 getMain compiledFilesData =
@@ -21,6 +22,8 @@ getInterpreter bType =
   case bType of
     BTypeBox (BTypeFix (BTypeProduct _ (BTypeIndex 0))) -> Safe
     BTypeBox (BTypeUntil _ _) -> Lively
+    BTypeBox (BTypeFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0))))))) ->
+      if generalBTypeCompare a a' && generalBTypeCompare b b' then Fair else Normal
     _ -> Normal
 
 getStepNum :: [String] -> Integer

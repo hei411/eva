@@ -1,6 +1,8 @@
 module Main where
 
 import Datatype
+import Foreign (finalizeForeignPtr)
+import Interpreter.FairInterpreter
 import Interpreter.LivelyInterpreter
 import Interpreter.NormalInterpreter (normalInterpreter)
 import Interpreter.SafeInterpreter (safeInterpreter)
@@ -24,8 +26,9 @@ main = do
   let stepNum = getStepNum args
   case interpreterType of
     Normal -> normalInterpreter mainExp
-    Safe -> safeInterpreter mainExp  stepNum
-    Lively -> livelyInterpreter mainExp  stepNum
+    Safe -> safeInterpreter mainExp stepNum
+    Lively -> livelyInterpreter mainExp stepNum
+    Fair -> fairInterpreter mainExp stepNum
     _ -> error "interpreter type not implemented"
 
   return ()
