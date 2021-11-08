@@ -34,6 +34,7 @@ library
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
       Interpreter.FairInterpreter
+      Interpreter.IFairInterpreter
       Interpreter.ILivelyInterpreter
       Interpreter.InputFunctions
       Interpreter.ISafeInterpreter
