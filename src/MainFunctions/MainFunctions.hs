@@ -24,6 +24,16 @@ getInterpreter bType =
     BTypeBox (BTypeUntil _ _) -> Lively
     BTypeBox (BTypeFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0))))))) ->
       if generalBTypeCompare a a' && generalBTypeCompare b b' then Fair else Normal
+    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct _ (BTypeIndex 0))) (BTypeFix (BTypeProduct _ (BTypeIndex 0)))) ->
+      ISafe
+    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct _ (BTypeIndex 0))) (BTypeUntil _ _)) ->
+      ILively
+    BTypeBox
+      ( BTypeFunction
+          (BTypeFix (BTypeProduct _ (BTypeIndex 0)))
+          (BTypeFix (BTypeUntil b (BTypeProduct c (BTypeAngle (BTypeUntil c' (BTypeProduct b' (BTypeIndex 0)))))))
+        ) ->
+        if generalBTypeCompare b b' && generalBTypeCompare c c' then IFair else Normal
     _ -> Normal
 
 getStepNum :: [String] -> Integer
@@ -47,3 +57,9 @@ getSrcPath args = case args of
         let tl = drop 6 s
         if last tl /= '/' then tl ++ "/" else tl
       else getSrcPath ss
+
+getInputType :: BType -> BType
+getInputType bType =
+  case bType of
+    BTypeBox (BTypeFunction input _) -> input
+    _ -> error "Should not happen. Error in get input type function"

@@ -26,6 +26,11 @@ addStoreElem s exp = case s of
       [] -> ([(0, exp)], 0)
       (n, _) : x1 -> ((n + 1, exp) : l, n + 1)
 
+modifyStoreElem :: StoreElemList -> Integer -> CExp -> StoreElemList
+modifyStoreElem sList key cExp = case sList of
+  [] -> []
+  (key', load) : x1 -> if key' == key then (key, cExp) : x1 else (key', load) : modifyStoreElem x1 key cExp
+
 {-
 removeStoreElem :: StoreElemList -> Integer -> StoreElemList
 removeStoreElem s n =
