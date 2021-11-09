@@ -17,7 +17,7 @@ isLimit bType = case bType of
   BTypeSum bt bt' -> (isLimit bt) && (isLimit bt')
   BTypeFunction bt bt' -> isLimit bt'
   BTypeBox bt -> isLimit bt
-  BTypeArrow bt -> True
+  BTypeAngle bt -> True
   BTypeAt bt -> isLimit bt
   BTypeFix bt -> isLimit bt
   BTypeUntil bt bt' -> False

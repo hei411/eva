@@ -1,5 +1,6 @@
 module TypeChecker.MainTypeChecker where
 
+import Data.Functor.Contravariant (defaultEquivalence)
 import Data.List
 import Datatype
 import TypeChecker.ContextFunctions
@@ -26,7 +27,7 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpZero -> (CExpZero, BTypeNat)
   BExpSuc be -> sucRule file functionName definedFunctions context varStack be
   BExpPrimrec be be' s str be2 -> primrecRule file functionName definedFunctions context varStack be be' s str be2
-  BExpArrow be -> arrowRule file functionName definedFunctions context varStack be
+  BExpAngle be -> angleRule file functionName definedFunctions context varStack be
   BExpAt be -> atRule file functionName definedFunctions context varStack be
   BExpAdv be -> advRule file functionName definedFunctions context varStack be
   BExpBox be -> boxRule file functionName definedFunctions context varStack be
@@ -37,6 +38,7 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpRec s bt be -> recRule file functionName definedFunctions context varStack s bt be
   BExpOut be -> outRule file functionName definedFunctions context varStack be
   BExpInto be bt -> intoRule file functionName definedFunctions context varStack be bt
+  BExpLet s be be' -> letRule file functionName definedFunctions context varStack s be be'
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -59,19 +61,19 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
             let typePropertyCorrect = checkTypeProperty tp typeArguments
             case typePropertyCorrect of
               Right (wrongType, intendedTP) ->
-                typeCheckerErrorMsg file functionName ("The parametric parameter  " ++ show (wrongType) ++ " does not have type property" ++ show (intendedTP) ++ " for " ++ varName)
+                typeCheckerErrorMsg file functionName ("The parametric parameter  " ++ show (wrongType) ++ " does not have type property " ++ show (intendedTP) ++ " for " ++ varName)
               Left () -> do
-                let monoBType = substituteParametric 0 bType typeArguments
+                let monoBType = substituteParametric bType typeArguments
                 case context of
                   TokenlessContext x0 -> (cExp, monoBType)
                   StableContext x0 x1 ->
                     if isStable monoBType
                       then (cExp, monoBType)
                       else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in Stable Context")
-                  ArrowContext x0 x1 x2 ->
+                  AngleContext x0 x1 x2 ->
                     if isStable monoBType
                       then (cExp, monoBType)
-                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in Arrow Context")
+                      else typeCheckerErrorMsg file functionName (varName ++ " is not stable type and is blocked by token(s) in Angle Context")
                   AtContext x0 x1 x2 ->
                     if isStable monoBType
                       then (cExp, monoBType)
@@ -86,55 +88,58 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
           else findDefinedFunctions (index + 1) tl
 
 varRuleInVarStack :: FilePath -> String -> Context -> Integer -> String -> [BType] -> (CExp, BType)
-varRuleInVarStack file functionName context n varName typeArguments = case context of
-  TokenlessContext x0 -> do
-    let foundType = elemContext x0 varName
-    case foundType of
-      Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-      Just bt -> (CExpIndex n, bt)
-  StableContext x0 x1 -> do
-    let foundType = elemContext x1 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext x0 varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
-  ArrowContext x0 x1 x2 -> do
-    let foundType = elemContext x2 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext (x1 ++ x0) varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
-  AtContext x0 x1 x2 -> do
-    let foundType = elemContext x2 varName
-    case foundType of
-      Nothing ->
-        do
-          let foundType2 = elemContext (x1 ++ x0) varName
-          case foundType2 of
-            Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
-            Just bt ->
-              if isStable bt
-                then (CExpIndex n, bt)
-                else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-      Just bt -> (CExpIndex n, bt)
+varRuleInVarStack file functionName context n varName typeArguments =
+  if length typeArguments > 0
+    then typeCheckerErrorMsg file functionName ("Wrong number of parametric parameters provided for " ++ varName)
+    else case context of
+      TokenlessContext x0 -> do
+        let foundType = elemContext x0 varName
+        case foundType of
+          Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+          Just bt -> (CExpIndex n, bt)
+      StableContext x0 x1 -> do
+        let foundType = elemContext x1 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext x0 varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
+      AngleContext x0 x1 x2 -> do
+        let foundType = elemContext x2 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext (x1 ++ x0) varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
+      AtContext x0 x1 x2 -> do
+        let foundType = elemContext x2 varName
+        case foundType of
+          Nothing ->
+            do
+              let foundType2 = elemContext (x1 ++ x0) varName
+              case foundType2 of
+                Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the context")
+                Just bt ->
+                  if isStable bt
+                    then (CExpIndex n, bt)
+                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+          Just bt -> (CExpIndex n, bt)
 
 lambdaRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
 lambdaRule file functionName definedFunctions context varStack varName varType body = case context of
-  ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Non-tick free context (ArrowContext) in lambdaRule"
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Non-tick free context (AngleContext) in lambdaRule"
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Non-tick free context (AtContext) in lambdaRule"
   _ ->
     do
@@ -232,16 +237,16 @@ primrecRule file functionName definedFunctions context varStack e e1 var1 var2 e
           if generalBTypeCompare e1Type e2Type then (CExpPrimrec eExp e1Exp e2Exp, e1Type) else typeCheckerErrorMsg file functionName "primrecRule branches type not compatible"
       _ -> typeCheckerErrorMsg file functionName "primrecRule applied to a non-Nat type"
 
-arrowRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
-arrowRule file functionName definedFunctions context varStack e =
+angleRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
+angleRule file functionName definedFunctions context varStack e =
   case context of
-    TokenlessContext x0 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  tokenless context"
+    TokenlessContext x0 -> typeCheckerErrorMsg file functionName "angleRule applied to a non-stable context, i.e.  tokenless context"
     StableContext x0 x1 ->
       do
-        let (eExp, eType) = mainTypeChecker file functionName definedFunctions (ArrowContext x0 x1 []) varStack e
-        (CExpArrow eExp, BTypeArrow eType)
-    ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  arrow context"
-    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "arrowRule applied to a non-stable context, i.e.  atcontext"
+        let (eExp, eType) = mainTypeChecker file functionName definedFunctions (AngleContext x0 x1 []) varStack e
+        (CExpDelay eExp, BTypeAngle eType)
+    AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "angleRule applied to a non-stable context, i.e.  angle context"
+    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "angleRule applied to a non-stable context, i.e.  atcontext"
 
 atRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
 atRule file functionName definedFunctions context varStack e =
@@ -250,8 +255,8 @@ atRule file functionName definedFunctions context varStack e =
     StableContext x0 x1 ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions (AtContext x0 x1 []) varStack e
-        (CExpAt eExp, BTypeAt eType)
-    ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  arrow context"
+        (CExpDelay eExp, BTypeAt eType)
+    AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  angle context"
     AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "atRule applied to a non-stable context, i.e.  atcontext"
 
 advRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
@@ -259,21 +264,21 @@ advRule file functionName definedFunctions context varStack e =
   case context of
     TokenlessContext x0 -> typeCheckerErrorMsg file functionName "advRule applied to a non-tickful context, i.e.  tokenlesscontext"
     StableContext x0 x1 -> typeCheckerErrorMsg file functionName "advRule applied to a non-tickful context, i.e.  stablecontext"
-    ArrowContext x0 x1 x2 ->
+    AngleContext x0 x1 x2 ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext x0 x1) varStack e
         case eType of
-          BTypeArrow a -> (CExpAdv eExp, a)
+          BTypeAngle a -> (CExpAdv eExp, a)
           BTypeAt a -> (CExpAdv eExp, a)
           _ -> typeCheckerErrorMsg file functionName "advRule applied to a non-delay type"
     AtContext x0 x1 x2 ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext x0 x1) varStack e
         case eType of
-          BTypeArrow a ->
+          BTypeAngle a ->
             if isLimit a
               then (CExpAdv eExp, a)
-              else typeCheckerErrorMsg file functionName "Failure to type a non-limit arrow-delay type in an atcontext"
+              else typeCheckerErrorMsg file functionName "Failure to type a non-limit angle-delay type in an atcontext"
           BTypeAt a -> (CExpAdv eExp, a)
           _ -> typeCheckerErrorMsg file functionName "advRule applied to a non-delay type"
 
@@ -284,7 +289,7 @@ boxRule file functionName definedFunctions context varStack e = case context of
       let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext x0 []) varStack e
       (CExpBox eExp, BTypeBox eType)
   StableContext x0 x1 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  stablecontext"
-  ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  ArrowContext"
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  anglecontext"
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "boxRule applied to a non-tokenless context, i.e.  AtContext"
 
 unboxRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
@@ -296,7 +301,7 @@ unboxRule file functionName definedFunctions context varStack e = case context o
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName "boxRule applied to a non-boxed type"
-  ArrowContext x0 x1 x2 ->
+  AngleContext x0 x1 x2 ->
     do
       let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
       case eType of
@@ -336,7 +341,7 @@ urecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> B
 urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar1 waitVar2 fbyVar e2 = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName "urecRule applied to a tokenless context"
   StableContext x0 x1 -> urecRuleHelper x0
-  ArrowContext x0 x1 x2 -> urecRuleHelper x0
+  AngleContext x0 x1 x2 -> urecRuleHelper x0
   AtContext x0 x1 x2 -> urecRuleHelper x0
   where
     urecRuleHelper firstContextList =
@@ -359,13 +364,13 @@ recRule file functionName definedFunctions context varStack var ascription e = c
     case ascription of
       BTypeBox a ->
         do
-          let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext ((var, BTypeBox (BTypeArrow a)) : x0) []) (var : varStack) e
+          let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext ((var, BTypeBox (BTypeAngle a)) : x0) []) (var : varStack) e
           if generalBTypeCompare eType a
             then (CExpRec eExp, ascription)
             else typeCheckerErrorMsg file functionName "recRule type ascription does not match target type"
       _ -> typeCheckerErrorMsg file functionName "recRule type ascription is not box type"
   StableContext x0 x1 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. StableContext"
-  ArrowContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. ArrowContext"
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. AngleContext"
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "recRule not applied in a tokenlessContext, i.e. AtContext"
 
 outRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
@@ -388,6 +393,19 @@ intoRule file functionName definedFunctions context varStack e ascription =
           then (CExpInto eExp, ascription)
           else typeCheckerErrorMsg file functionName "intoRule ascription doesnt match inner expression type"
     _ -> typeCheckerErrorMsg file functionName "intoRule ascription is not Fix type"
+
+letRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BExp -> BExp -> (CExp, BType)
+letRule file functionName definedFunctions context varStack str exp body =
+  -- Note. Currrently, we just simply rewriite let into a application rule. However I suspect this rule can be relaxed
+  -- one needs to think... perhaps setting the body within a context with a tick is allowed, since the lambda abstraction is
+  -- immediately applied?
+  case context of
+    AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Currently we disallow let to be used in angle contexts. Ask Hei Li about this..."
+    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName "Currently we disallow let to be used in at contexts. Ask Hei Li about this..."
+    _ -> do
+      let (_, eType) = mainTypeChecker file functionName definedFunctions context varStack exp
+      let newExp = BExpApplication (BExpLambda str eType body) exp
+      mainTypeChecker file functionName definedFunctions context varStack newExp
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

@@ -1,0 +1,98 @@
+def add # x:Nat y:Nat = 
+    primrec x with 
+        | 0 => y
+        | suc z fby rest => suc rest 
+
+
+def mult = 
+#(fun (x:Nat) (y: Nat) => 
+    primrec x with 
+        | 0 => 0
+        | suc z fby rest => ?add y rest )
+
+
+def exp # x:Nat y:Nat = 
+    primrec y with 
+        | 0 => 1
+        | suc z fby rest => ?mult x rest
+
+def pred # x:Nat = 
+    primrec x with
+        |0=> 0
+        |suc y fby rest => y
+
+def minus # x:Nat y:Nat = 
+    primrec y with 
+        | 0=> x
+        | suc z fby rest => ?pred rest
+
+import Prelude.Bool
+
+def isZero # x:Nat = 
+    primrec x with 
+        | 0 => true 
+        | suc z fby rest => false 
+
+def equalsNat # x:Nat y:Nat =
+    ?isZero (?add (?minus x y) (?minus y x))
+
+def rem # x:Nat y:Nat = 
+    primrec x with 
+        | 0 => 0
+        | suc m fby rest => 
+            ?if[Nat] (?equalsNat (?pred y) rest)
+                0
+                (suc rest) 
+
+def div # x:Nat y:Nat = 
+    primrec x with 
+        | 0=> 0
+        | suc m fby rest => 
+            ?if[Nat] (?equalsNat (?rem m y) (?pred y))
+                (suc rest)
+                rest
+
+def lessthan # x:Nat y:Nat = 
+    ?isZero (?minus (suc x) y)
+
+def leq #x:Nat y:Nat = 
+    ?isZero (?minus x y)
+
+def divisible # x:Nat y:Nat = 
+    ?isZero (?rem x y)
+
+def prime #x:Nat = 
+    ?if[Bool] (?leq x 1)
+        false 
+        (primrec x with 
+            | 0=> true 
+            | suc m fby rest => 
+                ?and rest
+                    (?or (?equalsNat (suc m) 1) 
+                        (?or (?equalsNat (suc m) x)
+                            (?not (?divisible x (suc m)))
+                        )
+                    )
+        )
+
+def min #x:Nat y:Nat = 
+    ?if[Nat] (?leq x y)
+        x
+        y
+
+def max #x:Nat y:Nat =
+    ?if[Nat] (?leq x y)
+        y 
+        x
+
+def gcd # x:Nat y:Nat =
+    primrec (?min x y) with 
+        |0=> 0
+        |suc m fby rest =>
+            ?if[Nat] (?and (?divisible x (suc m)) (?divisible y (suc m)))
+                (suc m)
+                rest
+
+def lcm # x:Nat y:Nat = 
+    ?div (?mult x y) (?gcd x y)
+    

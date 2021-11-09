@@ -5,11 +5,23 @@ import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
 import Text.Parsec.String
+import Text.ParserCombinators.Parsec (notFollowedBy)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
+
+inputParser :: Parser AExp
+inputParser =
+  ( do
+      spaces
+      exp <- expParser
+      spaces
+      eof
+      return exp
+  )
 
 expParser :: Parser AExp
 expParser =
-  try bindExpParser
+  try letExpParser
+    <|> try bindExpParser
     <|> try
       ( do
           first <- appExpParser
@@ -19,6 +31,42 @@ expParser =
       )
     <|> appExpParser
     <|> fail "Cannot parse an expression"
+
+letExpParser :: Parser AExp
+letExpParser =
+  try
+    ( do
+        string "let"
+        notFollowedBy alphaNum
+        spaces
+        var <- varParser
+        spaces
+        firstParameters <- many (annoVarParser)
+        spaces
+        pound <- optionMaybe (try (char '#'))
+        spaces
+        secondParameters <- many (annoVarParser)
+        spaces
+        char '='
+        spaces
+        exp <- expParser
+        spaces
+        string "in"
+        notFollowedBy alphaNum
+        spaces
+        body <- expParser
+        let modifiedexp = modifyExp firstParameters pound secondParameters exp
+        return (AExpLet var modifiedexp body)
+    )
+
+modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
+modifyExp firstParameters pound secondParameters exp =
+  addLambda firstParameters (addPound pound (addLambda secondParameters exp))
+
+addPound :: Maybe Char -> AExp -> AExp
+addPound p exp = case p of
+  Nothing -> exp
+  Just s -> AExpBox exp
 
 lambdaParser :: Parser AExp
 lambdaParser = do
@@ -93,6 +141,7 @@ productParser = do
   first <- expParser
   spaces
   char ','
+  spaces
   second <- expParser
   spaces
   char ')'
@@ -116,27 +165,59 @@ sndParser = do
 
 inlParser :: Parser AExp
 inlParser = do
-  string "inl"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- inlParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInl exp t)
+  where
+    inlParserHelper :: Parser AExp
+    inlParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- inlParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "inl"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 inrParser :: Parser AExp
 inrParser = do
-  string "inr"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- inrParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInr exp t)
+  where
+    inrParserHelper :: Parser AExp
+    inrParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- inrParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "inr"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 matchParser :: Parser AExp
 matchParser = do
@@ -220,12 +301,12 @@ primrecParser = do
   exp2 <- expParser
   return (AExpPrimrec exp exp1 v1 v2 exp2)
 
-arrowParser :: Parser AExp
-arrowParser = do
+angleParser :: Parser AExp
+angleParser = do
   char '>'
   spaces
   exp <- firstExpParser
-  return (AExpArrow exp)
+  return (AExpAngle exp)
 
 atParser :: Parser AExp
 atParser = do
@@ -261,15 +342,31 @@ boxParser = do
 
 nowParser :: Parser AExp
 nowParser = do
-  string "now"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
+  exp <- nowParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpNow exp t)
+  where
+    nowParserHelper :: Parser AExp
+    nowParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- nowParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "now"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 waitParser :: Parser AExp
 waitParser = do
@@ -327,19 +424,35 @@ outParser = do
 
 intoParser :: Parser AExp
 intoParser = do
-  string "into"
-  notFollowedBy alphaNum
-  spaces
-  exp <- firstExpParser
+  exp <- intoParserHelper
   spaces
   char ':'
   spaces
   t <- typeParser
   return (AExpInto exp t)
+  where
+    intoParserHelper :: Parser AExp
+    intoParserHelper =
+      try
+        ( do
+            char '('
+            spaces
+            exp <- intoParserHelper
+            spaces
+            char ')'
+            return exp
+        )
+        <|> do
+          string "into"
+          notFollowedBy alphaNum
+          spaces
+          exp <- expParser
+          spaces
+          return exp
 
 expVarParser :: Parser AExp
 expVarParser = do
-  str <- varParser
+  str <- potentialDotVarParser
   parameters <- optionMaybe (try expParameterParser)
   case parameters of
     Nothing -> return (AExpVar str [])
@@ -382,7 +495,7 @@ oneExpParser =
     <|> try numberParser
     <|> try sucParser
     <|> try primrecParser
-    <|> try arrowParser
+    <|> try angleParser
     <|> try atParser
     <|> try advParser
     <|> try unboxParser

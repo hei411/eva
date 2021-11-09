@@ -14,7 +14,7 @@ typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStac
   ATypeSum at at' -> BTypeSum (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')
   ATypeFunction at at' -> BTypeFunction (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')
   ATypeBox at -> BTypeBox (typeSynonymConverterCur varStack at)
-  ATypeArrow at -> BTypeArrow (typeSynonymConverterCur varStack at)
+  ATypeAngle at -> BTypeAngle (typeSynonymConverterCur varStack at)
   ATypeAt at -> BTypeAt (typeSynonymConverterCur varStack at)
   ATypeFix s at -> BTypeFix (typeSynonymConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')

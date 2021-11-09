@@ -1,0 +1,21 @@
+type Bool = Unit + Unit 
+
+def true = inl ():Bool 
+def false = inr():Bool 
+
+def if [a] # e:Bool e1:a e2:a =
+    match e with 
+        |inl x => e1 
+        |inr y => e2
+
+def not # e:Bool = 
+    ?if[Bool] e false true
+
+def and # e1:Bool e2:Bool = 
+    ?if[Bool] e1 (?if[Bool] e2 true false) false
+
+def or # e1:Bool e2:Bool = 
+    ?if[Bool] e1 true (?if[Bool] e2 true false)
+
+def equalsBool # e1:Bool e2:Bool =
+    ?if[Bool] e1 (?if[Bool] e2 true false) (?if[Bool] e2 false true)

@@ -12,12 +12,12 @@ statementParser :: Parser Statement
 statementParser =
   try importStatementParser
     <|> try typeStatementParser
-    <|> letStatementParser
+    <|> try defStatementParser
 
-letStatementParser :: Parser Statement
-letStatementParser = do
+defStatementParser :: Parser Statement
+defStatementParser = do
   skipMany space
-  string "let"
+  string "def"
   skipMany1 space
   var <- varParser
   spaces
@@ -37,17 +37,8 @@ letStatementParser = do
   -- spaces
   let modifiedexp = modifyExp firstParameters pound secondParameters exp
   case polyParameters of
-    Nothing -> return (LetStatement var [] modifiedexp)
-    Just ss -> return (LetStatement var ss modifiedexp)
-
-modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
-modifyExp firstParameters pound secondParameters exp =
-  addLambda firstParameters (addPound pound (addLambda secondParameters exp))
-
-addPound :: Maybe Char -> AExp -> AExp
-addPound p exp = case p of
-  Nothing -> exp
-  Just s -> AExpBox exp
+    Nothing -> return (DefStatement var [] modifiedexp)
+    Just ss -> return (DefStatement var ss modifiedexp)
 
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
@@ -148,10 +139,22 @@ importStatementParser = do
   skipMany1 space
   s <- fileNameParser
   spaces
+  alias <- optionMaybe aliasParser
   --char ';'
-  --spaces
+  spaces
   let processedFilePath = (processFilePath s) ++ ".eva"
-  return (ImportStatement processedFilePath)
+  return (ImportStatement processedFilePath alias)
+
+aliasParser :: Parser String
+aliasParser =
+  try
+    ( do
+        string "as"
+        skipMany1 space
+        alias <- many1 (choice [alphaNum, oneOf "_"])
+        checkedVar <- checkVar alias
+        checkUpperVar checkedVar
+    )
 
 processFilePath :: FilePath -> FilePath
 processFilePath s =
@@ -172,6 +175,7 @@ fileNameParser =
 programParser :: Parser Program
 programParser = do
   p <- many statementParser
+  spaces
   eof
   return p
 

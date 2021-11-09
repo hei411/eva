@@ -19,7 +19,7 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpZero -> BExpZero
   AExpSuc ae -> BExpSuc (abExpConverterCur ae)
   AExpPrimrec ae ae' s str ae2 -> BExpPrimrec (abExpConverterCur ae) (abExpConverterCur ae') s str (abExpConverterCur ae2)
-  AExpArrow ae -> BExpArrow (abExpConverterCur ae)
+  AExpAngle ae -> BExpAngle (abExpConverterCur ae)
   AExpAt ae -> BExpAt (abExpConverterCur ae)
   AExpAdv ae -> BExpAdv (abExpConverterCur ae)
   AExpBox ae -> BExpBox (abExpConverterCur ae)
@@ -30,6 +30,7 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpRec s at ae -> BExpRec s (abTypeConverterCur at) (abExpConverterCur ae)
   AExpOut ae -> BExpOut (abExpConverterCur ae)
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
+  AExpLet s ae ae' -> BExpLet s (abExpConverterCur ae) (abExpConverterCur ae')
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

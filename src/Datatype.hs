@@ -16,9 +16,9 @@ data TypeProperty
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
 data Statement
-  = LetStatement String [(TypeProperty, String)] AExp
+  = DefStatement String [(TypeProperty, String)] AExp
   | TypeStatement String [String] AType
-  | ImportStatement String
+  | ImportStatement String (Maybe String)
   deriving (Show)
 
 -- First Parse
@@ -36,7 +36,7 @@ data AExp
   | AExpZero
   | AExpSuc AExp
   | AExpPrimrec AExp AExp String String AExp
-  | AExpArrow AExp
+  | AExpAngle AExp
   | AExpAt AExp
   | AExpAdv AExp
   | AExpBox AExp
@@ -47,6 +47,7 @@ data AExp
   | AExpRec String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
+  | AExpLet String AExp AExp
   deriving (Show, Eq)
 
 data AType
@@ -58,7 +59,7 @@ data AType
   | ATypeSum AType AType
   | ATypeFunction AType AType
   | ATypeBox AType
-  | ATypeArrow AType
+  | ATypeAngle AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
@@ -75,7 +76,7 @@ data BType
   | BTypeSum BType BType
   | BTypeFunction BType BType
   | BTypeBox BType
-  | BTypeArrow BType
+  | BTypeAngle BType
   | BTypeAt BType
   | BTypeFix BType
   | BTypeUntil BType BType
@@ -96,7 +97,7 @@ data BExp
   | BExpZero
   | BExpSuc BExp
   | BExpPrimrec BExp BExp String String BExp
-  | BExpArrow BExp
+  | BExpAngle BExp
   | BExpAt BExp
   | BExpAdv BExp
   | BExpBox BExp
@@ -107,6 +108,7 @@ data BExp
   | BExpRec String BType BExp
   | BExpOut BExp
   | BExpInto BExp BType
+  | BExpLet String BExp BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
@@ -124,9 +126,8 @@ data CExp
   | CExpZero
   | CExpSuc CExp
   | CExpPrimrec CExp CExp CExp
-  | CExpArrow CExp
-  | CExpAt CExp
   | CExpAdv CExp
+  | CExpDelay CExp
   | CExpBox CExp
   | CExpUnbox CExp
   | CExpNow CExp
@@ -137,6 +138,9 @@ data CExp
   | CExpInto CExp
   | CExpLocation Integer
   deriving (Show, Eq)
+  -- | CExpAt CExp
+  -- | CExpArrow CExp
+  
 
 -- Type checking
 type ContextElem = (String, BType)
@@ -146,10 +150,19 @@ type ContextElemList = [ContextElem]
 data Context
   = TokenlessContext ContextElemList
   | StableContext ContextElemList ContextElemList
-  | ArrowContext ContextElemList ContextElemList ContextElemList
+  | AngleContext ContextElemList ContextElemList ContextElemList
   | AtContext ContextElemList ContextElemList ContextElemList
 
 -- Interpreter
+data InterpreterMode
+  = Normal
+  | Safe
+  | Lively
+  | Fair
+  | ISafe
+  | ILively
+  | IFair
+
 type StoreElem = (Integer, CExp)
 
 type StoreElemList = [StoreElem]
@@ -158,3 +171,4 @@ data Store
   = NullStore
   | TicklessStore StoreElemList
   | TickStore StoreElemList StoreElemList
+  deriving Show

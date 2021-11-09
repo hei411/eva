@@ -7,13 +7,13 @@ import Text.Parsec.String
 
 typeVarParser :: Parser AType
 typeVarParser = do
-  str <- varParser
+  str <- potentialDotVarParser
   -- TODO: Using <> for arguments
   return (ATypeVar str)
 
 typeNameParser :: Parser AType
 typeNameParser = do
-  str <- upperVarParser
+  str <- potentialDotUpperVarParser
   parameters <- optionMaybe (try typeNameParameterParser)
   case parameters of
     Nothing -> return (ATypeName str [])
@@ -49,7 +49,7 @@ fixTypeParser = do
   skipMany1 space
   v <- varParser
   spaces
-  string "->"
+  string "-->"
   spaces
   t <- typeParser
   return (ATypeFix v t)
@@ -249,7 +249,7 @@ type4Parser =
           char '>'
           spaces
           t <- type4Parser
-          return (ATypeArrow t)
+          return (ATypeAngle t)
       )
     <|> try
       ( do
@@ -290,7 +290,7 @@ type4'Parser =
           char '>'
           spaces
           t <- type4'Parser
-          return (ATypeArrow t)
+          return (ATypeAngle t)
       )
     <|> try
       ( do

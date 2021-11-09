@@ -2,6 +2,182 @@
 
 module Interpreter.EvaluationInterpreter where
 
+import Control.Exception (evaluate)
+import Datatype
+import ExpFunctions.SubstituteCExp
+import Interpreter.StoreFunctions
+
+evaluationInterpreter :: CExp -> Store -> (CExp, Store)
+evaluationInterpreter exp store = case exp of
+  CExpIndex n -> error "Should not happen, evaluation interpreter called on a variable"
+  CExpUnit -> (CExpUnit, store)
+  CExpLambda ce -> (CExpLambda ce, store)
+  CExpApplication ce ce' -> applicationEval ce ce' store
+  CExpProduct ce ce' -> productEval ce ce' store
+  CExpFst ce -> fstEval ce store
+  CExpSnd ce -> sndEval ce store
+  CExpInl ce -> inlEval ce store
+  CExpInr ce -> inrEval ce store
+  CExpMatch ce ce' ce2 -> matchEval ce ce' ce2 store
+  CExpZero -> (CExpZero, store)
+  CExpSuc ce -> sucEval ce store
+  CExpPrimrec ce ce' ce2 -> primrecEval ce ce' ce2 store
+  CExpDelay ce -> delayEval ce store
+  CExpAdv ce -> advEval ce store
+  CExpBox ce -> (CExpBox ce, store)
+  CExpUnbox ce -> unboxEval ce store
+  CExpNow ce -> nowEval ce store
+  CExpWait ce ce' -> waitEval ce ce' store
+  CExpUrec ce ce' ce2 -> urecEval ce ce' ce2 store
+  CExpRec ce -> (CExpRec ce, store)
+  CExpOut ce -> outEval ce store
+  CExpInto ce -> intoEval ce store
+  CExpLocation n -> (CExpLocation n, store)
+
+applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
+applicationEval e1 e2 s = do
+  let (lambda, s') = evaluationInterpreter e1 s
+  let (v, s'') = evaluationInterpreter e2 s'
+  case lambda of
+    CExpLambda body ->
+      do
+        let newBody = substituteCExp v 0 body
+        evaluationInterpreter newBody s''
+    _ -> error "Should not happen! application of expressions applied to a non-lambda abstraction"
+
+productEval :: CExp -> CExp -> Store -> (CExp, Store)
+productEval e1 e2 s = do
+  let (v1, s') = evaluationInterpreter e1 s
+  let (v2, s'') = evaluationInterpreter e2 s'
+  (CExpProduct v1 v2, s'')
+
+fstEval :: CExp -> Store -> (CExp, Store)
+fstEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpProduct a _ -> (a, s')
+    _ -> error "Should not happen! fst applied to a non product expression"
+
+sndEval :: CExp -> Store -> (CExp, Store)
+sndEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpProduct _ b -> (b, s')
+    _ -> error "Should not happen! snd applied to a non product expression"
+
+inlEval :: CExp -> Store -> (CExp, Store)
+inlEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInl e', s')
+
+inrEval :: CExp -> Store -> (CExp, Store)
+inrEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInr e', s')
+
+matchEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+matchEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInl a -> do
+      let e1' = substituteCExp a 0 e1
+      evaluationInterpreter e1' s'
+    CExpInr b -> do
+      let e2' = substituteCExp b 0 e2
+      evaluationInterpreter e2' s'
+    _ -> error "Should not happen! match applied to a non sum expression"
+
+sucEval :: CExp -> Store -> (CExp, Store)
+sucEval e s =
+  do
+    let (e', s') = evaluationInterpreter e s
+    (CExpSuc e', s')
+
+primrecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+primrecEval e e1 e2 s =
+  do
+    let (e', s') = evaluationInterpreter e s
+    case e' of
+      CExpZero -> evaluationInterpreter e1 s'
+      CExpSuc pred -> do
+        let fbyExp = CExpPrimrec pred e1 e2
+        let (fbyValue, s'') = evaluationInterpreter fbyExp s'
+        let e2' = substituteCExp fbyValue 0 e2
+        let e2'' = substituteCExp pred 1 e2'
+        evaluationInterpreter e2'' s''
+      _ -> error "Should not happen! primrec applied to a non nat expression"
+
+delayEval :: CExp -> Store -> (CExp, Store)
+delayEval e s = do
+  let (s', location) = addStoreElem s e
+  (location, s')
+
+advEval :: CExp -> Store -> (CExp, Store)
+advEval e s = case s of
+  NullStore -> error "Should not happen! adv applied to a nullstore"
+  TicklessStore x0 -> error "Should not happen! adv applied to a tickless store"
+  TickStore sN sL -> do
+    let (e', TicklessStore expList) = evaluationInterpreter e (TicklessStore sN)
+    case e' of
+      CExpLocation n -> do
+        let e'' = elemStore expList n
+        evaluationInterpreter e'' (TickStore expList sL)
+      _ -> error "Should not happen! adv expression doesnt produce a location"
+
+unboxEval :: CExp -> Store -> (CExp, Store)
+unboxEval e s = do
+  case s of
+    NullStore -> error ("Should not happen! unbox applied in a nullstore")
+    _ -> do
+      let (e', s') = evaluationInterpreter e NullStore
+      case e' of
+        CExpBox body ->
+          evaluationInterpreter body s
+        CExpRec body -> do
+          let arg = CExpBox (CExpDelay (CExpUnbox e'))
+          let e'' = substituteCExp arg 0 body
+          evaluationInterpreter e'' s
+        _ -> error "Should not happen! unbox applied to a non box/rec expression"
+
+nowEval :: CExp -> Store -> (CExp, Store)
+nowEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpNow e', s')
+
+waitEval :: CExp -> CExp -> Store -> (CExp, Store)
+waitEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  (CExpWait e1' e2', s'')
+
+urecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+urecEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpNow v -> do
+      let e1' = substituteCExp v 0 e1
+      evaluationInterpreter e1' s'
+    CExpWait v1 v2 -> do
+      let fbyExp = CExpUrec (CExpAdv v2) e1 e2
+      let (s'', location) = addStoreElem s' fbyExp
+      let e2_one = substituteCExp location 0 e2
+      let e2_two = substituteCExp v2 1 e2_one
+      let e2_three = substituteCExp v1 2 e2_two
+      evaluationInterpreter e2_three s''
+    _ -> error "Should not happen! urec applied to a until expression"
+
+outEval :: CExp -> Store -> (CExp, Store)
+outEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInto v -> (v, s')
+    _ -> error "Should not happen! out applied to a non into expression"
+
+intoEval :: CExp -> Store -> (CExp, Store)
+intoEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  (CExpInto e', s')
+
 {-
 import Datatype
 import Interpreter.ExpFunctions
