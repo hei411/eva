@@ -16,7 +16,6 @@ def fibHelper =
 
 
 //def main # = ?fibHelper 0 1
-
 def delayStream = ms.delayStr [Nat]
 
 def addStream = 
