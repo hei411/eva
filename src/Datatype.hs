@@ -171,3 +171,4 @@ data Store
   = NullStore
   | TicklessStore StoreElemList
   | TickStore StoreElemList StoreElemList
+  deriving Show
