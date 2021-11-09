@@ -1,6 +1,44 @@
+import Modality.Stream as ms
+type Stream = ms.Str(Nat)
+
+import Prelude.Nat
+
+def hd = ms.hdStr[Nat]
+def tl = ms.tlStr[Nat]
+def cons = ms.conStr[Nat]
+
+def fibHelper = 
+    rec repeat: # (Nat->Nat-> Stream) =>
+        fun x:Nat y:Nat =>
+            let sum = ?add x y in 
+            let rest = > (<?repeat y sum) in 
+            ?cons x rest 
+
+
+//def main # = ?fibHelper 0 1
+
+def delayStream = ms.delayStr [Nat]
+
+def addStream = 
+    rec repeat:# (Stream->Stream->Stream) => 
+        fun one:Stream two:Stream =>
+            let onehd=?hd one in 
+            let twohd=?hd two in 
+            let onetl=?tl one in 
+            let twotl=?tl two in 
+            ?cons (?add onehd twohd) >(<?repeat <onetl <twotl)
+
+def fibHelperLeaky = 
+    rec repeat: #Stream => 
+        let delayedOnce = ?repeat in
+        let delayedTwice = > (?delayStream 0 <?repeat) in
+        ?cons 1 >(?addStream <delayedOnce <delayedTwice) 
+
+def main = fibHelperLeaky
+
 //Streams
-type Stream = Fix a --> Nat*a
-def tl  (s: Stream) = snd (out s)
+//type Stream = Fix a --> Nat*a
+//def tl  (s: Stream) = snd (out s)
 
 //Box
 //def accessData1 (x:Stream) # = x 
@@ -11,4 +49,4 @@ def tl  (s: Stream) = snd (out s)
 //def atToAngle[a] # x:@a  = > < x
 //def angleToAt[ a] # x:>a = @<x
 
-def main # x:Stream = wait () (@now 0:Unit Until Nat)
+//def main # x:Stream = wait () (@now 0:Unit Until Nat)
