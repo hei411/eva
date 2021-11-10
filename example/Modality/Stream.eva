@@ -37,6 +37,14 @@ def constantStr [Stable a] =
         => fun x: a 
             => ?conStr[a] x >(<?m x)
 
+def natStr = 
+    let repeat = (rec m: #(Nat->Str(Nat)) => 
+                    fun start:Nat =>
+                        let rest = > (<?m (suc start)) in
+                        ?conStr[Nat] start rest) 
+    in 
+        # (?repeat 0)
+
 def delayStr [Stable a] = 
     rec m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)

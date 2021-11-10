@@ -33,7 +33,7 @@ def fibHelperLeaky =
         let delayedTwice = > (?delayStream 0 <?repeat) in
         ?cons 1 >(?addStream <delayedOnce <delayedTwice) 
 
-def main = fibHelperLeaky
+def main = ms.natStr//fibHelperLeaky
 
 //Streams
 //type Stream = Fix a --> Nat*a
