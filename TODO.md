@@ -5,6 +5,7 @@
 
 
 Note: should we change arrow and at delay to simply delay for CExp?
+Rather crucial change: Allow match, urec and primrec to swap orders of guards
 # Extensions
 ## Syntactic Sugar Stuff
 ### Parsing Numbers - TODO
