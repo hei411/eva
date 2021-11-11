@@ -151,9 +151,8 @@ aliasParser =
     ( do
         string "as"
         skipMany1 space
-        alias <- many1 (choice [alphaNum, oneOf "_"])
-        checkedVar <- checkVar alias
-        checkUpperVar checkedVar
+        alias <- upperVarParser
+        checkUpperVar alias
     )
 
 processFilePath :: FilePath -> FilePath

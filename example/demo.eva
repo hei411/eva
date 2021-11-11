@@ -1,11 +1,12 @@
-import Modality.Stream as ms
-type Stream = ms.Str(Nat)
+
+import Modality.Stream as MS
+type Stream = MS.Str(Nat)
 
 import Prelude.Nat
 
-def hd = ms.hdStr[Nat]
-def tl = ms.tlStr[Nat]
-def cons = ms.conStr[Nat]
+def hd = MS.hdStr[Nat]
+def tl = MS.tlStr[Nat]
+def cons = MS.conStr[Nat]
 
 def fibHelper = 
     rec repeat: # (Nat->Nat-> Stream) =>
@@ -16,7 +17,7 @@ def fibHelper =
 
 
 //def main # = ?fibHelper 0 1
-def delayStream = ms.delayStr [Nat]
+def delayStream = MS.delayStr [Nat]
 
 def addStream = 
     rec repeat:# (Stream->Stream->Stream) => 
@@ -33,7 +34,7 @@ def fibHelperLeaky =
         let delayedTwice = > (?delayStream 0 <?repeat) in
         ?cons 1 >(?addStream <delayedOnce <delayedTwice) 
 
-def main = ms.natStr//fibHelperLeaky
+def main = MS.natStr//fibHelperLeaky
 
 //Streams
 //type Stream = Fix a --> Nat*a

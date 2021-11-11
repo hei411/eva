@@ -88,7 +88,7 @@ potentialDotVarParser =
     )
     <|> try
       ( do
-          starthd <- alphaNum
+          starthd <- upper
           starttl <- many (choice [alphaNum, oneOf "_'"])
           c <- char '.'
           resthd <- lower
@@ -116,7 +116,7 @@ potentialDotUpperVarParser =
     )
     <|> try
       ( do
-          starthd <- alphaNum
+          starthd <- upper
           starttl <- many (choice [alphaNum, oneOf "_'"])
           c <- char '.'
           resthd <- upper

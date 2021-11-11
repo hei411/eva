@@ -50,10 +50,18 @@ addTypenames currentFile toImportFile alias toImportTypenames importedTypenames 
               then error (currentFile ++ ": Found same type synonym name \"" ++ name ++ "\" imported or declared when importing " ++ toImportFile)
               else checkTypeNameExists name tl
 
-addAlias :: FilePath -> FilePath -> String -> [String] -> [String]
-addAlias currentFile toImportFile alias l = case l of
-  [] -> [alias]
+addAlias :: FilePath -> FilePath -> String -> [String] -> TypenameList -> [String]
+addAlias currentFile toImportFile alias l typenameList = case l of
+  [] -> checkAliasInTypenames currentFile toImportFile alias typenameList
   s : ss ->
     if s == alias
       then error (currentFile ++ ": Found used alias \"" ++ alias ++ "\" when importing " ++ toImportFile)
-      else s : addAlias currentFile toImportFile alias ss
+      else s : addAlias currentFile toImportFile alias ss typenameList
+
+checkAliasInTypenames :: FilePath -> FilePath -> String -> TypenameList -> [String]
+checkAliasInTypenames currentFile toImportFile alias l = case l of
+  [] -> [alias]
+  (str, _, _) : tl ->
+    if str == alias
+      then error (currentFile ++ ": Found clash between defined type synonyms and alias name \"" ++ alias ++ "\" when importing " ++ toImportFile)
+      else checkAliasInTypenames currentFile toImportFile alias tl

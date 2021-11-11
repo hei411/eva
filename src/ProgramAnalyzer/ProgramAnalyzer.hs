@@ -145,6 +145,7 @@ typeStatementAnalyzer ::
 typeStatementAnalyzer typeSynonymName typeVariables aType src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl =
   do
     checkTypeSynonymNameExists (currentFile) (importedTypenames ++ toExportTypenames) typeSynonymName
+    checkAliasClash (currentFile) usedAlias typeSynonymName
     let bType = typeSynonymConverter (currentFile) typeSynonymName typeVariables (importedTypenames ++ toExportTypenames) [] aType
     let newToExportTypenames = (typeSynonymName, bType, toInteger (length typeVariables)) : toExportTypenames
     singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames newToExportTypenames tl
@@ -190,7 +191,9 @@ importStatementAnalyzer
           let newImportedFiles = (src_path ++ toImportFile) : importedFiles
           let (newUsedAlias, alias) = case potentialAlias of
                 Nothing -> (usedAlias, "")
-                Just s -> (addAlias (currentFile) (src_path ++ toImportFile) s usedAlias, s ++ ['.'])
+                Just s -> do
+                  (addAlias (currentFile) (src_path ++ toImportFile) s usedAlias (importedTypenames ++ toExportTypenames), s ++ ['.'])
+          putStrLn (show newUsedAlias)
           case fileData of
             Nothing ->
               do
@@ -246,8 +249,8 @@ addImportedFileData
         currentFile
         compiledFilesData
         toCompileFiles
-        usedAlias
         importedFiles
+        usedAlias
         newImportedFunctions
         toExportFunctions
         newImportedTypenames
