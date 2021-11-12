@@ -1,0 +1,28 @@
+import Modality.Stream as MS 
+import Prelude.Nat 
+import Prelude.Bool
+
+type Result = Unit + Nat 
+def hiaton = inl() :Result 
+
+def encodePairToPos # x:Nat y:Nat =     
+    let a= ?exp 2 x in 
+    let b= suc (?mult 2 y) in 
+    ?mult a b 
+
+def encodePairToNat # x:Nat y:Nat =     
+    ?pred (?encodePairToPos x y)
+
+type Stack = Nat 
+
+def emptyStack # = 0 
+
+def addToStack  = 
+    encodePairToNat
+
+def topStack # s:Stack = 
+    ?log 2 s
+
+def tailStack # s:Stack = 
+    let top = ?topStack s in 
+    

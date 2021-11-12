@@ -16,7 +16,7 @@ def fibHelper =
             ?cons x rest 
 
 
-//def main # = ?fibHelper 0 1
+def main # = ?fibHelper 0 1
 def delayStream = MS.delayStr [Nat]
 
 def addStream = 
@@ -34,7 +34,7 @@ def fibHelperLeaky =
         let delayedTwice = > (?delayStream 0 <?repeat) in
         ?cons 1 >(?addStream <delayedOnce <delayedTwice) 
 
-def main = MS.natStr//fibHelperLeaky
+//def main = MS.natStr//fibHelperLeaky
 
 //Streams
 //type Stream = Fix a --> Nat*a

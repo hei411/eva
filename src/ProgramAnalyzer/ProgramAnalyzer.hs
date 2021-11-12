@@ -193,7 +193,6 @@ importStatementAnalyzer
                 Nothing -> (usedAlias, "")
                 Just s -> do
                   (addAlias (currentFile) (src_path ++ toImportFile) s usedAlias (importedTypenames ++ toExportTypenames), s ++ ['.'])
-          putStrLn (show newUsedAlias)
           case fileData of
             Nothing ->
               do

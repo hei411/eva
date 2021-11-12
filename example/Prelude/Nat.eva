@@ -96,3 +96,13 @@ def gcd # x:Nat y:Nat =
 def lcm # x:Nat y:Nat = 
     ?div (?mult x y) (?gcd x y)
     
+def log # base:Nat x:Nat = 
+    let f = (fun  ans:Nat b:Nat n:Nat => 
+                let right = ?exp b (suc ans) in 
+                let boolean = ?lessthan (suc n) right in 
+                ?if[Nat] boolean (suc ans) ans
+            ) in 
+    primrec x with 
+        | 0 => 0 
+        | suc n fby rest => 
+            f rest base n
