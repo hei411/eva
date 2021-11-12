@@ -45,3 +45,9 @@ def minimization2
                             ?if [Str(Unit+Nat)] b successCase failureStream 
                         ) in 
             # (?repeat 0)
+
+def liftForHiaton1 # f:Nat->Nat = 
+    fun x:(Unit+Nat) => 
+        match x with 
+            |inl u => x 
+            |inr num => inr (f num) :Unit+Nat
