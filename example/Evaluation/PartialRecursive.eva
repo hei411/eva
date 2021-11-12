@@ -51,3 +51,17 @@ def liftForHiaton1 # f:Nat->Nat =
         match x with 
             |inl u => x 
             |inr num => inr (f num) :Unit+Nat
+
+
+def ackermann # m:Nat n:Nat = 
+    let iter f:Nat->Nat n':Nat = 
+        (primrec n' with 
+            |0=> f 1
+            |suc x fby rest => f rest
+
+        ) in 
+    (primrec m with 
+        |0 => (fun x:Nat => suc x) 
+        |suc x fby rest => iter rest) n          
+
+//def main #=?constantStr[Nat] (?ackermann 2 1)

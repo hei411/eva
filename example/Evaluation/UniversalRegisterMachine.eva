@@ -132,4 +132,4 @@ def machineEntry program:Nat args:Stack # =
     ?(machineLoop program) 0 (?addToStack 0 args)
 
 //def main #= ?MS.constantStr[Instruction] (?getInstruction 0 64)
-def main = machineEntry 64 23
+//def main = machineEntry 64 23
