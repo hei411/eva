@@ -100,7 +100,7 @@ def log # base:Nat x:Nat =
     let f = (fun  ans:Nat b:Nat n:Nat => 
                 let right = ?exp b (suc ans) in 
                 let boolean = ?lessthan (suc n) right in 
-                ?if[Nat] boolean (suc ans) ans
+                ?if[Nat] boolean ans (suc ans) 
             ) in 
     primrec x with 
         | 0 => 0 
