@@ -106,3 +106,17 @@ def log # base:Nat x:Nat =
         | 0 => 0 
         | suc n fby rest => 
             f rest base n
+
+def root# a:Nat = 
+    primrec a with 
+        | 0 => 
+            let squared = ?mult a a in  
+            ?if[Nat] (?lessthan a squared)
+                (?pred a)
+                a 
+        | suc x fby rest => 
+            let tryNum = ?minus  a (suc x) in 
+            let squared = ?mult tryNum tryNum in 
+            ?if[Nat] (?lessthan a squared)
+                (?pred tryNum)
+                rest 

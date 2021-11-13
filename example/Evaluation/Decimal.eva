@@ -1,0 +1,70 @@
+import Prelude.Bool 
+import Prelude.Nat 
+import Modality.Stream
+
+type Digit = Nat + Unit 
+
+def dot # = inr ():Digit
+
+
+//For Long Division
+def decimalLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                        fun a:Nat b:Nat => 
+                            let output = ?div a b in 
+                            let nextA = ?mult 10 (?rem a b) in 
+                            let tl = >(<?loop nextA b) in 
+                            ?conStr[Digit] (inl output:Digit) tl
+                    
+
+def transition # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalLoop (?mult 10 a) b)
+
+def integerLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                    fun a:Nat b:Nat => 
+                        let lessThanBool = ?lessthan a b in 
+                        ?if[Str(Digit)] lessThanBool
+                            (?conStr[Digit] (inl 0:Digit) >(?transition a b))
+                            (let ans = ?div a b in 
+                            let digNum = ?log 10 ans in 
+                            let firstDig = ?div ans (?exp 10 digNum) in 
+                            let rem = ?minus a (?mult (?mult firstDig b) (?exp 10 digNum)) in 
+                            ?if[Str(Digit)] (?lessthan rem b)
+                                (?conStr[Digit] (inl firstDig:Digit) >(?transition rem b))
+                                (?conStr[Digit] (inl firstDig:Digit) >(<?loop rem b))
+                            )
+
+def longDiv # a:Nat b:Nat = ?integerLoop a b
+
+//root
+def decimalRootLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                        fun rem:Nat ans:Nat =>
+                            primrec 9 with 
+                                |0 => ?conStr[Digit] (inl 0:Digit) >(<?loop (?mult 100 rem) (?mult ans 10))
+                                |suc x fby rest => 
+                                    let testY = ?mult (suc x) (?add (suc x) (?mult 20 ans)) in 
+                                    let b = ?lessthan rem testY  in 
+                                    ?if[Str(Digit)] b 
+                                        rest 
+                                        (?conStr[Digit] (inl (suc x):Digit) >(<?loop (?mult 100 (?minus rem testY))  (?add (suc x) (?mult 10 ans)))   )
+
+                            
+def transitionRoot # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalRootLoop (?mult 100 a) b)
+
+def longRootHelper = 
+    rec loop : #(Nat->Nat->Nat->Str(Digit)) => 
+        fun printNum :Nat rem:Nat ans:Nat => 
+            let digNum = ?log 10 printNum in 
+            let firstDig = ?div printNum (?exp 10 digNum) in 
+            let rest = ?minus (printNum) (?mult firstDig (?exp 10 digNum)) in 
+            ?if[Str(Digit)] (?leq 100 rest) 
+                (?conStr[Digit] (inl firstDig:Digit) >(<?loop rest rem ans))
+                (?conStr[Digit] (inl firstDig:Digit) >(?transitionRoot rem ans))
+
+def longRoot # a:Nat = 
+    let ans = ?root a in 
+    let rem = ?minus a (?exp ans 2) in 
+    //?constantStr[Nat] ans
+    ?longRootHelper ans rem ans
+
+
+def main# = ?longRoot 6
+//def main # = ?constantStr[Nat] (?root 36)
