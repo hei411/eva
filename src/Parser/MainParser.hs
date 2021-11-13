@@ -30,6 +30,7 @@ defStatementParser = do
   secondParameters <- many (annoVarParser)
   spaces
   char '='
+  notFollowedBy (char '>')
   spaces
   exp <- expParser
   spaces
@@ -107,6 +108,7 @@ typeStatementParser = do
   parameters <- optionMaybe (try typenameParameterParser)
   spaces
   char '='
+  notFollowedBy (char '>')
   spaces
   t <- typeParser
   spaces

@@ -48,6 +48,7 @@ letExpParser =
         secondParameters <- many (annoVarParser)
         spaces
         char '='
+        notFollowedBy (char '>')
         spaces
         exp <- expParser
         spaces
