@@ -45,6 +45,7 @@ def rem # x:Nat y:Nat =
                 (suc rest) 
 
 def div # x:Nat y:Nat = 
+    ?if[Nat] (?isZero y) 0
     primrec x with 
         | 0=> 0
         | suc m fby rest => 

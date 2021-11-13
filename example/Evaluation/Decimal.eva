@@ -62,9 +62,8 @@ def longRootHelper =
 def longRoot # a:Nat = 
     let ans = ?root a in 
     let rem = ?minus a (?exp ans 2) in 
-    //?constantStr[Nat] ans
     ?longRootHelper ans rem ans
 
 
-def main# = ?longRoot 6
-//def main # = ?constantStr[Nat] (?root 36)
+//def main# = ?longRoot 2
+//def main # = ?constantStr[Nat] (?div 10 0)
