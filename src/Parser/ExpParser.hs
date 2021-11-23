@@ -221,33 +221,64 @@ inrParser = do
           return exp
 
 matchParser :: Parser AExp
-matchParser = do
-  string "match"
-  skipMany1 space
-  exp <- expParser
-  spaces
-  string "with"
-  spaces
-  char '|'
-  spaces
-  string "inl"
-  skipMany1 space
-  v1 <- varParser
-  spaces
-  string "=>"
-  spaces
-  exp1 <- expParser
-  spaces
-  char '|'
-  spaces
-  string "inr"
-  skipMany1 space
-  v2 <- varParser
-  spaces
-  string "=>"
-  spaces
-  exp2 <- expParser
-  return (AExpMatch exp v1 exp1 v2 exp2)
+matchParser =
+  try
+    ( do
+        string "match"
+        skipMany1 space
+        exp <- expParser
+        spaces
+        string "with"
+        spaces
+        char '|'
+        spaces
+        string "inl"
+        skipMany1 space
+        v1 <- varParser
+        spaces
+        string "=>"
+        spaces
+        exp1 <- expParser
+        spaces
+        char '|'
+        spaces
+        string "inr"
+        skipMany1 space
+        v2 <- varParser
+        spaces
+        string "=>"
+        spaces
+        exp2 <- expParser
+        return (AExpMatch exp v1 exp1 v2 exp2)
+    )
+    <|> ( do
+            string "match"
+            skipMany1 space
+            exp <- expParser
+            spaces
+            string "with"
+            spaces
+            char '|'
+            spaces
+            string "inr"
+            skipMany1 space
+            v2 <- varParser
+            spaces
+            string "=>"
+            spaces
+            exp2 <- expParser
+            spaces
+            char '|'
+            spaces
+            string "inl"
+            skipMany1 space
+            v1 <- varParser
+            spaces
+            string "=>"
+            spaces
+            exp1 <- expParser
+            return (AExpMatch exp v1 exp1 v2 exp2)
+        )
 
 numberParser :: Parser AExp
 numberParser = do
@@ -271,36 +302,69 @@ sucParser = do
   return (AExpSuc exp)
 
 primrecParser :: Parser AExp
-primrecParser = do
-  string "primrec"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
-  spaces
-  string "with"
-  spaces
-  char '|'
-  spaces
-  char '0'
-  spaces
-  string "=>"
-  spaces
-  exp1 <- expParser
-  spaces
-  char '|'
-  spaces
-  string "suc"
-  skipMany1 space
-  v1 <- varParser
-  skipMany1 space
-  string "fby"
-  skipMany1 space
-  v2 <- varParser
-  spaces
-  string "=>"
-  spaces
-  exp2 <- expParser
-  return (AExpPrimrec exp exp1 v1 v2 exp2)
+primrecParser =
+  try
+    ( do
+        string "primrec"
+        notFollowedBy alphaNum
+        spaces
+        exp <- expParser
+        spaces
+        string "with"
+        spaces
+        char '|'
+        spaces
+        char '0'
+        spaces
+        string "=>"
+        spaces
+        exp1 <- expParser
+        spaces
+        char '|'
+        spaces
+        string "suc"
+        skipMany1 space
+        v1 <- varParser
+        skipMany1 space
+        string "fby"
+        skipMany1 space
+        v2 <- varParser
+        spaces
+        string "=>"
+        spaces
+        exp2 <- expParser
+        return (AExpPrimrec exp exp1 v1 v2 exp2)
+    )
+    <|> do
+      string "primrec"
+      notFollowedBy alphaNum
+      spaces
+      exp <- expParser
+      spaces
+      string "with"
+      spaces
+      char '|'
+      spaces
+      string "suc"
+      skipMany1 space
+      v1 <- varParser
+      skipMany1 space
+      string "fby"
+      skipMany1 space
+      v2 <- varParser
+      spaces
+      string "=>"
+      spaces
+      exp2 <- expParser
+      spaces
+      char '|'
+      spaces
+      char '0'
+      spaces
+      string "=>"
+      spaces
+      exp1 <- expParser
+      return (AExpPrimrec exp exp1 v1 v2 exp2)
 
 angleParser :: Parser AExp
 angleParser = do
@@ -380,40 +444,77 @@ waitParser = do
   return (AExpWait exp1 exp2)
 
 urecParser :: Parser AExp
-urecParser = do
-  string "urec"
-  notFollowedBy alphaNum
-  spaces
-  exp <- expParser
-  spaces
-  string "with"
-  spaces
-  char '|'
-  spaces
-  string "now"
-  skipMany1 space
-  v1 <- varParser
-  spaces
-  string "=>"
-  spaces
-  exp1 <- expParser
-  spaces
-  char '|'
-  spaces
-  string "wait"
-  skipMany1 space
-  v2 <- varParser
-  skipMany1 space
-  v3 <- varParser
-  skipMany1 space
-  string "fby"
-  skipMany1 space
-  v4 <- varParser
-  spaces
-  string "=>"
-  spaces
-  exp2 <- expParser
-  return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+urecParser =
+  try
+    ( do
+        string "urec"
+        notFollowedBy alphaNum
+        spaces
+        exp <- expParser
+        spaces
+        string "with"
+        spaces
+        char '|'
+        spaces
+        string "now"
+        skipMany1 space
+        v1 <- varParser
+        spaces
+        string "=>"
+        spaces
+        exp1 <- expParser
+        spaces
+        char '|'
+        spaces
+        string "wait"
+        skipMany1 space
+        v2 <- varParser
+        skipMany1 space
+        v3 <- varParser
+        skipMany1 space
+        string "fby"
+        skipMany1 space
+        v4 <- varParser
+        spaces
+        string "=>"
+        spaces
+        exp2 <- expParser
+        return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+    )
+    <|> do
+      string "urec"
+      notFollowedBy alphaNum
+      spaces
+      exp <- expParser
+      spaces
+      string "with"
+      spaces
+      char '|'
+      spaces
+      string "wait"
+      skipMany1 space
+      v2 <- varParser
+      skipMany1 space
+      v3 <- varParser
+      skipMany1 space
+      string "fby"
+      skipMany1 space
+      v4 <- varParser
+      spaces
+      string "=>"
+      spaces
+      exp2 <- expParser
+      spaces
+      char '|'
+      spaces
+      string "now"
+      skipMany1 space
+      v1 <- varParser
+      spaces
+      string "=>"
+      spaces
+      exp1 <- expParser
+      return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
 
 outParser :: Parser AExp
 outParser = do
