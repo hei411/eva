@@ -113,7 +113,7 @@ printCExp n cExp =
           ++ " | suc "
           ++ "\'"
           ++ show n
-          ++ " fby "
+          ++ ", "
           ++ "\'"
           ++ show (n + 1)
           ++ " => "
@@ -122,7 +122,7 @@ printCExp n cExp =
                  else printCExp (n + 2) ce2
              )
       CExpAdv ce ->
-        "adv "
+        "< "
           ++ ( if cExpLevel ce <= cExpLevel cExp
                  then "(" ++ printCExp n ce ++ ")"
                  else printCExp n ce
@@ -181,7 +181,7 @@ printCExp n cExp =
           ++ show n
           ++ " \'"
           ++ show (n + 1)
-          ++ " fby "
+          ++ ", "
           ++ "\'"
           ++ show (n + 2)
           ++ " => "

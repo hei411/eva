@@ -13,7 +13,7 @@ def encodePairToPos # x:Nat y:Nat =
 def extractPosToPair # s:Nat = 
     let first = (primrec (?log 2 s) with 
                     | 0 => 0 
-                    | suc x fby rest => 
+                    | suc x, rest => 
                         let b = ?divisible s (?exp 2 (suc x)) in 
                         ?if[Nat] b (suc x) rest) in 
     let second = (let rest = ?div s (?exp 2 first) in 
@@ -68,7 +68,7 @@ def analyzeInstruction # x:Nat =
 def splitStack # n:Nat s:Stack = 
     primrec n with 
         |0 => (0, s)
-        |suc x fby pair =>  
+        |suc x, pair =>  
             let one =fst pair in 
             let two = snd pair in 
             let hd =  ?topStack two in 
@@ -81,7 +81,7 @@ def combineStacks # n:Nat one:Stack two:Stack =
         fun n:Nat a:Stack b:Stack => 
             primrec n with 
                 |0 => (a,b) 
-                |suc x fby rest => 
+                |suc x, rest => 
                     let x=fst rest in 
                     let y=snd rest in 
                     (?tailStack x, ?addToStack (?topStack x) y) 

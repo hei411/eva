@@ -32,7 +32,7 @@ checkVar str =
     "match" -> fail "match cannot be variable name."
     "with" -> fail "with cannot be variable name."
     "primrec" -> fail "primrec cannot be variable name."
-    "fby" -> fail "fby cannot be variable name."
+    --"fby" -> fail "fby cannot be variable name."
     --"adv" -> fail "adv cannot be variable name."
     --"unbox" -> fail "unbox cannot be variable name."
     "now" -> fail "now cannot be variable name."

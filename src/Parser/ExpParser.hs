@@ -325,9 +325,9 @@ primrecParser =
         string "suc"
         skipMany1 space
         v1 <- varParser
-        skipMany1 space
-        string "fby"
-        skipMany1 space
+        spaces
+        string ","
+        spaces
         v2 <- varParser
         spaces
         string "=>"
@@ -348,9 +348,9 @@ primrecParser =
       string "suc"
       skipMany1 space
       v1 <- varParser
-      skipMany1 space
-      string "fby"
-      skipMany1 space
+      spaces
+      string ","
+      spaces
       v2 <- varParser
       spaces
       string "=>"
@@ -471,9 +471,9 @@ urecParser =
         v2 <- varParser
         skipMany1 space
         v3 <- varParser
-        skipMany1 space
-        string "fby"
-        skipMany1 space
+        spaces
+        string ","
+        spaces
         v4 <- varParser
         spaces
         string "=>"
@@ -496,9 +496,9 @@ urecParser =
       v2 <- varParser
       skipMany1 space
       v3 <- varParser
-      skipMany1 space
-      string "fby"
-      skipMany1 space
+      spaces
+      string ","
+      spaces
       v4 <- varParser
       spaces
       string "=>"

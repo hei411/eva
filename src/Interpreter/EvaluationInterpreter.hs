@@ -100,9 +100,9 @@ primrecEval e e1 e2 s =
     case e' of
       CExpZero -> evaluationInterpreter e1 s'
       CExpSuc pred -> do
-        let fbyExp = CExpPrimrec pred e1 e2
-        let (fbyValue, s'') = evaluationInterpreter fbyExp s'
-        let e2' = substituteCExp fbyValue 0 e2
+        let nextExp = CExpPrimrec pred e1 e2
+        let (nextValue, s'') = evaluationInterpreter nextExp s'
+        let e2' = substituteCExp nextValue 0 e2
         let e2'' = substituteCExp pred 1 e2'
         evaluationInterpreter e2'' s''
       _ -> error "Should not happen! primrec applied to a non nat expression"
@@ -158,8 +158,8 @@ urecEval e e1 e2 s = do
       let e1' = substituteCExp v 0 e1
       evaluationInterpreter e1' s'
     CExpWait v1 v2 -> do
-      let fbyExp = CExpUrec (CExpAdv v2) e1 e2
-      let (s'', location) = addStoreElem s' fbyExp
+      let nextExp = CExpUrec (CExpAdv v2) e1 e2
+      let (s'', location) = addStoreElem s' nextExp
       let e2_one = substituteCExp location 0 e2
       let e2_two = substituteCExp v2 1 e2_one
       let e2_three = substituteCExp v1 2 e2_two

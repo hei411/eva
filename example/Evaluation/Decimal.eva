@@ -39,7 +39,7 @@ def decimalRootLoop = rec loop: #(Nat->Nat->Str(Digit)) =>
                         fun rem:Nat ans:Nat =>
                             primrec 9 with 
                                 |0 => ?conStr[Digit] (inl 0:Digit) >(<?loop (?mult 100 rem) (?mult ans 10))
-                                |suc x fby rest => 
+                                |suc x, rest => 
                                     let testY = ?mult (suc x) (?add (suc x) (?mult 20 ans)) in 
                                     let b = ?lessthan rem testY  in 
                                     ?if[Str(Digit)] b 

@@ -25,7 +25,7 @@ def primitiveRecursion2
         fun y:Nat x1:Nat x2:Nat => 
             primrec y with 
                 | 0=> ?g x1 x2 
-                | suc z fby rest => ?h z rest x1 x2
+                | suc z, rest => ?h z rest x1 x2
 
 import Prelude.Bool 
 import Prelude.Nat 
@@ -57,11 +57,11 @@ def ackermann # m:Nat n:Nat =
     let iter f:Nat->Nat n':Nat = 
         (primrec n' with 
             |0=> f 1
-            |suc x fby rest => f rest
+            |suc x, rest => f rest
 
         ) in 
     (primrec m with 
         |0 => (fun x:Nat => suc x) 
-        |suc x fby rest => iter rest) n          
+        |suc x, rest => iter rest) n          
 
 //def main #=?constantStr[Nat] (?ackermann 2 1)

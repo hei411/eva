@@ -2,7 +2,7 @@ def hiddenfunction = 0
 
 def test = 
     primrec 0 with 
-        |suc o fby test => 0
+        |suc o, test => 0
         | 0=> 1
 
 def test2 = 
@@ -12,5 +12,5 @@ def test2 =
 
 def test3 #= 
     urec now 0:Unit Until Nat  with 
-        |wait x y fby test =>2
+        |wait x y, test =>2
         |now x => 0

@@ -338,7 +338,7 @@ waitRule file functionName definedFunctions context varStack e1 e2 =
       _ -> typeCheckerErrorMsg file functionName "waitRule's second argument is not an at-delayed Until type"
 
 urecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
-urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar1 waitVar2 fbyVar e2 = case context of
+urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar1 waitVar2 nextVar e2 = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName "urecRule applied to a tokenless context"
   StableContext x0 x1 -> urecRuleHelper x0
   AngleContext x0 x1 x2 -> urecRuleHelper x0
@@ -351,8 +351,8 @@ urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar
           BTypeUntil a b ->
             do
               let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (StableContext firstContextList [(nowVar, b)]) (nowVar : varStack) e1
-              let extendedContext = StableContext firstContextList [(fbyVar, BTypeAt e1Type), (waitVar2, BTypeAt eType), (waitVar1, a)]
-              let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (fbyVar : waitVar2 : waitVar1 : varStack) e1
+              let extendedContext = StableContext firstContextList [(nextVar, BTypeAt e1Type), (waitVar2, BTypeAt eType), (waitVar1, a)]
+              let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (nextVar : waitVar2 : waitVar1 : varStack) e1
               if generalBTypeCompare e2Type e1Type
                 then (CExpUrec eExp e1Exp e2Exp, e1Type)
                 else typeCheckerErrorMsg file functionName "urecRule branches' types do not match"

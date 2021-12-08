@@ -1,37 +1,37 @@
 def add # x:Nat y:Nat = 
     primrec x with 
         | 0 => y
-        | suc z fby rest => suc rest 
+        | suc z, rest => suc rest 
 
 
 def mult = 
 #(fun (x:Nat) (y: Nat) => 
     primrec x with 
         | 0 => 0
-        | suc z fby rest => ?add y rest )
+        | suc z, rest => ?add y rest )
 
 
 def exp # x:Nat y:Nat = 
     primrec y with 
         | 0 => 1
-        | suc z fby rest => ?mult x rest
+        | suc z, rest => ?mult x rest
 
 def pred # x:Nat = 
     primrec x with
         |0=> 0
-        |suc y fby rest => y
+        |suc y, rest => y
 
 def minus # x:Nat y:Nat = 
     primrec y with 
         | 0=> x
-        | suc z fby rest => ?pred rest
+        | suc z, rest => ?pred rest
 
 import Prelude.Bool
 
 def isZero # x:Nat = 
     primrec x with 
         | 0 => true 
-        | suc z fby rest => false 
+        | suc z, rest => false 
 
 def equalsNat # x:Nat y:Nat =
     ?isZero (?add (?minus x y) (?minus y x))
@@ -39,7 +39,7 @@ def equalsNat # x:Nat y:Nat =
 def rem # x:Nat y:Nat = 
     primrec x with 
         | 0 => 0
-        | suc m fby rest => 
+        | suc m, rest => 
             ?if[Nat] (?equalsNat (?pred y) rest)
                 0
                 (suc rest) 
@@ -48,7 +48,7 @@ def div # x:Nat y:Nat =
     ?if[Nat] (?isZero y) 0
     primrec x with 
         | 0=> 0
-        | suc m fby rest => 
+        | suc m, rest => 
             ?if[Nat] (?equalsNat (?rem m y) (?pred y))
                 (suc rest)
                 rest
@@ -67,7 +67,7 @@ def prime #x:Nat =
         false 
         (primrec x with 
             | 0=> true 
-            | suc m fby rest => 
+            | suc m, rest => 
                 ?and rest
                     (?or (?equalsNat (suc m) 1) 
                         (?or (?equalsNat (suc m) x)
@@ -89,7 +89,7 @@ def max #x:Nat y:Nat =
 def gcd # x:Nat y:Nat =
     primrec (?min x y) with 
         |0=> 0
-        |suc m fby rest =>
+        |suc m, rest =>
             ?if[Nat] (?and (?divisible x (suc m)) (?divisible y (suc m)))
                 (suc m)
                 rest
@@ -105,7 +105,7 @@ def log # base:Nat x:Nat =
             ) in 
     primrec x with 
         | 0 => 0 
-        | suc n fby rest => 
+        | suc n, rest => 
             f rest base n
 
 def root# a:Nat = 
@@ -115,7 +115,7 @@ def root# a:Nat =
             ?if[Nat] (?lessthan a squared)
                 (?pred a)
                 a 
-        | suc x fby rest => 
+        | suc x, rest => 
             let tryNum = ?minus  a (suc x) in 
             let squared = ?mult tryNum tryNum in 
             ?if[Nat] (?lessthan a squared)
