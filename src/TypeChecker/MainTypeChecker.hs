@@ -6,6 +6,7 @@ import Datatype
 import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint
 import TypeChecker.ContextFunctions
+import TypeFunctions.ComparableChecker
 import TypeFunctions.LimitChecker
 import TypeFunctions.StableChecker
 import TypeFunctions.SubstituteParametric
@@ -41,6 +42,14 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpOut be -> outRule file functionName definedFunctions context varStack be
   BExpInto be bt -> intoRule file functionName definedFunctions context varStack be bt
   BExpLet s be be' -> letRule file functionName definedFunctions context varStack s be be'
+  BExpTrue -> (CExpTrue, BTypeBool)
+  BExpFalse -> (CExpFalse, BTypeBool)
+  BExpIf be be' be2 -> ifRule file functionName definedFunctions context varStack be be' be2
+  BExpAnd be be' -> andRule file functionName definedFunctions context varStack be be'
+  BExpOr be be' -> orRule file functionName definedFunctions context varStack be be'
+  BExpNot be -> notRule file functionName definedFunctions context varStack be
+  BExpEquals be be' -> equalsRule file functionName definedFunctions context varStack be be'
+  BExpNotEquals be be' -> notEqualsRule file functionName definedFunctions context varStack be be'
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -441,6 +450,93 @@ letRule file functionName definedFunctions context varStack str exp body =
       let (_, eType) = mainTypeChecker file functionName definedFunctions context varStack exp
       let newExp = BExpApplication (BExpLambda str eType body) exp
       mainTypeChecker file functionName definedFunctions context varStack newExp
+
+ifRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> BExp -> (CExp, BType)
+ifRule file functionName definedFunctions context varStack e e1 e2 = do
+  let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare eType BTypeBool
+    then
+      if generalBTypeCompare e1Type e2Type
+        then (CExpIf eExp e1Exp e2Exp, e1Type)
+        else
+          typeCheckerErrorMsg
+            file
+            functionName
+            ( "ifRule applied to non-matching branch types" ++ "\n t1 = "
+                ++ printBType 0 e1Type
+                ++ "\n t2 = "
+                ++ printBType 0 e2Type
+            )
+    else typeCheckerErrorMsg file functionName ("ifRule not applied to a boolean predicate exp: " ++ printCExp 0 eExp)
+
+andRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+andRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeBool
+    then
+      if generalBTypeCompare e2Type BTypeBool
+        then (CExpAnd e1Exp e2Exp, BTypeBool)
+        else typeCheckerErrorMsg file functionName ("andRule applied to a non-boolean second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("andRule applied to a non-boolean first exp: " ++ printCExp 0 e1Exp)
+
+orRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+orRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeBool
+    then
+      if generalBTypeCompare e2Type BTypeBool
+        then (CExpOr e1Exp e2Exp, BTypeBool)
+        else typeCheckerErrorMsg file functionName ("orRule applied to a non-boolean second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("orRule applied to a non-boolean first exp: " ++ printCExp 0 e1Exp)
+
+notRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
+notRule file functionName definedFunctions context varStack e = do
+  let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+  if generalBTypeCompare eType BTypeBool
+    then (CExpNot eExp, BTypeBool)
+    else typeCheckerErrorMsg file functionName ("notRule applied to a non-boolean exp: " ++ printCExp 0 eExp)
+
+equalsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+equalsRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type e2Type
+    then
+      if isComparable e1Type
+        then (CExpEquals e1Exp e2Exp, BTypeBool)
+        else
+          typeCheckerErrorMsg
+            file
+            functionName
+            ("equalsRule applied to a non-comparable type: " ++ printBType 0 e1Type ++ " and first exp: " ++ printCExp 0 e1Exp)
+    else
+      typeCheckerErrorMsg
+        file
+        functionName
+        ("equalsRule applied to two different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+
+notEqualsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+notEqualsRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type e2Type
+    then
+      if isComparable e1Type
+        then (CExpNotEquals e1Exp e2Exp, BTypeBool)
+        else
+          typeCheckerErrorMsg
+            file
+            functionName
+            ("notEqualsRule applied to a non-comparable type: " ++ printBType 0 e1Type ++ " and first exp: " ++ printCExp 0 e1Exp)
+    else
+      typeCheckerErrorMsg
+        file
+        functionName
+        ("notEqualsRule applied to two different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

@@ -9,8 +9,10 @@ type TypenameList = [(String, BType, Integer)]
 data TypeProperty
   = Limit
   | Stable
+  | CStable
   | None
   | Both
+  | CBoth
   deriving (Show, Eq)
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
@@ -48,6 +50,14 @@ data AExp
   | AExpOut AExp
   | AExpInto AExp AType
   | AExpLet String AExp AExp
+  | AExpTrue
+  | AExpFalse
+  | AExpIf AExp AExp AExp 
+  | AExpAnd AExp AExp 
+  | AExpOr AExp AExp 
+  | AExpNot AExp 
+  | AExpEquals AExp AExp 
+  | AExpNotEquals AExp AExp
   deriving (Show, Eq)
 
 data AType
@@ -63,6 +73,7 @@ data AType
   | ATypeAt AType
   | ATypeFix String AType
   | ATypeUntil AType AType
+  | ATypeBool
   deriving (Show, Eq)
 
 -- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
@@ -80,6 +91,7 @@ data BType
   | BTypeAt BType
   | BTypeFix BType
   | BTypeUntil BType BType
+  | BTypeBool
   deriving (Show, Eq)
 
 -- BExp are AExp except all type ascriptions are valid
@@ -109,6 +121,14 @@ data BExp
   | BExpOut BExp
   | BExpInto BExp BType
   | BExpLet String BExp BExp
+  | BExpTrue
+  | BExpFalse
+  | BExpIf BExp BExp BExp 
+  | BExpAnd BExp BExp 
+  | BExpOr BExp BExp 
+  | BExpNot BExp 
+  | BExpEquals BExp BExp 
+  | BExpNotEquals BExp BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
@@ -137,6 +157,14 @@ data CExp
   | CExpOut CExp
   | CExpInto CExp
   | CExpLocation Integer
+  | CExpTrue
+  | CExpFalse
+  | CExpIf CExp CExp CExp 
+  | CExpAnd CExp CExp 
+  | CExpOr CExp CExp 
+  | CExpNot CExp 
+  | CExpEquals CExp CExp 
+  | CExpNotEquals CExp CExp
   deriving (Show, Eq)
   -- | CExpAt CExp
   -- | CExpArrow CExp

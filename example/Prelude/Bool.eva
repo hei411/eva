@@ -1,21 +1,11 @@
-type Bool = Unit + Unit 
+def notb # e:Bool = 
+    not e
 
-def true = inl ():Bool 
-def false = inr():Bool 
+def andb # e1:Bool e2:Bool = 
+    e1 and e2
 
-def if [a] # e:Bool e1:a e2:a =
-    match e with 
-        |inl x => e1 
-        |inr y => e2
+def orb # e1:Bool e2:Bool = 
+    e1 or e2
 
-def not # e:Bool = 
-    ?if[Bool] e false true
-
-def and # e1:Bool e2:Bool = 
-    ?if[Bool] e1 (?if[Bool] e2 true false) false
-
-def or # e1:Bool e2:Bool = 
-    ?if[Bool] e1 true (?if[Bool] e2 true false)
-
-def equalsBool # e1:Bool e2:Bool =
-    ?if[Bool] e1 (?if[Bool] e2 true false) (?if[Bool] e2 false true)
+def equalsb  # e1:Bool e2:Bool =
+    e1 == e2

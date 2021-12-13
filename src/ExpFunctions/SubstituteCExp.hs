@@ -28,5 +28,13 @@ substituteCExp arg level cExp = case cExp of
   CExpOut ce -> CExpOut (substituteCExpHelper ce)
   CExpInto ce -> CExpInto (substituteCExpHelper ce)
   CExpLocation n -> CExpLocation n
+  CExpTrue -> CExpTrue
+  CExpFalse -> CExpFalse
+  CExpIf ce ce' ce2 -> CExpIf (substituteCExpHelper ce) (substituteCExpHelper ce') (substituteCExpHelper ce2)
+  CExpAnd ce ce' -> CExpAnd (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpOr ce ce' -> CExpOr (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpNot ce -> CExpNot (substituteCExpHelper ce)
+  CExpEquals ce ce' -> CExpEquals (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpNotEquals ce ce' -> CExpNotEquals (substituteCExpHelper ce) (substituteCExpHelper ce')
   where
     substituteCExpHelper = substituteCExp arg level

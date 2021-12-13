@@ -21,15 +21,9 @@ inputParser =
 expParser :: Parser AExp
 expParser =
   try letExpParser
+    <|> try ifExpParser
     <|> try bindExpParser
-    <|> try
-      ( do
-          first <- appExpParser
-          spaces
-          second <- bindExpParser
-          return (AExpApplication first second)
-      )
-    <|> appExpParser
+    <|> orExpParser
     <|> fail "Cannot parse an expression"
 
 letExpParser :: Parser AExp
@@ -58,6 +52,27 @@ letExpParser =
         body <- expParser
         let modifiedexp = modifyExp firstParameters pound secondParameters exp
         return (AExpLet var modifiedexp body)
+    )
+
+ifExpParser :: Parser AExp
+ifExpParser =
+  try
+    ( do
+        string "if"
+        notFollowedBy alphaNum
+        spaces
+        e <- expParser
+        spaces
+        string "then"
+        notFollowedBy alphaNum
+        spaces
+        e1 <- expParser
+        spaces
+        string "else"
+        notFollowedBy alphaNum
+        spaces
+        e2 <- expParser
+        return (AExpIf e e1 e2)
     )
 
 modifyExp :: [(String, AType)] -> Maybe Char -> [(String, AType)] -> AExp -> AExp
@@ -96,6 +111,110 @@ bindExpParser =
   try lambdaParser
     <|> recParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
+
+orExpParser :: Parser AExp
+orExpParser =
+  ( do
+      e1 <- andExpParser
+      e2 <- optionMaybe helper
+      case e2 of
+        Nothing -> return e1
+        Just ae -> return (AExpOr e1 ae)
+  )
+  where
+    helper :: Parser AExp
+    helper =
+      try
+        ( do
+            spaces
+            string "or"
+            notFollowedBy alphaNum
+            spaces
+            e2 <- orExpParser
+            return e2
+        )
+
+andExpParser :: Parser AExp
+andExpParser =
+  ( do
+      e1 <- notExpParser
+      e2 <- optionMaybe helper
+      case e2 of
+        Nothing -> return e1
+        Just ae -> return (AExpAnd e1 ae)
+  )
+  where
+    helper :: Parser AExp
+    helper =
+      try
+        ( do
+            spaces
+            string "and"
+            notFollowedBy alphaNum
+            spaces
+            e2 <- andExpParser
+            return e2
+        )
+
+notExpParser :: Parser AExp
+notExpParser = do
+  try
+    ( do
+        string "not"
+        notFollowedBy alphaNum
+        spaces
+        exp <- notExpParser
+        return (AExpNot exp)
+    )
+    <|> compareExpParser
+
+compareExpParser :: Parser AExp
+compareExpParser =
+  try
+    ( do
+        e <- appExpMaybeBindingLastParser
+        e1 <- optionMaybe helper1
+        case e1 of
+          Nothing ->
+            do
+              e2 <- optionMaybe helper2
+              case e2 of
+                Nothing -> return e
+                Just ae -> return (AExpNotEquals e ae)
+          Just ae -> return (AExpEquals e ae)
+    )
+  where
+    helper1 :: Parser AExp
+    helper1 =
+      try
+        ( do
+            spaces
+            string "=="
+            spaces
+            e2 <- appExpMaybeBindingLastParser
+            return e2
+        )
+    helper2 :: Parser AExp
+    helper2 =
+      try
+        ( do
+            spaces
+            string "!="
+            spaces
+            e2 <- appExpMaybeBindingLastParser
+            return e2
+        )
+
+appExpMaybeBindingLastParser :: Parser AExp
+appExpMaybeBindingLastParser =
+  try
+    ( do
+        first <- appExpParser
+        spaces
+        second <- bindExpParser
+        return (AExpApplication first second)
+    )
+    <|> appExpParser
 
 appExpParser :: Parser AExp
 appExpParser = do
@@ -585,6 +704,18 @@ unitParser = do
   char ')'
   return AExpUnit
 
+trueParser :: Parser AExp
+trueParser = do
+  string "true"
+  notFollowedBy alphaNum
+  return AExpTrue
+
+falseParser :: Parser AExp
+falseParser = do
+  string "false"
+  notFollowedBy alphaNum
+  return AExpFalse
+
 oneExpParser :: Parser AExp
 oneExpParser =
   try parenthesisParser
@@ -608,7 +739,9 @@ oneExpParser =
     <|> try outParser
     <|> try intoParser
     <|> try expVarParser
-    <|> unitParser
+    <|> try unitParser
+    <|> try trueParser
+    <|> falseParser
     <|> fail "Can't parse OneExp"
 
 annoVarParser :: Parser (String, AType)

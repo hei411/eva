@@ -46,6 +46,14 @@ checkVar str =
     "in" -> fail "in cannot be variable name."
     "type" -> fail "type cannot be variable name."
     "as" -> fail "as cannot be variable name."
+    "true" -> fail "true cannot be variable name."
+    "false" -> fail "false cannot be variable name."
+    "if" -> fail "if cannot be variable name."
+    "then" -> fail "then cannot be variable name."
+    "else" -> fail "else cannot be variable name."
+    "and" -> fail "and cannot be variable name."
+    "or" -> fail "or cannot be variable name."
+    "not" -> fail "not cannot be variable name."
     _ -> return str
 
 upperVarParser :: Parser String
@@ -73,6 +81,8 @@ checkUpperVar str = case str of
   "Unit" -> fail "Unit cannot be type variable name."
   "Stable" -> fail "Stable cannot be type variable name."
   "Limit" -> fail "Limit cannot be type variable name."
+  "Bool" -> fail "Bool cannot be type variable name."
+  "CStable" -> fail "CStable cannot be type variable name."
   _ -> return (str)
 
 potentialDotVarParser :: Parser String

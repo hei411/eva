@@ -57,6 +57,7 @@ library
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions
       TypeChecker.MainTypeChecker
+      TypeFunctions.ComparableChecker
       TypeFunctions.LimitChecker
       TypeFunctions.StableChecker
       TypeFunctions.SubstituteParametric

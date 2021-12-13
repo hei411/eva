@@ -205,6 +205,60 @@ printCExp n cExp =
                  else printCExp n ce
              )
       CExpLocation i -> "l_" ++ show (i)
+      CExpTrue -> "true"
+      CExpFalse -> "false"
+      CExpIf ce ce' ce2 ->
+        "if " ++ printCExp n ce ++ " then " ++ printCExp n ce' ++ " else "
+          ++ ( if cExpLevel ce2 <= cExpLevel cExp
+                 then "(" ++ printCExp n ce2 ++ ")"
+                 else printCExp n ce2
+             )
+      CExpAnd ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ " and "
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpOr ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ " or "
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpNot ce ->
+        "not "
+          ++ ( if cExpLevel ce <= cExpLevel cExp
+                 then "(" ++ printCExp n ce ++ ")"
+                 else printCExp n ce
+             )
+      CExpEquals ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "=="
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpNotEquals ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "!="
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
 
 cExpLevel :: CExp -> Integer
 cExpLevel cExp = case cExp of
@@ -232,3 +286,11 @@ cExpLevel cExp = case cExp of
   CExpOut ce -> 2
   CExpInto ce -> 2
   CExpLocation n -> 3
+  CExpTrue -> 3
+  CExpFalse -> 3
+  CExpIf ce ce' ce2 -> 1
+  CExpAnd ce ce' -> 1
+  CExpOr ce ce' -> 1
+  CExpNot ce -> 2
+  CExpEquals ce ce' -> 1
+  CExpNotEquals ce ce' -> 1

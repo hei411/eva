@@ -25,6 +25,7 @@ substituteBType targetLevel body arg = case body of
   BTypeAt bt -> BTypeAt (substituteBType targetLevel bt arg)
   BTypeFix bt -> BTypeFix (substituteBType (targetLevel + 1) bt arg)
   BTypeUntil bt bt' -> BTypeUntil (substituteBType targetLevel bt arg) (substituteBType targetLevel bt' arg)
+  BTypeBool -> BTypeBool
 
 {-
 import Datatype

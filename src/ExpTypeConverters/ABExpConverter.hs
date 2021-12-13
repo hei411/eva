@@ -31,6 +31,14 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpOut ae -> BExpOut (abExpConverterCur ae)
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
   AExpLet s ae ae' -> BExpLet s (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpTrue -> BExpTrue
+  AExpFalse -> BExpFalse
+  AExpIf ae ae' ae2 -> BExpIf (abExpConverterCur ae) (abExpConverterCur ae') (abExpConverterCur ae2)
+  AExpAnd ae ae' -> BExpAnd (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpOr ae ae' -> BExpOr (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpNot ae -> BExpNot (abExpConverterCur ae)
+  AExpEquals ae ae' -> BExpEquals (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpNotEquals ae ae' -> BExpNotEquals (abExpConverterCur ae) (abExpConverterCur ae')
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

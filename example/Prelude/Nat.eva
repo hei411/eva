@@ -29,9 +29,7 @@ def minus # x:Nat y:Nat =
 import Prelude.Bool
 
 def isZero # x:Nat = 
-    primrec x with 
-        | 0 => true 
-        | suc z, rest => false 
+    x==0
 
 def equalsNat # x:Nat y:Nat =
     ?isZero (?add (?minus x y) (?minus y x))
@@ -40,18 +38,18 @@ def rem # x:Nat y:Nat =
     primrec x with 
         | 0 => 0
         | suc m, rest => 
-            ?if[Nat] (?equalsNat (?pred y) rest)
-                0
-                (suc rest) 
+            if ((?pred y) == rest)
+                then 0
+                else (suc rest) 
 
 def div # x:Nat y:Nat = 
-    ?if[Nat] (?isZero y) 0
-    primrec x with 
+    if (?isZero y) then 0
+    else primrec x with 
         | 0=> 0
         | suc m, rest => 
-            ?if[Nat] (?equalsNat (?rem m y) (?pred y))
-                (suc rest)
-                rest
+            if  (?rem m y) == (?pred y)
+              then  (suc rest)
+              else  rest
 
 def lessthan # x:Nat y:Nat = 
     ?isZero (?minus (suc x) y)
@@ -63,23 +61,25 @@ def divisible # x:Nat y:Nat =
     ?isZero (?rem x y)
 
 def prime #x:Nat = 
-    ?if[Bool] (?leq x 1)
-        false 
-        (primrec x with 
+    if (?leq x 1)
+      then   false 
+      else  (primrec x with 
             | 0=> true 
             | suc m, rest => 
-                ?and rest
-                    (?or (?equalsNat (suc m) 1) 
-                        (?or (?equalsNat (suc m) x)
-                            (?not (?divisible x (suc m)))
+                 rest and
+                    ((?equalsNat (suc m) 1) or
+                        ( (?equalsNat (suc m) x) or
+                            (not (?divisible x (suc m)))
                         )
                     )
         )
 
+
+
 def min #x:Nat y:Nat = 
-    ?if[Nat] (?leq x y)
-        x
-        y
+    if  (?leq x y)
+    then     x
+    else     y
 
 def max #x:Nat y:Nat =
     ?if[Nat] (?leq x y)
@@ -121,3 +121,4 @@ def root# a:Nat =
             ?if[Nat] (?lessthan a squared)
                 (?pred tryNum)
                 rest 
+                

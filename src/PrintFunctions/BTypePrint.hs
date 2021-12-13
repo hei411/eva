@@ -73,6 +73,7 @@ printBType n bType =
                  then "(" ++ (printBType n bt') ++ ")"
                  else printBType n bt'
              )
+      BTypeBool -> "Bool"
 
 bTypeLevel :: BType -> Integer
 bTypeLevel bType = case bType of
@@ -89,3 +90,4 @@ bTypeLevel bType = case bType of
   BTypeAt bt -> 4
   BTypeFix bt -> -1
   BTypeUntil bt bt' -> 1
+  BTypeBool -> 4

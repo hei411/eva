@@ -34,6 +34,7 @@ substituteTypenameArg levelNum bType arg = case bType of
   BTypeAt bt -> BTypeAt (substituteTypenameArg levelNum bt arg)
   BTypeFix bt -> BTypeFix (substituteTypenameArg (levelNum + 1) bt arg)
   BTypeUntil bt bt' -> BTypeUntil (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
+  BTypeBool -> BTypeBool
   where
     promoteFreeVariables :: Integer -> Integer -> BType -> BType
     promoteFreeVariables levelNum current bType = case bType of
@@ -51,5 +52,6 @@ substituteTypenameArg levelNum bType arg = case bType of
       BTypeAt bt -> BTypeAt (promoteFreeVariablesHelper bt)
       BTypeFix bt -> BTypeFix (promoteFreeVariables levelNum (current + 1) bt)
       BTypeUntil bt bt' -> BTypeUntil (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
+      BTypeBool -> BTypeBool
       where
         promoteFreeVariablesHelper = promoteFreeVariables levelNum current

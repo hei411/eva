@@ -33,7 +33,7 @@ mainProgramAnalyzerHelper src_path currentFile compiledFilesData toCompileFiles 
       Right program -> do
         -- Parsing succeeded
         -- putStrLn (show (program))
-        --putStrLn (currentFile ++ " is parsed correctly")
+        -- putStrLn (currentFile ++ " is parsed correctly")
         singleFileAnalyzer src_path currentFile compiledFilesData toCompileFiles [] [] [] [] [] [] program
 
 readParse :: FilePath -> IO (Either Text.Parsec.Error.ParseError Program)

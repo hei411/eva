@@ -33,6 +33,14 @@ evaluationInterpreter exp store = case exp of
   CExpOut ce -> outEval ce store
   CExpInto ce -> intoEval ce store
   CExpLocation n -> (CExpLocation n, store)
+  CExpTrue -> (CExpTrue, store)
+  CExpFalse -> (CExpFalse, store)
+  CExpIf ce ce' ce2 -> ifEval ce ce' ce2 store
+  CExpAnd ce ce' -> andEval ce ce' store
+  CExpOr ce ce' -> orEval ce ce' store
+  CExpNot ce -> notEval ce store
+  CExpEquals ce ce' -> equalsEval ce ce' store
+  CExpNotEquals ce ce' -> notEqualsEval ce ce' store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
@@ -177,6 +185,60 @@ intoEval :: CExp -> Store -> (CExp, Store)
 intoEval e s = do
   let (e', s') = evaluationInterpreter e s
   (CExpInto e', s')
+
+ifEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+ifEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpTrue -> evaluationInterpreter e1 s'
+    CExpFalse -> evaluationInterpreter e2 s'
+    _ -> error "Should not happen! if applied to a non-boolean expression"
+
+andEval :: CExp -> CExp -> Store -> (CExp, Store)
+andEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    (CExpTrue, CExpTrue) -> (CExpTrue, s'')
+    (CExpTrue, CExpFalse) -> (CExpFalse, s'')
+    (CExpFalse, CExpTrue) -> (CExpFalse, s'')
+    (CExpFalse, CExpFalse) -> (CExpFalse, s'')
+    _ -> error "Should not happen! and applied to a non-boolean argument"
+
+orEval :: CExp -> CExp -> Store -> (CExp, Store)
+orEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    (CExpTrue, CExpTrue) -> (CExpTrue, s'')
+    (CExpTrue, CExpFalse) -> (CExpTrue, s'')
+    (CExpFalse, CExpTrue) -> (CExpTrue, s'')
+    (CExpFalse, CExpFalse) -> (CExpFalse, s'')
+    _ -> error "Should not happen! or applied to a non-boolean argument"
+
+notEval :: CExp -> Store -> (CExp, Store)
+notEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpTrue -> (CExpFalse, s')
+    CExpFalse -> (CExpTrue, s')
+    _ -> error "Should not happen! not applied to a non-boolean argument"
+
+equalsEval :: CExp -> CExp -> Store -> (CExp, Store)
+equalsEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  if e1' == e2'
+    then (CExpTrue, s'')
+    else (CExpFalse, s'')
+
+notEqualsEval :: CExp -> CExp -> Store -> (CExp, Store)
+notEqualsEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  if e1' /= e2'
+    then (CExpTrue, s'')
+    else (CExpFalse, s'')
 
 {-
 import Datatype

@@ -1,6 +1,7 @@
 module TypeFunctions.TypePropertyChecker where
 
 import Datatype
+import TypeFunctions.ComparableChecker
 import TypeFunctions.LimitChecker
 import TypeFunctions.StableChecker
 
@@ -13,4 +14,6 @@ checkTypeProperty tps ts =
       Stable -> if isStable t then checkTypeProperty tpsTail tsTail else Right (t, Stable)
       None -> checkTypeProperty tpsTail tsTail
       Both -> if isStable t && isLimit t then checkTypeProperty tpsTail tsTail else Right (t, Both)
+      CStable -> if isComparable t then checkTypeProperty tpsTail tsTail else Right (t, CStable)
+      CBoth -> if isComparable t && isLimit t then checkTypeProperty tpsTail tsTail else Right (t, Both)
     _ -> error "Should not happen! Two list arguments for checkTypeProperty not equal in length"

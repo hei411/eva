@@ -74,6 +74,13 @@ oneParameterParser =
       )
     <|> try
       ( do
+          string "CStable"
+          skipMany1 space
+          v <- varParser
+          return (CStable, v)
+      )
+    <|> try
+      ( do
           string "Limit"
           skipMany1 space
           v <- varParser
@@ -90,12 +97,30 @@ oneParameterParser =
       )
     <|> try
       ( do
+          string "Limit"
+          skipMany1 space
+          string "CStable"
+          skipMany1 space
+          v <- varParser
+          return (CBoth, v)
+      )
+    <|> try
+      ( do
           string "Stable"
           skipMany1 space
           string "Limit"
           skipMany1 space
           v <- varParser
           return (Both, v)
+      )
+    <|> try
+      ( do
+          string "CStable"
+          skipMany1 space
+          string "Limit"
+          skipMany1 space
+          v <- varParser
+          return (CBoth, v)
       )
 
 typeStatementParser :: Parser Statement
