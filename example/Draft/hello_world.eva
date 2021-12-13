@@ -9,7 +9,7 @@ import Prelude.Nat
 
 import Modality.Stream 
 //def main  # = ?constantStr[Nat] 0 
-def main # = wait () (@ (now 0): Unit Until Nat)
+def main  = if true and false and true then 0 else false
 //import ervrev.erg.erv;
 /*
 type Kef(s, b) = Nat;

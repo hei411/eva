@@ -15,7 +15,7 @@ def extractPosToPair # s:Nat =
                     | 0 => 0 
                     | suc x, rest => 
                         let b = ?divisible s (?exp 2 (suc x)) in 
-                        ?if[Nat] b (suc x) rest) in 
+                        if b then (suc x) else rest) in 
     let second = (let rest = ?div s (?exp 2 first) in 
                     ?div (?pred rest) 2) in 
     (first,second)
@@ -49,12 +49,12 @@ def analyzeInstruction # x:Nat =
                         let y = fst pair in 
                         let z = snd pair in 
                         let b = ?divisible y 2 in 
-                        ?if [Instruction] b
+                        if b
                             // add case  
-                            (let r =?div y 2 in 
+                          then  (let r =?div y 2 in 
                             inr (inl (r,z):(AddInstruction+MinusInstruction) ) : Instruction)
                             //subtract case
-                            (let r1 = ?div y 2 in 
+                          else  (let r1 = ?div y 2 in 
                             let p = ?extractNatToPair z in 
                             let instr = (r1,(fst p,snd p)) in 
                             inr (inr instr:AddInstruction+MinusInstruction):Instruction
@@ -62,7 +62,7 @@ def analyzeInstruction # x:Nat =
     
             )
     in 
-    ?if[Instruction] (?isZero x) (inl ():Instruction) (helper x)
+    if (?isZero x) then (inl ():Instruction) else (helper x)
 
 
 def splitStack # n:Nat s:Stack = 
@@ -118,12 +118,12 @@ def machineLoop program:Nat =
                             let stackPairs = ?splitStack argIndex args in 
                             let toSubElem = ?topStack (snd stackPairs) in 
                             let b = ?isZero toSubElem in
-                            ?if[MS.Str(Result)] b 
-                                (//the element to be subtracted is zero
+                            if b 
+                             then   (//the element to be subtracted is zero
                                 ?MS.conStr[Result] hiaton >(<?loop nextInstr2 args)
                                 )
 
-                                (//the element can be subtracted
+                              else  (//the element can be subtracted
                                 let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (?pred toSubElem) (?tailStack (snd stackPairs))) in 
                                 ?MS.conStr[Result] hiaton >(<?loop nextInstr1 newargs)
                                 )

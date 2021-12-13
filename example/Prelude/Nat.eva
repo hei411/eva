@@ -82,17 +82,17 @@ def min #x:Nat y:Nat =
     else     y
 
 def max #x:Nat y:Nat =
-    ?if[Nat] (?leq x y)
-        y 
-        x
+    if (?leq x y)
+      then y 
+       else x
 
 def gcd # x:Nat y:Nat =
     primrec (?min x y) with 
         |0=> 0
         |suc m, rest =>
-            ?if[Nat] (?and (?divisible x (suc m)) (?divisible y (suc m)))
-                (suc m)
-                rest
+            if (?divisible x (suc m)) and (?divisible y (suc m))
+             then   (suc m)
+             else   rest
 
 def lcm # x:Nat y:Nat = 
     ?div (?mult x y) (?gcd x y)
@@ -101,7 +101,7 @@ def log # base:Nat x:Nat =
     let f = (fun  ans:Nat b:Nat n:Nat => 
                 let right = ?exp b (suc ans) in 
                 let boolean = ?lessthan (suc n) right in 
-                ?if[Nat] boolean ans (suc ans) 
+                if boolean then ans else (suc ans) 
             ) in 
     primrec x with 
         | 0 => 0 
@@ -112,13 +112,13 @@ def root# a:Nat =
     primrec a with 
         | 0 => 
             let squared = ?mult a a in  
-            ?if[Nat] (?lessthan a squared)
-                (?pred a)
-                a 
+            if (?lessthan a squared)
+              then  (?pred a)
+              else  a 
         | suc x, rest => 
             let tryNum = ?minus  a (suc x) in 
             let squared = ?mult tryNum tryNum in 
-            ?if[Nat] (?lessthan a squared)
-                (?pred tryNum)
-                rest 
+            if ?lessthan a squared
+              then  (?pred tryNum)
+              else  rest 
                 

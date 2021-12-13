@@ -42,7 +42,7 @@ def minimization2
                             let failureCaseHd = inl ():Unit+Nat in
                             let failureCaseTl = > (<?loop (suc i)) in
                             let failureStream = ?conStr[Unit+Nat] failureCaseHd failureCaseTl in
-                            ?if [Str(Unit+Nat)] b successCase failureStream 
+                            if b then successCase else failureStream 
                         ) in 
             # (?repeat 0)
 
