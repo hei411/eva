@@ -140,3 +140,21 @@ potentialDotUpperVarParser =
       let str = start : rest
       notFollowedBy (char '.')
       checkUpperVar str
+
+wildcardParser :: Parser String
+wildcardParser =
+  try
+    ( do
+        char '('
+        spaces
+        str <- wildcardParser
+        spaces
+        char ')'
+        return str
+    )
+    <|> try
+      ( do
+          string "_"
+          notFollowedBy alphaNum
+          return "_"
+      )

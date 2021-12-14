@@ -417,7 +417,7 @@ matchParser =
         spaces
         string "inl"
         skipMany1 space
-        v1 <- varParser
+        v1 <- choice [try varParser, try wildcardParser]
         spaces
         string "=>"
         spaces
@@ -427,7 +427,7 @@ matchParser =
         spaces
         string "inr"
         skipMany1 space
-        v2 <- varParser
+        v2 <- choice [try varParser, try wildcardParser]
         spaces
         string "=>"
         spaces
@@ -445,7 +445,7 @@ matchParser =
             spaces
             string "inr"
             skipMany1 space
-            v2 <- varParser
+            v2 <- choice [try varParser, try wildcardParser]
             spaces
             string "=>"
             spaces
@@ -455,7 +455,7 @@ matchParser =
             spaces
             string "inl"
             skipMany1 space
-            v1 <- varParser
+            v1 <- choice [try varParser, try wildcardParser]
             spaces
             string "=>"
             spaces
@@ -507,11 +507,11 @@ primrecParser =
         spaces
         string "suc"
         skipMany1 space
-        v1 <- varParser
+        v1 <- choice [try varParser, try wildcardParser]
         spaces
         string ","
         spaces
-        v2 <- varParser
+        v2 <- choice [try varParser, try wildcardParser]
         spaces
         string "=>"
         spaces
@@ -530,11 +530,11 @@ primrecParser =
       spaces
       string "suc"
       skipMany1 space
-      v1 <- varParser
+      v1 <- choice [try varParser, try wildcardParser]
       spaces
       string ","
       spaces
-      v2 <- varParser
+      v2 <- choice [try varParser, try wildcardParser]
       spaces
       string "=>"
       spaces
@@ -641,7 +641,7 @@ urecParser =
         spaces
         string "now"
         skipMany1 space
-        v1 <- varParser
+        v1 <- choice [try varParser, try wildcardParser]
         spaces
         string "=>"
         spaces
@@ -651,13 +651,13 @@ urecParser =
         spaces
         string "wait"
         skipMany1 space
-        v2 <- varParser
+        v2 <- choice [try varParser, try wildcardParser]
         skipMany1 space
-        v3 <- varParser
+        v3 <- choice [try varParser, try wildcardParser]
         spaces
         string ","
         spaces
-        v4 <- varParser
+        v4 <- choice [try varParser, try wildcardParser]
         spaces
         string "=>"
         spaces
@@ -676,13 +676,13 @@ urecParser =
       spaces
       string "wait"
       skipMany1 space
-      v2 <- varParser
+      v2 <- choice [try varParser, try wildcardParser]
       skipMany1 space
-      v3 <- varParser
+      v3 <- choice [try varParser, try wildcardParser]
       spaces
       string ","
       spaces
-      v4 <- varParser
+      v4 <- choice [try varParser, try wildcardParser]
       spaces
       string "=>"
       spaces
@@ -692,7 +692,7 @@ urecParser =
       spaces
       string "now"
       skipMany1 space
-      v1 <- varParser
+      v1 <- choice [try varParser, try wildcardParser]
       spaces
       string "=>"
       spaces

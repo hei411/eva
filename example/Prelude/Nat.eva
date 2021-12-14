@@ -1,25 +1,25 @@
 def add # x:Nat y:Nat = 
     primrec x with 
         | 0 => y
-        | suc z, rest => suc rest 
+        | suc _, rest => suc rest 
 
 
 def mult = 
 #(fun (x:Nat) (y: Nat) => 
     primrec x with 
         | 0 => 0
-        | suc z, rest => ?add y rest )
+        | suc _, rest => ?add y rest )
 
 
 def exp # x:Nat y:Nat = 
     primrec y with 
         | 0 => 1
-        | suc z, rest => ?mult x rest
+        | suc _, rest => ?mult x rest
 
 def pred # x:Nat = 
     primrec x with
         |0=> 0
-        |suc y, rest => y
+        |suc y, _ => y
 
 def minus # x:Nat y:Nat = 
     x-y
@@ -38,7 +38,7 @@ def equalsNat # x:Nat y:Nat =
 def rem # x:Nat y:Nat = 
     primrec x with 
         | 0 => 0
-        | suc m, rest => 
+        | suc _, rest => 
             if ((?pred y) == rest)
                 then 0
                 else (suc rest) 
