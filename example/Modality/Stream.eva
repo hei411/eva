@@ -4,13 +4,16 @@ type Str(a) = Fix b --> a*b
 type Ev(a) = Fix b--> a+b
 
 def hdStr [a] # stream:Str(a)  = 
-    fst (out stream)
+    let x::_ = stream in x
+    //fst (out stream)
 
 def tlStr [a] # stream:Str(a) = 
-    snd (out stream)
+    let _::x = stream in x
+    //snd (out stream)
 
 def conStr [a] # (head: a) tail: >Str(a) = 
-    into (head, tail) : Str(a)
+    head::tail
+    //into (head, tail) : Str(a)
 
 def mapStr [a, b] f:#(a->b)= 
     rec m : # (Str(a) -> Str(b)) 

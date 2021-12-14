@@ -66,6 +66,8 @@ data AExp
   | AExpDivide AExp AExp 
   | AExpMod AExp AExp 
   | AExpPower AExp AExp 
+  | AExpPrepend AExp AExp 
+  | AExpLetStream String String AExp AExp
   deriving (Show, Eq)
 
 data AType
@@ -145,6 +147,8 @@ data BExp
   | BExpDivide BExp BExp 
   | BExpMod BExp BExp 
   | BExpPower BExp BExp 
+  | BExpPrepend BExp BExp 
+  | BExpLetStream String String BExp BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions

@@ -58,6 +58,8 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpDivide be be' -> divideRule file functionName definedFunctions context varStack be be'
   BExpMod be be' -> modRule file functionName definedFunctions context varStack be be'
   BExpPower be be' -> powerRule file functionName definedFunctions context varStack be be'
+  BExpPrepend be be' -> prependRule file functionName definedFunctions context varStack be be'
+  BExpLetStream s s' be be' -> letStreamRule file functionName definedFunctions context varStack s s' be be'
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -624,6 +626,22 @@ powerRule file functionName definedFunctions context varStack e1 e2 = do
         then (CExpPower e1Exp e2Exp, BTypeNat)
         else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
     else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+prependRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+prependRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  let targetE2Type = BTypeAngle (BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
+  if generalBTypeCompare targetE2Type e2Type
+    then (CExpInto (CExpProduct e1Exp e2Exp), BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
+    else typeCheckerErrorMsg file functionName ("prependRule applied to non-compatible expresions of type: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+
+letStreamRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> String -> BExp -> BExp -> (CExp, BType)
+letStreamRule file functionName definedFunctions context varStack var1 var2 e1 e2 = do
+  let var1Exp = BExpFst (BExpOut (BExpVar "_Stream" []))
+  let var2Exp = BExpSnd (BExpOut (BExpVar "_Stream" []))
+  let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))
+  mainTypeChecker file functionName definedFunctions context varStack newExp
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

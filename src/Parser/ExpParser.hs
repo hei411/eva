@@ -22,6 +22,7 @@ inputParser =
 expParser :: Parser AExp
 expParser =
   try letExpParser
+    <|> try letStreamExpParser
     <|> try ifExpParser
     <|> try bindExpParser
     <|> orExpParser
@@ -53,6 +54,31 @@ letExpParser =
         body <- expParser
         let modifiedexp = modifyExp firstParameters pound secondParameters exp
         return (AExpLet var modifiedexp body)
+    )
+
+letStreamExpParser :: Parser AExp
+letStreamExpParser =
+  try
+    ( do
+        string "let"
+        notFollowedBy alphaNum
+        spaces
+        v1 <- choice [try varParser, try wildcardParser]
+        spaces
+        string "::"
+        spaces
+        v2 <- choice [try varParser, try wildcardParser]
+        spaces
+        char '='
+        notFollowedBy (char '>')
+        spaces
+        exp <- expParser
+        spaces
+        string "in"
+        notFollowedBy alphaNum
+        spaces
+        body <- expParser
+        return (AExpLetStream v1 v2 exp body)
     )
 
 ifExpParser :: Parser AExp
@@ -173,7 +199,7 @@ compareExpParser :: Parser AExp
 compareExpParser =
   try
     ( do
-        e <- addMinusParser
+        e <- prependParser
         e1 <- optionMaybe helper1
         case e1 of
           Nothing ->
@@ -192,7 +218,7 @@ compareExpParser =
             spaces
             string "=="
             spaces
-            e2 <- addMinusParser
+            e2 <- prependParser
             return e2
         )
     helper2 :: Parser AExp
@@ -202,8 +228,22 @@ compareExpParser =
             spaces
             string "!="
             spaces
-            e2 <- addMinusParser
+            e2 <- prependParser
             return e2
+        )
+
+prependParser :: Parser AExp
+prependParser = do
+  chainr1 addMinusParser operator
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "::"
+            spaces
+            return AExpPrepend
         )
 
 addMinusParser :: Parser AExp
