@@ -39,6 +39,8 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpNot ae -> BExpNot (abExpConverterCur ae)
   AExpEquals ae ae' -> BExpEquals (abExpConverterCur ae) (abExpConverterCur ae')
   AExpNotEquals ae ae' -> BExpNotEquals (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpInteger n -> BExpInteger n
+  AExpIncrement ae -> BExpIncrement (abExpConverterCur ae)
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

@@ -259,6 +259,13 @@ printCExp n cExp =
                  then "(" ++ printCExp n ce' ++ ")"
                  else printCExp n ce'
              )
+      CExpInteger n -> show (n)
+      CExpIncrement ce -> do
+        "suc "
+          ++ ( if cExpLevel ce <= cExpLevel cExp
+                 then "(" ++ printCExp n ce ++ ")"
+                 else printCExp n ce
+             )
 
 cExpLevel :: CExp -> Integer
 cExpLevel cExp = case cExp of
@@ -294,3 +301,5 @@ cExpLevel cExp = case cExp of
   CExpNot ce -> 2
   CExpEquals ce ce' -> 1
   CExpNotEquals ce ce' -> 1
+  CExpInteger n -> 3
+  CExpIncrement ce -> 2

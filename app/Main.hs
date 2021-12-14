@@ -22,7 +22,8 @@ main = do
   let src_path = ""
   -- Start of real program
   let src_path = getSrcPath args
-  compiledFilesData <- mainProgramAnalyzer src_path file_name
+  let isPeano = checkPeano args
+  compiledFilesData <- mainProgramAnalyzer src_path isPeano file_name
   putStr (fileDataPrint (compiledFilesData))
   let (mainExp, mainType) = getMain compiledFilesData
   let interpreterType = getInterpreter mainType
@@ -32,8 +33,8 @@ main = do
     Safe -> safeInterpreter mainExp stepNum
     Lively -> livelyInterpreter mainExp stepNum
     Fair -> fairInterpreter mainExp stepNum
-    ISafe -> iSafeInterpreter mainExp (getInputType mainType)
-    ILively -> iLivelyInterpreter mainExp (getInputType mainType)
-    IFair -> iFairInterpreter mainExp (getInputType mainType)
+    ISafe -> iSafeInterpreter mainExp (getInputType mainType) isPeano
+    ILively -> iLivelyInterpreter mainExp (getInputType mainType) isPeano
+    IFair -> iFairInterpreter mainExp (getInputType mainType) isPeano
 
   return ()

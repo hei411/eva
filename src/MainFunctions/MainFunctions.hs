@@ -63,3 +63,8 @@ getInputType bType =
   case bType of
     BTypeBox (BTypeFunction (BTypeFix (BTypeProduct input _)) _) -> input
     _ -> error "Should not happen. Error in get input type function"
+
+checkPeano :: [String] -> Bool
+checkPeano args = case args of
+  [] -> False
+  s : ss -> (s == "--peano") || checkPeano ss

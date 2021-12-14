@@ -36,5 +36,7 @@ substituteCExp arg level cExp = case cExp of
   CExpNot ce -> CExpNot (substituteCExpHelper ce)
   CExpEquals ce ce' -> CExpEquals (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpNotEquals ce ce' -> CExpNotEquals (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpInteger n -> CExpInteger n
+  CExpIncrement ce -> CExpIncrement (substituteCExpHelper ce)
   where
     substituteCExpHelper = substituteCExp arg level

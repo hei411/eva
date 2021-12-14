@@ -30,6 +30,7 @@ library
       ExpFunctions.SubstituteCExp
       ExpTypeConverters.ABExpConverter
       ExpTypeConverters.ABTypeConverter
+      ExpTypeConverters.PeanoConverter
       ExpTypeConverters.TypeNameResolveUtils
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter

@@ -41,6 +41,8 @@ evaluationInterpreter exp store = case exp of
   CExpNot ce -> notEval ce store
   CExpEquals ce ce' -> equalsEval ce ce' store
   CExpNotEquals ce ce' -> notEqualsEval ce ce' store
+  CExpInteger n -> (CExpInteger n, store)
+  CExpIncrement ce -> incrementEval ce store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
@@ -113,6 +115,16 @@ primrecEval e e1 e2 s =
         let e2' = substituteCExp nextValue 0 e2
         let e2'' = substituteCExp pred 1 e2'
         evaluationInterpreter e2'' s''
+      CExpInteger n -> do
+        if n == 0
+          then evaluationInterpreter e1 s'
+          else do
+            let pred = CExpInteger (n -1)
+            let nextExp = CExpPrimrec pred e1 e2
+            let (nextValue, s'') = evaluationInterpreter nextExp s'
+            let e2' = substituteCExp nextValue 0 e2
+            let e2'' = substituteCExp pred 1 e2'
+            evaluationInterpreter e2'' s''
       _ -> error "Should not happen! primrec applied to a non nat expression"
 
 delayEval :: CExp -> Store -> (CExp, Store)
@@ -239,6 +251,14 @@ notEqualsEval e1 e2 s = do
   if e1' /= e2'
     then (CExpTrue, s'')
     else (CExpFalse, s'')
+
+incrementEval :: CExp -> Store -> (CExp, Store)
+incrementEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInteger n ->
+      (CExpInteger (n + 1), s')
+    _ -> error "Should not happen! increment applied to a non-integer argument"
 
 {-
 import Datatype

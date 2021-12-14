@@ -50,6 +50,8 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpNot be -> notRule file functionName definedFunctions context varStack be
   BExpEquals be be' -> equalsRule file functionName definedFunctions context varStack be be'
   BExpNotEquals be be' -> notEqualsRule file functionName definedFunctions context varStack be be'
+  BExpInteger n -> (CExpInteger n, BTypeNat)
+  BExpIncrement be -> incrementRule file functionName definedFunctions context varStack be
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -537,6 +539,14 @@ notEqualsRule file functionName definedFunctions context varStack e1 e2 = do
         file
         functionName
         ("notEqualsRule applied to two different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+
+incrementRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
+incrementRule file functionName definedFunctions context varStack e =
+  do
+    let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+    case eType of
+      BTypeNat -> (CExpIncrement eExp, BTypeNat)
+      _ -> typeCheckerErrorMsg file functionName ("incrementRule applied to a non-Nat type for exp" ++ printCExp 0 eExp)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

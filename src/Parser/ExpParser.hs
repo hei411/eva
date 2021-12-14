@@ -404,13 +404,13 @@ numberParser = do
   n <- many1 digit
   notFollowedBy letter
   let num = read n :: Integer
-  return (wrapSuc num)
+  return (AExpInteger num)
 
-wrapSuc :: Integer -> AExp
+{-wrapSuc :: Integer -> AExp
 wrapSuc n =
   case n of
     0 -> AExpZero
-    _ -> AExpSuc (wrapSuc (n -1))
+    _ -> AExpSuc (wrapSuc (n -1))-}
 
 sucParser :: Parser AExp
 sucParser = do
@@ -418,7 +418,7 @@ sucParser = do
   notFollowedBy alphaNum
   spaces
   exp <- firstExpParser
-  return (AExpSuc exp)
+  return (AExpIncrement exp)
 
 primrecParser :: Parser AExp
 primrecParser =
