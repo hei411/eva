@@ -447,17 +447,22 @@ intoRule file functionName definedFunctions context varStack e ascription =
     _ -> typeCheckerErrorMsg file functionName ("intoRule ascription is not Fix type for " ++ show e)
 
 letRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BExp -> BExp -> (CExp, BType)
-letRule file functionName definedFunctions context varStack str exp body =
+letRule file functionName definedFunctions context varStack str e body =
   -- Note. Currrently, we just simply rewriite let into a application rule. However I suspect this rule can be relaxed
   -- one needs to think... perhaps setting the body within a context with a tick is allowed, since the lambda abstraction is
   -- immediately applied?
-  case context of
-    AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Currently we disallow let to be used in angle contexts for " ++ str ++ ". Ask Hei Li about this...")
-    AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Currently we disallow let to be used in at contexts for " ++ str ++ ". Ask Hei Li about this...")
-    _ -> do
-      let (_, eType) = mainTypeChecker file functionName definedFunctions context varStack exp
-      let newExp = BExpApplication (BExpLambda str eType body) exp
-      mainTypeChecker file functionName definedFunctions context varStack newExp
+  do
+    let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+    let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (str, eType)) (str : varStack) body
+    (CExpApplication (CExpLambda cBody) eExp, bodyType)
+
+{-case context of
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Currently we disallow let to be used in angle contexts for " ++ str ++ ". Ask Hei Li about this...")
+  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Currently we disallow let to be used in at contexts for " ++ str ++ ". Ask Hei Li about this...")
+  _ -> do
+    let (_, eType) = mainTypeChecker file functionName definedFunctions context varStack exp
+    let newExp = BExpApplication (BExpLambda str eType body) exp
+    mainTypeChecker file functionName definedFunctions context varStack newExp-}
 
 ifRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> BExp -> (CExp, BType)
 ifRule file functionName definedFunctions context varStack e e1 e2 = do
