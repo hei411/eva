@@ -10,15 +10,35 @@ def dot # = inr ():Digit
 //For Long Division
 def decimalLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
                         fun a:Nat b:Nat => 
+                            let output =  a /b in 
+                            let nextA =  10 *( a % b) in 
+                            let tl = >(<?loop nextA b) in 
+                            ?conStr[Digit] (inl output:Digit) tl
+/*def decimalLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                        fun a:Nat b:Nat => 
                             let output = ?div a b in 
                             let nextA = ?mult 10 (?rem a b) in 
                             let tl = >(<?loop nextA b) in 
-                            ?conStr[Digit] (inl output:Digit) tl
+                            ?conStr[Digit] (inl output:Digit) tl*/
                     
+def transition # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalLoop ( 10* a) b)
+//def transition # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalLoop (?mult 10 a) b)
 
-def transition # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalLoop (?mult 10 a) b)
 
 def integerLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                    fun a:Nat b:Nat => 
+                        let lessThanBool = ?lessthan a b in 
+                        if lessThanBool
+                          then  ?conStr[Digit] (inl 0:Digit) >(?transition a b)
+                          else  (let ans = a /b in 
+                            let digNum = ?log 10 ans in 
+                            let firstDig =  ans/ ( 10 ^digNum) in 
+                            let rem = a- ( (firstDig* b)* ( 10 ^digNum)) in 
+                            if (?lessthan rem b)
+                               then (?conStr[Digit] (inl firstDig:Digit) >(?transition rem b))
+                               else (?conStr[Digit] (inl firstDig:Digit) >(<?loop rem b))
+                            )
+/*def integerLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
                     fun a:Nat b:Nat => 
                         let lessThanBool = ?lessthan a b in 
                         if lessThanBool
@@ -30,12 +50,25 @@ def integerLoop = rec loop: #(Nat->Nat->Str(Digit)) =>
                             if (?lessthan rem b)
                                then (?conStr[Digit] (inl firstDig:Digit) >(?transition rem b))
                                else (?conStr[Digit] (inl firstDig:Digit) >(<?loop rem b))
-                            )
+                            )*/
 
 def longDiv # a:Nat b:Nat = ?integerLoop a b
+//def main# = ?longDiv 9 7
+
 
 //root
 def decimalRootLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
+                        fun rem:Nat ans:Nat =>
+                            primrec 9 with 
+                                |0 => ?conStr[Digit] (inl 0:Digit) >(<?loop (100 *rem) (ans * 10))
+                                |suc x, rest => 
+                                    let testY =  (suc x) * ((suc x)+ ( 20* ans)) in 
+                                    let b = ?lessthan rem testY  in 
+                                    if b 
+                                      then  rest 
+                                      else  (?conStr[Digit] (inl (suc x):Digit) >(<?loop ( 100 *( rem - testY))  ( (suc x)+ (10* ans)))   )
+
+/*def decimalRootLoop = rec loop: #(Nat->Nat->Str(Digit)) => 
                         fun rem:Nat ans:Nat =>
                             primrec 9 with 
                                 |0 => ?conStr[Digit] (inl 0:Digit) >(<?loop (?mult 100 rem) (?mult ans 10))
@@ -45,11 +78,21 @@ def decimalRootLoop = rec loop: #(Nat->Nat->Str(Digit)) =>
                                     if b 
                                       then  rest 
                                       else  (?conStr[Digit] (inl (suc x):Digit) >(<?loop (?mult 100 (?minus rem testY))  (?add (suc x) (?mult 10 ans)))   )
+*/
 
-                            
-def transitionRoot # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalRootLoop (?mult 100 a) b)
+def transitionRoot # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalRootLoop (100* a) b)                         
+//def transitionRoot # a:Nat b:Nat = ?conStr[Digit] ?dot >(?decimalRootLoop (?mult 100 a) b)
 
 def longRootHelper = 
+    rec loop : #(Nat->Nat->Nat->Str(Digit)) => 
+        fun printNum :Nat rem:Nat ans:Nat => 
+            let digNum = ?log 10 printNum in 
+            let firstDig =  printNum /( 10^ digNum) in 
+            let rest =  printNum - ( firstDig *(10^ digNum)) in 
+            if (?leq 100 rest) 
+              then  (?conStr[Digit] (inl firstDig:Digit) >(<?loop rest rem ans))
+              else  (?conStr[Digit] (inl firstDig:Digit) >(?transitionRoot rem ans))
+/*def longRootHelper = 
     rec loop : #(Nat->Nat->Nat->Str(Digit)) => 
         fun printNum :Nat rem:Nat ans:Nat => 
             let digNum = ?log 10 printNum in 
@@ -57,13 +100,13 @@ def longRootHelper =
             let rest = ?minus (printNum) (?mult firstDig (?exp 10 digNum)) in 
             if (?leq 100 rest) 
               then  (?conStr[Digit] (inl firstDig:Digit) >(<?loop rest rem ans))
-              else  (?conStr[Digit] (inl firstDig:Digit) >(?transitionRoot rem ans))
+              else  (?conStr[Digit] (inl firstDig:Digit) >(?transitionRoot rem ans))*/
 
 def longRoot # a:Nat = 
     let ans = ?root a in 
-    let rem = ?minus a (?exp ans 2) in 
+    let rem = a - (ans^ 2) in 
     ?longRootHelper ans rem ans
 
 
-//def main# = ?longRoot 2
+def main# = ?longRoot 2
 //def main # = ?constantStr[Nat] (?div 10 0)

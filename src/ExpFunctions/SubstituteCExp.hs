@@ -38,5 +38,11 @@ substituteCExp arg level cExp = case cExp of
   CExpNotEquals ce ce' -> CExpNotEquals (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpInteger n -> CExpInteger n
   CExpIncrement ce -> CExpIncrement (substituteCExpHelper ce)
+  CExpAdd ce ce' -> CExpAdd (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpMinus ce ce' -> CExpMinus (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpMultiply ce ce' -> CExpMultiply (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpDivide ce ce' -> CExpDivide (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpMod ce ce' -> CExpMod (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpPower ce ce' -> CExpPower (substituteCExpHelper ce) (substituteCExpHelper ce')
   where
     substituteCExpHelper = substituteCExp arg level

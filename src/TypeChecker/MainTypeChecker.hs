@@ -52,6 +52,12 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpNotEquals be be' -> notEqualsRule file functionName definedFunctions context varStack be be'
   BExpInteger n -> (CExpInteger n, BTypeNat)
   BExpIncrement be -> incrementRule file functionName definedFunctions context varStack be
+  BExpAdd be be' -> addRule file functionName definedFunctions context varStack be be'
+  BExpMinus be be' -> minusRule file functionName definedFunctions context varStack be be'
+  BExpMultiply be be' -> multiplyRule file functionName definedFunctions context varStack be be'
+  BExpDivide be be' -> divideRule file functionName definedFunctions context varStack be be'
+  BExpMod be be' -> modRule file functionName definedFunctions context varStack be be'
+  BExpPower be be' -> powerRule file functionName definedFunctions context varStack be be'
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -547,6 +553,72 @@ incrementRule file functionName definedFunctions context varStack e =
     case eType of
       BTypeNat -> (CExpIncrement eExp, BTypeNat)
       _ -> typeCheckerErrorMsg file functionName ("incrementRule applied to a non-Nat type for exp" ++ printCExp 0 eExp)
+
+addRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+addRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpAdd e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("addRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("addRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+minusRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+minusRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpMinus e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("minusRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("minusRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+multiplyRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+multiplyRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpMultiply e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("multiplyRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("multiplyRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+divideRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+divideRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpDivide e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("divideRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("divideRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+modRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+modRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpMod e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("modRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("modRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
+
+powerRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+powerRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  if generalBTypeCompare e1Type BTypeNat
+    then
+      if generalBTypeCompare e2Type BTypeNat
+        then (CExpPower e1Exp e2Exp, BTypeNat)
+        else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
+    else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

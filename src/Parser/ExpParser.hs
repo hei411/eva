@@ -4,6 +4,7 @@ import Datatype
 import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
+import Text.Parsec (space)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec (notFollowedBy)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
@@ -172,7 +173,7 @@ compareExpParser :: Parser AExp
 compareExpParser =
   try
     ( do
-        e <- appExpMaybeBindingLastParser
+        e <- addMinusParser
         e1 <- optionMaybe helper1
         case e1 of
           Nothing ->
@@ -191,7 +192,7 @@ compareExpParser =
             spaces
             string "=="
             spaces
-            e2 <- appExpMaybeBindingLastParser
+            e2 <- addMinusParser
             return e2
         )
     helper2 :: Parser AExp
@@ -201,8 +202,71 @@ compareExpParser =
             spaces
             string "!="
             spaces
-            e2 <- appExpMaybeBindingLastParser
+            e2 <- addMinusParser
             return e2
+        )
+
+addMinusParser :: Parser AExp
+addMinusParser = do
+  chainl1 multiplyDivideModParser operator
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "+"
+            spaces
+            return AExpAdd
+        )
+        <|> try
+          ( do
+              spaces
+              string "-"
+              spaces
+              return AExpMinus
+          )
+
+multiplyDivideModParser :: Parser AExp
+multiplyDivideModParser = do
+  chainl1 powerParser operator
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "*"
+            spaces
+            return AExpMultiply
+        )
+        <|> try
+          ( do
+              spaces
+              string "/"
+              spaces
+              return AExpDivide
+          )
+        <|> try
+          ( do
+              spaces
+              string "%"
+              spaces
+              return AExpMod
+          )
+
+powerParser :: Parser AExp
+powerParser = do
+  chainr1 appExpMaybeBindingLastParser operator
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "^"
+            spaces
+            return AExpPower
         )
 
 appExpMaybeBindingLastParser :: Parser AExp

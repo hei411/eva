@@ -11,7 +11,7 @@ def cons = MS.conStr[Nat]
 def fibHelper = 
     rec repeat: # (Nat->Nat-> Stream) =>
         fun x:Nat y:Nat =>
-            let sum = ?add x y in 
+            let sum =  x + y in 
             let rest = > (<?repeat y sum) in 
             ?cons x rest 
 
@@ -26,7 +26,7 @@ def addStream =
             let twohd=?hd two in 
             let onetl=?tl one in 
             let twotl=?tl two in 
-            ?cons (?add onehd twohd) >(<?repeat <onetl <twotl)
+            ?cons (onehd + twohd) >(<?repeat <onetl <twotl)
 
 def fibHelperLeaky = 
     rec repeat: #Stream => 

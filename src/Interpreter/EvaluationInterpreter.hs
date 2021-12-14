@@ -43,6 +43,12 @@ evaluationInterpreter exp store = case exp of
   CExpNotEquals ce ce' -> notEqualsEval ce ce' store
   CExpInteger n -> (CExpInteger n, store)
   CExpIncrement ce -> incrementEval ce store
+  CExpAdd ce ce' -> addEval ce ce' store
+  CExpMinus ce ce' -> minusEval ce ce' store
+  CExpMultiply ce ce' -> multiplyEval ce ce' store
+  CExpDivide ce ce' -> divideEval ce ce' store
+  CExpMod ce ce' -> modEval ce ce' store
+  CExpPower ce ce' -> powerEval ce ce' store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
@@ -259,6 +265,101 @@ incrementEval e s = do
     CExpInteger n ->
       (CExpInteger (n + 1), s')
     _ -> error "Should not happen! increment applied to a non-integer argument"
+
+addEval :: CExp -> CExp -> Store -> (CExp, Store)
+addEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 + n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 + n2), s'')
+
+minusEval :: CExp -> CExp -> Store -> (CExp, Store)
+minusEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (max 0 (n1 - n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      ((integerToPeano (max 0 (n1 - n2))), s'')
+
+multiplyEval :: CExp -> CExp -> Store -> (CExp, Store)
+multiplyEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 * n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 * n2), s'')
+
+divideEval :: CExp -> CExp -> Store -> (CExp, Store)
+divideEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 `quot` (max 1 n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 `quot` (max 1 n2)), s'')
+
+modEval :: CExp -> CExp -> Store -> (CExp, Store)
+modEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 `rem` (max 1 n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 `rem` (max 1 n2)), s'')
+
+powerEval :: CExp -> CExp -> Store -> (CExp, Store)
+powerEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 ^ n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 ^ n2), s'')
+
+peanoToInteger :: CExp -> Integer
+peanoToInteger e =
+  case e of
+    CExpZero -> 0
+    CExpSuc x -> 1 + (peanoToInteger x)
+    _ -> error "Should not happen. peanoToInteger applied to a non-peano expression"
+
+integerToPeano :: Integer -> CExp
+integerToPeano n =
+  if n == 0 then CExpZero else CExpSuc (integerToPeano (n -1))
 
 {-
 import Datatype

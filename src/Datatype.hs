@@ -60,6 +60,12 @@ data AExp
   | AExpNotEquals AExp AExp
   | AExpInteger Integer 
   | AExpIncrement AExp
+  | AExpAdd AExp AExp 
+  | AExpMinus AExp AExp 
+  | AExpMultiply AExp AExp 
+  | AExpDivide AExp AExp 
+  | AExpMod AExp AExp 
+  | AExpPower AExp AExp 
   deriving (Show, Eq)
 
 data AType
@@ -133,6 +139,12 @@ data BExp
   | BExpNotEquals BExp BExp
   | BExpInteger Integer 
   | BExpIncrement BExp
+  | BExpAdd BExp BExp 
+  | BExpMinus BExp BExp 
+  | BExpMultiply BExp BExp 
+  | BExpDivide BExp BExp 
+  | BExpMod BExp BExp 
+  | BExpPower BExp BExp 
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
@@ -171,6 +183,12 @@ data CExp
   | CExpNotEquals CExp CExp
   | CExpInteger Integer 
   | CExpIncrement CExp
+  | CExpAdd CExp CExp 
+  | CExpMinus CExp CExp 
+  | CExpMultiply CExp CExp 
+  | CExpDivide CExp CExp 
+  | CExpMod CExp CExp 
+  | CExpPower CExp CExp 
   deriving (Show, Eq)
   -- | CExpAt CExp
   -- | CExpArrow CExp

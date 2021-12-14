@@ -48,6 +48,13 @@ peanoConverterAExp e = do
     --Special cases
     AExpInteger n -> helper n
     AExpIncrement ae -> AExpSuc (peanoConverterAExp ae)
+    --Other cases
+    AExpAdd ae ae' -> AExpAdd (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpMinus ae ae' -> AExpMinus (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpMultiply ae ae' -> AExpMultiply (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpDivide ae ae' -> AExpDivide (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpMod ae ae' -> AExpMod (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpPower ae ae' -> AExpPower (peanoConverterAExp ae) (peanoConverterAExp ae')
   where
     helper :: Integer -> AExp
     helper n =

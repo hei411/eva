@@ -22,9 +22,10 @@ def pred # x:Nat =
         |suc y, rest => y
 
 def minus # x:Nat y:Nat = 
-    primrec y with 
+    x-y
+    /*primrec y with 
         | 0=> x
-        | suc z, rest => ?pred rest
+        | suc z, rest => ?pred rest*/
 
 import Prelude.Bool
 
@@ -99,7 +100,7 @@ def lcm # x:Nat y:Nat =
     
 def log # base:Nat x:Nat = 
     let f = (fun  ans:Nat b:Nat n:Nat => 
-                let right = ?exp b (suc ans) in 
+                let right =  b ^(suc ans) in 
                 let boolean = ?lessthan (suc n) right in 
                 if boolean then ans else (suc ans) 
             ) in 
