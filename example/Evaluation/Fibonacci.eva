@@ -10,7 +10,7 @@ def fibHelper =
 
 def fib # = ?fibHelper 0 1
 
-def main = fib
+//def main = fib
 
 def delayStream = MS.delayStr [Nat]
 

@@ -8,7 +8,7 @@ def bad_const [Stable a]=
         fun ns:Str(a) => 
             let hd= ?hdStr[a] ns in 
             let delayed = ?delayStr[a] hd ns in 
-            ?conStr[Str(a)] ns >(<?loop <(?tlStr[a] delayed))
+            ns:: >(<?loop <(?tlStr[a] delayed))
 
 /*
 //For debugging bad const
@@ -21,5 +21,4 @@ def takeStr =
 
 def main # s :Str(Nat) = 
     ?takeStr  3 (?bad_const[Nat] s)
-
 */
