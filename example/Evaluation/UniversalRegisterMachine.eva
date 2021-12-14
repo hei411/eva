@@ -6,17 +6,17 @@ type Result = Unit + Nat
 def hiaton = inl() :Result 
 
 def encodePairToPos # x:Nat y:Nat =     
-    let a= ?exp 2 x in 
-    let b= suc (?mult 2 y) in 
-    ?mult a b 
+    let a= 2 ^x in 
+    let b= suc (2* y) in 
+    a *b 
 
 def extractPosToPair # s:Nat = 
     let first = (primrec (?log 2 s) with 
                     | 0 => 0 
                     | suc x, rest => 
-                        let b = ?divisible s (?exp 2 (suc x)) in 
+                        let b = ?divisible s ( 2^ (suc x)) in 
                         if b then (suc x) else rest) in 
-    let second = (let rest = ?div s (?exp 2 first) in 
+    let second = (let rest = s /(2 ^first) in 
                     ?div (?pred rest) 2) in 
     (first,second)
 
