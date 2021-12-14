@@ -456,7 +456,10 @@ letRule file functionName definedFunctions context varStack str e body =
   do
     let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
     let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (str, eType)) (str : varStack) body
-    (CExpApplication (CExpLambda cBody) eExp, bodyType)
+    seq eType (CExpApplication (CExpLambda cBody) eExp, bodyType)
+
+{-seq used here for forcing type checking the arguments
+Otherwise let x= ?2 = true will type check -}
 
 {-case context of
   AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Currently we disallow let to be used in angle contexts for " ++ str ++ ". Ask Hei Li about this...")

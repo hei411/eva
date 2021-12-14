@@ -1,0 +1,124 @@
+
+//Programs from Higher-Order Functional Reactive Programming without Spacetime Leaks
+//Neelakantan R. Krishnaswami 2013
+
+import Prelude.Bool 
+import Prelude.Nat 
+import Modality.Stream
+
+//bad const basic
+/*def basic_bad_const [a] =
+    rec loop: #(Str(a)->Str(Str(a))) => 
+        fun ns:Str(a) => 
+            ns:: >(<?loop ns)*/
+
+//bad const with buffer
+def bad_const [Stable a]= 
+    rec loop: #(Str(a)->Str(Str(a))) => 
+        fun ns:Str(a) => 
+            let hd= ?hdStr[a] ns in 
+            let delayed = ?delayStr[a] hd ns in 
+            ns:: >(<?loop <(?tlStr[a] delayed))
+
+/*
+//For debugging bad const
+def takeStr = 
+    rec loop: #(Nat -> Str(Str(Nat)) -> Str(Nat)) => 
+        fun n:Nat s:Str(Str(Nat))=>
+            ?if[Str(Nat)] (?isZero n)
+                (?hdStr[Str(Nat)] s) 
+                (?conStr[Nat] 0 >(<?loop (?pred n) <(?tlStr[Str(Nat)] s)))
+
+def main # s :Str(Nat) = 
+    ?takeStr  3 (?bad_const[Nat] s)
+*/
+
+def const = constantStr[Nat]
+
+def sum_acc = 
+    rec loop: # (Str(Nat) -> Nat -> Str(Nat)) => 
+        fun ns:Str(Nat) acc:Nat => 
+            let hd::tl = ns in 
+            let acc'=acc+hd in 
+            acc':: >(<?loop <tl acc')
+
+def sum # ns:Str(Nat) = ?sum_acc ns 0
+
+def tails [a] = 
+    rec loop: #(Str(a)-> Str(Str(a))) => 
+        fun xs:Str(a) => 
+            let hd::tl =xs in 
+            xs:: >(<?loop <tl)
+
+def map[a,b] = mapStr[a,b]
+
+def unfold[x,a] h:#(x-> (a* >x)) =
+    rec loop: #(x->Str(a)) =>
+        fun arg:x => 
+            let result = ?h arg in 
+            let hd = fst result in 
+            let rest = snd result in 
+            hd:: >(<?loop <rest)
+
+def swap[a] = 
+    rec loop:#(Nat->Str(a)->Str(a)->Str(a)) => 
+        fun n:Nat xs:Str(a) ys:Str(a) => 
+            primrec n with 
+                |0 => ys 
+                |suc pred, _ => 
+                    let x::xs' = xs in 
+                    let _::ys' = ys in 
+                    x:: >(<?loop pred <xs' <ys')
+
+def switch[a] = 
+    rec loop:#(Str(a)->Ev(Str(a)) -> Str(a) )=> 
+        fun xs:Str(a) e:Ev(Str(a)) => 
+            let x::xs' = xs in 
+            let e' = out e in
+            match e' with 
+                |inl ys => ys
+                |inr t => 
+                    x:: >(<?loop <xs' <t)
+
+def return [a] # x:a = into (inl x:a+>Ev(a)): Ev(a)
+
+def bind[a,b] h:#(a->Ev(b)) = 
+    rec loop:#(Ev(a)->Ev(b))=>
+        fun e:Ev(a) => 
+            let e' = out e in 
+            match e' with 
+                |inl result => ?h result
+                |inr t => 
+                    let temp = inr >(<?loop <t): (b+>Ev(b)) in 
+                    into temp: Ev(b)
+
+
+type R (i,o,a) = Fix alpha --> alpha * (a + (i->(o* alpha) ))
+
+def par[i,o,a]  = 
+    rec loop:#( (R(i,o,a)*R(i,o,a)) -> R(i,o,a) )=>
+        fun p:R(i,o,a) *R(i,o,a) => 
+            let p1 = fst p in 
+            let p2 = snd p in 
+            let temp = snd (out p1) in 
+            match temp with 
+                |inl _ => p1 
+                |inr f => 
+                    let p1' = fst out p1 in 
+                    let p2' = fst out p2 in 
+                    let p' = >(<?loop (<p1',<p2')) in 
+                    let f' input:i= (
+                        let output = fst (f input) in 
+                        let p1'' = snd (f input) in 
+                        (output,>(<?loop (<p2', <p1'') ) )
+                            ) in 
+                    into ((p',inr f':a+(i->(o*>R(i,o,a))))):R(i,o,a)
+
+
+type X(a) = Fix alpha --> #(alpha -> a)
+
+//selfapp and fixed point cannot type check due to type system rules
+
+/*def selfapp[Stable a] f:#(>a -> a) # v:X(a) = 
+    let w = out v in 
+    ?f (> (?w v))*/

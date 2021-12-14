@@ -98,7 +98,7 @@ def machineLoop program:Nat =
         fun instructionLine:Nat args:Stack => 
             let instruction = ?getInstruction instructionLine program in 
             match instruction with 
-                |inl x => //halting instruction
+                |inl _ => //halting instruction
                         ?MS.constantStr[Result] (inr (?topStack args):Result)
                 |inr other => 
                     match other with 
