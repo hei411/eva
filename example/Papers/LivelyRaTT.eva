@@ -151,3 +151,145 @@ def rServer =
             into (rServerFst, rServerSnd) : TestServer
 
 def rServerRun #=?rServer 0
+
+def proj1[aType,bType] # p:>(aType*bType) = 
+    >(fst < p)
+
+def proj2[aType,bType] # p:>(aType*bType) = 
+    >(snd < p)
+//Section 3.2 Fair Streams
+def altStrMut[a,b] = 
+    rec loop:#((Str(a)->Str(b)->Str(a+b)) *
+               (Str(a)->Str(b)->Str(a+b)) ) =>
+        let one = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    (inr y:a+b):: >(<(?proj2[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                ) in 
+        let two = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    (inl x:a+b):: >(<(?proj1[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                ) in 
+        (one,two)
+
+def altStr[a,b] # = fst ?altStrMut[a,b]
+def altStr'[a,b] # = snd ?altStrMut[a,b]
+
+def dropSnd[a,b] # xs:Str(a) ys:Str(b) = 
+    ?(let f #x:a = inl x:a+b in
+        map[a,a+b] f) xs
+
+import Modality.FairStream
+
+def stay[a,b] # x:a y:@OutFair(a,b) =
+    into (wait x y) : Fair(a,b)
+
+def stay'[a,b] # x:a y:@Fair'(a,b) = 
+    wait x y
+
+def switch [a,b] # x:b y:>Fair'(b,a) = 
+    let temp = now (x,y) : OutFair(a,b) in 
+    into temp: Fair(a,b)
+
+def switch' [a,b] # x:b y: >Fair(b,a) = 
+    now(x,y) :Fair'(a,b)
+
+def altFairMut[a,b] = 
+    rec loop:#((Str(a)->Str(b) -> Fair(a,b))*
+                (Str(a)->Str(b)->Fair'(b,a))) => 
+        let one = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    ?switch[a,b] y >(snd <?loop <xs' <ys')
+                ) in 
+        let two = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    ?switch'[b,a] x >(fst <?loop <xs' <ys')
+                ) in 
+        (one,two)
+
+def altFair[a,b] #= fst ?altFairMut[a,b]
+def altFair'[b,a] #= snd ?altFairMut[a,b]
+
+
+//for debugging fair streams
+def zeros = 
+    rec loop: #Str(Nat)=> 
+        0::?loop
+def trues = 
+    rec loop: #Str(Bool)=> 
+        true::?loop
+
+def test #= ?altFair[Bool,Nat] ?trues ?zeros 
+
+def runFairMut[a,b] = 
+    rec loop:#((Fair(a,b)->Str(a+b))*
+              (Fair'(b,a)->Str(a+b))) => 
+        let one = (
+                fun xs:Fair(a,b) => 
+                    let xs' = out xs in
+                    urec xs' with 
+                        |now result => 
+                            let first =fst result in 
+                            let second =snd result in 
+                            (inr first:a+b)::>(snd <?loop <second) 
+                        |wait one _, rest=>
+                            (inl one:a+b) :: >(<rest)
+                ) in 
+        let two = (
+                fun xs:Fair'(b,a) => 
+                    urec xs with 
+                        |now result => 
+                            let first =fst result in 
+                            let second =snd result in 
+                            (inl first:a+b)::>(fst <?loop <second) 
+                        |wait one _, rest=>
+                            (inr one:a+b) :: >(<rest)
+                ) in 
+        (one,two)
+
+def runFair[a,b] #= fst ?runFairMut[a,b]
+
+//for debugging fair streams
+//def test' #= ?runFair[Bool,Nat] ?test
+
+def schMut[Limit a,Limit b] =
+    rec loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
+                (Nat->Str(a)->Str(b)->Fair'(b,a)))=>
+        let sch = (
+                let until num:TempNat = 
+                    (urec num with 
+                        |now _ =>
+                            fun m:Nat xs:Str(a) ys:Str(b) => 
+                                let x::xs' = xs in 
+                                let y::ys' = ys in 
+                                ?switch[a,b] y >(snd <?loop (suc m) <xs' <ys')
+                        |wait _ _, rest => 
+                            fun m:Nat xs:Str(a) ys:Str(b) => 
+                                let x::xs' = xs in 
+                                let y::ys' = ys in 
+                                ?stay[a,b] x @ out (<rest m <xs' <ys')
+                    )
+                    in
+                //stuff involving until 
+                fun n:Nat xs:Str(a) ys:Str(b) => 
+                    until (?timer n) n xs ys
+                ) in 
+        let sch' = (
+            fun n:Nat xs:Str(a) ys:Str(b) => 
+                let x::xs' = xs in 
+                let y::ys' = ys in 
+                ?switch'[b,a] x >(fst <?loop n <xs' <ys')
+                ) in 
+        (sch,sch')
+
+def sch[Limit a,Limit b] # =fst ?schMut[a,b]
+
+//for debugging
+//def test3 # =?sch[Bool,Nat] 0 ?trues ?zeros
