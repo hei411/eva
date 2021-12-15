@@ -345,7 +345,7 @@ unboxRule file functionName definedFunctions context varStack e = case context o
       let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
-        _ -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
+        _ -> typeCheckerErrorMsg file functionName ("unboxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
   AngleContext x0 x1 x2 ->
     do
       let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e

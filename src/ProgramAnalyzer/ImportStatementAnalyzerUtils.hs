@@ -22,8 +22,9 @@ addFunctions currentFile toImportFile alias toImportFunctions importedFunctions 
     [] -> importedFunctions
     (name, cExp, bType, typeProperties) : tl ->
       do
-        let _ = checkFunctionNameExists (alias ++ name) (importedFunctions ++ toExportFunctions)
-        addFunctions currentFile toImportFile alias tl (((alias ++ name), cExp, bType, typeProperties) : importedFunctions) toExportFunctions
+        let result = checkFunctionNameExists (alias ++ name) (importedFunctions ++ toExportFunctions)
+        --seq needed to force result
+        result `seq` addFunctions currentFile toImportFile alias tl (((alias ++ name), cExp, bType, typeProperties) : importedFunctions) toExportFunctions
       where
         checkFunctionNameExists :: String -> TypeCheckedProgram -> ()
         checkFunctionNameExists name functionList = case functionList of

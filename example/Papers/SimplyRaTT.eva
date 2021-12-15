@@ -194,3 +194,113 @@ def eventApp[a,b] x:#a =
 
 def accum[a,b] x:#a =
     map[Ev(a->b), Ev(b)] (eventApp[a,b] x) 
+
+
+// Lustre Simulation
+type Clock = Str(Bool)
+
+type Flow(a) = Str(Maybe(a)) 
+
+def basicClock = const[Bool] #true
+
+def never = const[Bool] #false 
+
+def everyNthAux step:Nat = 
+    rec loop:#(Nat->Clock->Clock) => 
+        fun count:Nat cs:Clock => 
+            let c::cs' = cs in 
+            if step == count 
+                then c::>(<?loop 0 <cs')
+                else false:: >(<?loop (suc count) <cs')
+
+def everyNth n:Nat #=
+    ?(everyNthAux n) 0
+
+def when[typeX] =
+    rec loop:#(Clock->Flow(typeX)->Flow(typeX)) => 
+        fun cs:Clock xs:Flow(typeX) => 
+            let c::cs'=cs in 
+            let x::xs'= xs in 
+            let hd = if c then x else inl ():Maybe(typeX) in 
+            hd:: >(<?loop <cs' <xs') 
+
+def natsAux =
+    rec loop:#(Nat->Flow(Nat))=>
+        fun pre:Nat =>
+            let hd = inr pre:Maybe(Nat) in 
+            hd::>(<?loop (suc pre))
+
+def natsLustre #= ?natsAux 0 
+
+def edgeAux = 
+    rec loop:#(Bool -> Flow(Bool) -> Flow(Bool) )=>
+        fun pre:Bool bs:Flow(Bool) =>
+            let b::bs' = bs in 
+            match b with 
+                |inl _ => (inr pre:Maybe(Bool)):: >(<?loop pre <bs')
+                |inr bResult => 
+                    let b' = bResult and (not pre) in 
+                    (inr b':Maybe(Bool))::>(<?loop b' <bs')
+
+def edge # = ?edgeAux false
+
+def currentAux [Stable xType] = 
+    rec loop:#(Maybe(xType) -> Flow(xType) -> Flow(xType)) => 
+        fun pre:Maybe(xType) xs:Flow(xType) =>
+            let x::xs' = xs in 
+            match x with 
+                |inl _ => pre:: >(<?loop pre <xs')
+                |inr xResult => x::>(<?loop x <xs')
+
+def current[Stable xType] # =
+    fun xs:Flow(xType) => 
+        let x::_ = xs in 
+        ?currentAux[xType] x xs
+
+def counter init:Nat incr:Nat = 
+    rec loop:#(Nat->Flow(Bool) -> Flow(Bool) -> Flow(Nat) ) =>
+        fun pre:Nat ss:Flow(Bool) rs:Flow(Bool) => 
+            let s::ss' = ss in
+            let r::rs' = rs in 
+            match s with 
+                |inr sResult =>
+                    match r with 
+                        |inr rResult =>
+                            //both increment and reset
+                            if rResult 
+                                then 
+                                    let hd= inr init:Maybe(Nat) in 
+                                    hd::>(<?loop init <ss' <rs')
+                                else 
+                                    if sResult 
+                                        then 
+                                            let hd = inr (pre+incr) :Maybe(Nat) in 
+                                            hd:: >(<?loop (pre+incr) <ss' <rs')
+                                        else 
+                                            let hd = inr pre :Maybe(Nat) in 
+                                            hd:: >(<?loop pre <ss' <rs')
+                        |inl _ => 
+                            //just increment
+                            if sResult 
+                                then 
+                                    let hd = inr (pre+incr) :Maybe(Nat) in 
+                                    hd:: >(<?loop (pre+incr) <ss' <rs')
+                                else 
+                                    let hd = inr pre :Maybe(Nat) in 
+                                    hd:: >(<?loop pre <ss' <rs')
+
+                |inl _ => 
+                    match r with 
+                        |inr rResult =>
+                            //just reset
+                            if rResult 
+                                then 
+                                    let hd= inr init:Maybe(Nat) in 
+                                    hd::>(<?loop init <ss' <rs')
+                                else 
+                                    let hd = inr pre :Maybe(Nat) in 
+                                    hd:: >(<?loop pre <ss' <rs')
+                        |inl _ => 
+                            //none
+                            let hd = inr pre :Maybe(Nat) in 
+                            hd:: >(<?loop pre <ss' <rs')
