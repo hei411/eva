@@ -15,4 +15,5 @@ def test3 #=
         |wait x y, test =>2
         |now x => 0
 
-def repeat =0 
+def repeat' =0 
+type Testr=Nat

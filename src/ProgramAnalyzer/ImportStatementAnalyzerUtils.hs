@@ -40,8 +40,9 @@ addTypenames currentFile toImportFile alias toImportTypenames importedTypenames 
     [] -> importedTypenames
     (name, bType, num) : tl ->
       do
-        let _ = checkTypeNameExists (alias ++ name) (importedTypenames ++ toExportTypenames)
-        addTypenames currentFile toImportFile alias tl (((alias ++ name), bType, num) : importedTypenames) toExportTypenames
+        let result = checkTypeNameExists (alias ++ name) (importedTypenames ++ toExportTypenames)
+        --same as before, need to force result evaluation
+        result `seq` addTypenames currentFile toImportFile alias tl (((alias ++ name), bType, num) : importedTypenames) toExportTypenames
       where
         checkTypeNameExists :: String -> TypenameList -> ()
         checkTypeNameExists name typenameList = case typenameList of

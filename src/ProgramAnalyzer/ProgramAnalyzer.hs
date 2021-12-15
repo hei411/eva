@@ -257,16 +257,18 @@ addImportedFileData
     do
       let newImportedFunctions = addFunctions (currentFile) (src_path ++ toImportFile) alias toAddFunctions importedFunctions toExportFunctions
       let newImportedTypenames = addTypenames (currentFile) (src_path ++ toImportFile) alias toAddTypeSynonyms importedTypenames toExportTypenames
-      singleFileAnalyzer
-        src_path
-        isPeano
-        currentFile
-        compiledFilesData
-        toCompileFiles
-        importedFiles
-        usedAlias
-        newImportedFunctions
-        toExportFunctions
-        newImportedTypenames
-        toExportTypenames
-        tl
+      --to force evaluation of mainly newImported Typenames (can import same typenames as no type synonyms defined)
+      newImportedFunctions `seq` newImportedTypenames
+        `seq` singleFileAnalyzer
+          src_path
+          isPeano
+          currentFile
+          compiledFilesData
+          toCompileFiles
+          importedFiles
+          usedAlias
+          newImportedFunctions
+          toExportFunctions
+          newImportedTypenames
+          toExportTypenames
+          tl
