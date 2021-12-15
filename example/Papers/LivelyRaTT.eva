@@ -7,12 +7,12 @@ def loopEvent[a] =
         let temp = inr ?loop : a +>Ev(a) in 
         into temp:Ev(a)
 
-type Diamond(a) = Unit Until a
+type Dia(a) = Unit Until a
 
-def nowDiamond[aType] # a:aType = 
-    now a:Diamond(aType)
+def nowDia[aType] # a:aType = 
+    now a:Dia(aType)
 
-def waitDiamond[aType] # d:@Diamond(aType) =
+def waitDia[aType] # d:@Dia(aType) =
     wait () d
 
 def nowEv[aType] # a:aType = 
@@ -31,9 +31,123 @@ def bindEv[aType,bType] f:#(aType->Ev(bType)) =
                 |inl result => ?f result 
                 |inr rest => ?waitEv[bType] >(<?loop <rest)
 
-def bindDiamond[aType,bType] f:#(aType->Diamond(bType)) = 
-    rec loop:#(Diamond(aType)->Diamond(bType)) =>
-        fun d:Diamond(aType) => 
-            urec d with 
-                | now result => ?f result
-                | wait _ _, rest => ?waitDiamond[bType] rest
+def bindDia[aType,bType] f:#(aType->Dia(bType)) # d:Dia(aType) =
+    urec d with 
+        | now result => ?f result
+        | wait _ _, rest => ?waitDia[bType] rest
+
+def diaInclusion[aType] # a:Dia(aType)= 
+    urec a with 
+        |now result => ?nowEv[aType] result 
+        |wait _ _, rest => ?waitEv[aType] >(< rest)
+
+def diamondEvent[a]  = 
+    bindEv[Dia(a),a] diaInclusion[a]
+
+def timeout[Limit a] n:Nat = 
+    primrec n with 
+        |0 => #(
+            fun e:Ev(a) =>
+                let e' = out e in 
+                match e' with 
+                    |inl result=> ?nowDia[Unit+a] (inr result:Unit+a)
+                    |inr _ => ?nowDia[Unit+a] (inl ():Unit+a)
+            )
+        |suc _, rest => #(
+            fun e:Ev(a) => 
+                let e' = out e in 
+                match e' with 
+                    |inl result => ?nowDia[Unit+a] (inr result:Unit+a)
+                    |inr tl => ?waitDia[Unit+a] @(?rest <tl)
+            )
+
+def eventDiamond[Limit a] n:Nat = 
+    bindDia[Ev(a), Unit +a] (timeout[a] n)
+
+//similar to Simply RaTT's await, but for until types, not event types
+def joinAuxA[Stable aType,bType] #=
+    fun b:Dia(bType) => 
+        urec b with 
+            |now bResult => (fun a:aType => ?nowDia[aType*bType] (a,bResult))
+            |wait _ _, rest => 
+                (fun a:aType =>
+                ?waitDia[aType*bType] @(<rest a)
+                )
+
+def joinAuxB[aType,Stable bType] #=
+    fun a:Dia(aType) => 
+        urec a with 
+            |now aResult => (fun b:bType => ?nowDia[aType*bType] (aResult,b))
+            |wait _ _, rest => 
+                (fun b:bType =>
+                ?waitDia[aType*bType] @(<rest b)
+                )
+
+def joinNowA[Stable aType, Stable bType] # =
+    fun b:Dia(bType) =>
+        urec b with 
+            |now bResult => fun a:aType=> ?nowDia[aType*bType] (a,bResult)
+            |wait u v, _ => ?joinAuxA[aType,bType] (wait u v)
+
+def joinWaitA[Stable aType,Stable bType] # = 
+    fun b:Dia(bType) => 
+        urec b with 
+            | now bResult => 
+                fun a:Dia(aType) f:@(Dia(bType)->Dia(aType*bType)) => 
+                    ?joinAuxB[aType,bType] a bResult
+            | wait _ bRest, _ => 
+                fun a:Dia(aType) f:@(Dia(bType)->Dia(aType*bType)) => 
+                    ?waitDia[aType*bType] @(<f <bRest)
+
+//slightly complicated since recursors of urec must be stable
+def join[Stable aType,Stable bType] #=
+    fun a:Dia(aType) => 
+        urec a with 
+            | now aResult => fun b:Dia(bType) => 
+                ?joinNowA[aType,bType] b aResult
+            | wait _ d, rest => fun b:Dia(bType) => 
+                ?joinWaitA[aType,bType] b (wait () d) rest
+
+type TempNat = Dia(Unit)
+
+def zeroTempNat #= ?nowDia[Unit] ()
+
+def sucTempNat # n:@TempNat= ?waitDia[Unit] n
+
+def importTempNat # n:TempNat = 
+    urec n with 
+        |now _ =>  @?zeroTempNat
+        |wait _ _, rest => @(?sucTempNat <rest)
+
+def timer  # n:Nat= 
+    primrec n with 
+        | 0=> ?zeroTempNat 
+        | suc _, rest => ?sucTempNat (?importTempNat rest)
+
+def buffer[Stable aType] # n:TempNat =
+    urec n with 
+        |now _ => fun a:aType => ?nowDia[aType] a 
+        |wait _ _ , rest=> fun a:aType => ?waitDia[aType] @(<rest a)
+
+type Server(req, resp) = Fix alpha --> alpha* (req -> (Dia(resp)*alpha)) 
+//Assume String is stable, so we let it be nat for now
+type String = Nat
+type Req = Nat * String 
+type Resp = String *Nat 
+//We will work with this server
+type TestServer =Server(Req,Resp)
+
+def rServer = 
+    rec loop:#(Nat -> TestServer) => 
+        fun m:Nat =>
+            let rServerFst = >(<?loop m) in 
+            let rServerSnd p:(Req) = (
+                let n=fst p in 
+                let s=snd p in 
+                let one = ?buffer[Resp] (?timer n) (s,m) in
+                let two = >(<?loop (suc m) )in
+                (one,two)
+                ) in
+            into (rServerFst, rServerSnd) : TestServer
+
+def rServerRun #=?rServer 0
