@@ -1,3 +1,39 @@
 import Modality.Stream 
 
 def map[a,b] = mapStr[a,b]
+
+def loopEvent[a] = 
+    rec loop:#(Ev(a)) => 
+        let temp = inr ?loop : a +>Ev(a) in 
+        into temp:Ev(a)
+
+type Diamond(a) = Unit Until a
+
+def nowDiamond[aType] # a:aType = 
+    now a:Diamond(aType)
+
+def waitDiamond[aType] # d:@Diamond(aType) =
+    wait () d
+
+def nowEv[aType] # a:aType = 
+    let temp = inl a:aType+>Ev(aType) in 
+    into temp:Ev(aType)
+
+def waitEv[aType] # e:>Ev(aType) = 
+    let temp = inr e:aType+>Ev(aType) in 
+    into temp:Ev(aType)
+
+def bindEv[aType,bType] f:#(aType->Ev(bType)) = 
+    rec loop:#(Ev(aType) -> Ev(bType) ) => 
+        fun ev:Ev(aType) =>
+            let ev' = out ev in 
+            match ev' with 
+                |inl result => ?f result 
+                |inr rest => ?waitEv[bType] >(<?loop <rest)
+
+def bindDiamond[aType,bType] f:#(aType->Diamond(bType)) = 
+    rec loop:#(Diamond(aType)->Diamond(bType)) =>
+        fun d:Diamond(aType) => 
+            urec d with 
+                | now result => ?f result
+                | wait _ _, rest => ?waitDiamond[bType] rest
