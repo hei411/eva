@@ -1,3 +1,6 @@
+//Programs from Modal FRP For All: Functional Reactive Programming Without Space Leaks in Haskell
+//Patrick Bahr 2021
+
 import Modality.Stream 
 
 //Can't implement as intended

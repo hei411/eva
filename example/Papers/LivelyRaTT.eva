@@ -1,3 +1,6 @@
+//Programs from Diamonds Are Not Forever: Liveness in Reactive Programming with Guarded Recursion
+//Patrick Bahr, Christian Uldal Graulund and Rasmus Ejlers Møgelberg 2021
+
 import Modality.Stream 
 
 def map[a,b] = mapStr[a,b]

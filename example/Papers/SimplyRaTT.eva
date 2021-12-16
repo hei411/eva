@@ -1,3 +1,6 @@
+//Programs from Simply RaTT: A Fitch-style Modal Calculus for Reactive Programming Without Space Leaks
+//Patrick Bahr, Christian Uldal Graulund and Rasmus Ejlers Møgelberg 2019
+
 import Modality.Stream 
 
 def leakyNats = 
