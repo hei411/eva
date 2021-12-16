@@ -63,3 +63,14 @@ def collatz =
                 if n%2==0 
                     then ?partialLater[Unit] >(<?loop (n/2))
                     else ?partialLater[Unit] >(<?loop (3*n+1))
+
+
+//Just for fun 
+def collatz' = 
+    rec loop:#(Nat -> Stream) => 
+        fun n:Nat => 
+            if n%2==0 
+                then n::>(<?loop (n/2))
+                else n:: >(<?loop (3*n+1))
+
+def main # = ?collatz' 2349
