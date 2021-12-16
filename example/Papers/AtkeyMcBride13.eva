@@ -46,3 +46,20 @@ def test #= ?(take 8)   ?(constInt 4)*/
 
 type Partial(a) =Ev(a)
 
+def partialNow[a] # x:a =
+    let temp = inl x: a+>Ev(a) in 
+    into temp: Ev(a)
+
+def partialLater[a] #x:>Ev(a) =
+    let temp = inr x:a+>Ev(a) in 
+    into temp:Ev(a)
+
+def collatz = 
+    rec loop:#(Nat -> Partial(Unit) ) => 
+        fun n:Nat => 
+            if n==1 then 
+            ?partialNow[Unit] () 
+            else 
+                if n%2==0 
+                    then ?partialLater[Unit] >(<?loop (n/2))
+                    else ?partialLater[Unit] >(<?loop (3*n+1))
