@@ -1,0 +1,174 @@
+import Modality.Stream 
+
+//Can't implement as intended
+/*def clairvoyance # xs:Str(Nat) = 
+    let x::xs' = xs in 
+    ?(mapStr[Nat,Nat] #(fun n:Nat =>suc n)) <xs' */
+
+def constInt x:Nat = 
+    rec loop:#Str(Nat) =>
+        x::?loop
+
+//Can't implement as a is not stable type
+//Specifying that a is stable will work though, see const
+/*def leakyConst[a] x:a =
+    rec loop:#Str(a) =>
+        x::?loop*/
+
+//Can't implement due to recursion guarded by delay, preventing non-productivity
+/*def loop = 
+    rec loop':#Str(Nat) =>
+        ?loop'*/
+
+def inc =
+    rec loop:#(Str(Nat) -> Str(Nat) ) =>
+        fun xs:Str(Nat) => 
+            let x::xs' = xs in 
+            suc x:: >(<?loop <xs')
+
+//Can't implement due to non-causal
+/*def tomorrow # xs:Str(Nat) = 
+    let x::xs' =xs in 
+    <xs'*/
+
+//See Modality.Stream mapStr
+def map[a,b] = mapStr[a,b]
+
+def inc' = map[Nat,Nat] #(fun n:Nat => suc n)
+
+def constBox[a] x:#a =
+    rec loop:#Str(a) => 
+        ?x::?loop
+
+def const[Stable a] x:a =
+    rec loop:#Str(a) =>
+        x::?loop
+
+//Can't implement as f is not stable
+/*def leakyMap[a,b] f:(a->b) = 
+    rec loop:#(Str(a)->Str(b)) =>
+        fun xs:Str(a) =>    
+            let x::xs' = xs in 
+            f x::>(<?loop <xs')*/
+
+//To implement stutter, due to Lively RaTT's restrictive rules
+//We can either implement it with a buffer, or two mutually recursive functions
+def stutter =
+    rec loop:#(Nat->Str(Nat)) => 
+        fun n:Nat => 
+            n:: >(?delayStr[Nat] n (<?loop (suc n)))
+
+def stutter' = 
+    let helper = 
+        rec loop:#((Nat->Str(Nat)) *
+                (Nat->Str(Nat))) =>
+            let one n:Nat= 
+                n::>(snd <?loop n) in
+            let two n:Nat= 
+                n::>(fst <?loop (suc n)) in
+            (one,two) 
+        in  
+    #(fst ?helper)
+
+type Maybe(a) = Unit+ a
+
+def zip[a,b] = zipStr[a,b]
+
+//See scanStr in Modality.Stream
+def scan[a,Stable b] = scanStr[b,a]
+
+//Note that this is different Event is different from Ev
+//Ev will terminate once an event occurs
+type Event(a) = Str(Maybe(a)) 
+
+def switch[a] = 
+    rec loop:#(Str(a)->Event(a)->Str(a))=>
+        fun xs:Str(a) ys:Event(a) =>
+            let x::xs' = xs in 
+            let y::ys'=ys in 
+            match y with 
+                |inl _ => 
+                    x::>(<?loop <xs' <ys')
+                |inr yResult => 
+                    yResult::>(<?loop <xs' <ys')
+
+def switchTrans[a,b] # f:Str(a)->Str(b) es:Event(Str(a)->Str(b)) xs:Str(a)= 
+    let switchTrans'=
+        ?(rec loop:#(Str(b)->Event(Str(a)->Str(b))->Str(a)->Str(b))=>
+            fun ys:Str(b) fs:Event(Str(a)->Str(b)) xs:Str(a) =>
+                let y::ys' = ys in
+                let f::fs' = fs in 
+                let x::xs' = xs in
+                match f with 
+                    |inl _ => 
+                        y::>(<?loop <ys' <fs' <xs')
+                    |inr fResult => 
+                        let ss = fResult xs in 
+                        let s::ss' = ss in 
+                        s::>(<?loop <ss' <fs' <xs')
+        )
+    in
+    switchTrans' (f xs) es xs
+
+import Modality.Primitives
+def delayApp[a,b] = angleDelayApp[a,b]
+
+//Section 3.2 and 3.3 (A simple reactive program and Arrowized FRP) ommitted 
+
+def from = 
+    rec loop: #(Nat -> Str(Nat) )=>
+        fun n:Nat => 
+            n:: >(<?loop (suc n))
+
+def sum = 
+    let run = 
+        rec loop :#(Nat -> Str(Nat) -> Str(Nat) )=>
+            fun acc:Nat xs:Str(Nat) => 
+                let x::xs' = xs in 
+                let acc' = acc+ x in 
+                acc':: >(<?loop acc' <xs')
+    in
+    # (?run 0)
+
+//buffer and leakySums1 not implementable as no lists datatype as primitive
+//leakySum2 must be implemented in this way due to restricton of box and unbox rule. Ask Hei Li for details
+def leakySums2 = 
+    let add =
+        rec loop:#(Str(Nat)->Str(Nat)->Str(Nat))=>
+            fun xs:Str(Nat) ys:Str(Nat) => 
+                let x::xs' = xs in 
+                let y::ys' = ys in 
+                x+y::>(<?loop <xs' <ys')
+    in 
+    let const = 
+        rec loop:#(Nat->Str(Nat))=>
+            fun n:Nat => 
+                n::>(<?loop n)
+    in
+    rec loop:#(Str(Nat)->Str(Nat) ) =>
+        fun xs:Str(Nat) => 
+            let x::xs' = xs in 
+            x:: > (?add (?const x) <xs')
+
+//Implementing altermap requires two recursive functions
+def alterMap[a,b] f:#(a->b) g:#(a->b) =
+    let helper = 
+        rec loop:#((Str(a)->Str(b))*
+                   (Str(a)->Str(b))) =>
+            let one = 
+                fun xs:Str(a) => 
+                    let x::xs' = xs in 
+                    ?f x:: >(snd <?loop <xs')
+            in 
+            let two = 
+                fun xs:Str(a) => 
+                    let x::xs' = xs in 
+                    ?g x:: >(snd <?loop <xs')
+            in 
+            (one,two) 
+    in 
+    #(fst ?helper)
+
+//eta is typable because it uses the same unbox rule as Simply RaTT
+def eta[a,b] f:a->#b x:a =
+    #(?(f x))

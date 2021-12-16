@@ -74,14 +74,14 @@ def wrongDelayStr [Stable a] =
 
 
 
-def scan[Stable a,b] f:#(a->b->a)  = 
+def scanStr[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (?f z (?hdStr[b] str))::
               ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )
 
 // With syntactic sugar!
-/*def scan2[Stable a,b] f:#(a->b->a)  = 
+/*def scanStr'[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (
