@@ -46,8 +46,7 @@ type Instruction = HaltInstruction + (AddInstruction + MinusInstruction)
 
 def analyzeInstruction # x:Nat = 
     let helper i:Nat = (let pair = ?extractPosToPair i in 
-                        let y = fst pair in 
-                        let z = snd pair in 
+                        let (y,z) = pair in
                         let b = ?divisible y 2 in 
                         if b
                             // add case  
@@ -69,8 +68,7 @@ def splitStack # n:Nat s:Stack =
     primrec n with 
         |0 => (0, s)
         |suc x, pair =>  
-            let one =fst pair in 
-            let two = snd pair in 
+            let (one,two) = pair in 
             let hd =  ?topStack two in 
             let restTwo = ?tailStack two in 
             let updatedOne = ?addToStack hd one in 
@@ -82,8 +80,7 @@ def combineStacks # n:Nat one:Stack two:Stack =
             primrec n with 
                 |0 => (a,b) 
                 |suc x, rest => 
-                    let x=fst rest in 
-                    let y=snd rest in 
+                    let (x,y) =rest in 
                     (?tailStack x, ?addToStack (?topStack x) y) 
         ) in 
     snd (helper n one two)
@@ -104,8 +101,7 @@ def machineLoop program:Nat =
                     match other with 
                         |inl addInstr =>
                             //add instruction
-                            let argIndex = fst addInstr in 
-                            let nextInstr = snd addInstr in 
+                            let (argIndex,nextInstr) = addInstr in
                             let stackPairs = ?splitStack argIndex args in 
                             let toAddElem = ?topStack (snd stackPairs) in 
                             let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (suc toAddElem) (?tailStack (snd stackPairs))) in 
@@ -113,8 +109,7 @@ def machineLoop program:Nat =
                         |inr subInstr =>
                             //substract instruction 
                             let argIndex = fst subInstr in 
-                            let nextInstr1 = fst (snd subInstr) in 
-                            let nextInstr2 = snd (snd subInstr) in 
+                            let (nextInstr1,nextInstr2) = snd subInstr in 
                             let stackPairs = ?splitStack argIndex args in 
                             let toSubElem = ?topStack (snd stackPairs) in 
                             let b = ?isZero toSubElem in

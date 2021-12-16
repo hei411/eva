@@ -226,7 +226,7 @@ def trues =
     rec loop: #Str(Bool)=> 
         true::?loop
 
-def test #= ?altFair[Bool,Nat] ?trues ?zeros 
+//def test #= ?altFair[Bool,Nat] ?trues ?zeros 
 
 def runFairMut[a,b] = 
     rec loop:#((Fair(a,b)->Str(a+b))*
@@ -255,7 +255,7 @@ def runFairMut[a,b] =
 def runFair[a,b] #= fst ?runFairMut[a,b]
 
 //for debugging fair streams
-def main /*test'*/ #= ?runFair[Bool,Nat] ?test
+//def test' #= ?runFair[Bool,Nat] ?test
 
 def schMut[Limit a,Limit b] =
     rec loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
