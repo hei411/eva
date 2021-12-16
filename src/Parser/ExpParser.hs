@@ -23,6 +23,7 @@ expParser :: Parser AExp
 expParser =
   try letExpParser
     <|> try letStreamExpParser
+    <|> try letProductExpParser
     <|> try ifExpParser
     <|> try bindExpParser
     <|> orExpParser
@@ -79,6 +80,44 @@ letStreamExpParser =
         spaces
         body <- expParser
         return (AExpLetStream v1 v2 exp body)
+    )
+
+letProductExpParser :: Parser AExp
+letProductExpParser =
+  try
+    ( do
+        string "let"
+        notFollowedBy alphaNum
+        spaces
+        string "("
+        spaces
+        v1 <- choice [try varParser, try wildcardParser]
+        spaces
+        string ","
+        spaces
+        v2 <- choice [try varParser, try wildcardParser]
+        spaces
+        string ")"
+        spaces
+        char '='
+        notFollowedBy (char '>')
+        spaces
+        exp <- expParser
+        spaces
+        string "in"
+        notFollowedBy alphaNum
+        spaces
+        body <- expParser
+        return
+          ( AExpLet
+              "_product"
+              exp
+              ( AExpLet
+                  v1
+                  (AExpFst (AExpVar "_product" []))
+                  (AExpLet v2 (AExpSnd (AExpVar "_product" [])) body)
+              )
+          )
     )
 
 ifExpParser :: Parser AExp

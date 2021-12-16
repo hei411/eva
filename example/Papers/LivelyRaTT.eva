@@ -236,8 +236,7 @@ def runFairMut[a,b] =
                     let xs' = out xs in
                     urec xs' with 
                         |now result => 
-                            let first =fst result in 
-                            let second =snd result in 
+                            let (first,second) = result in 
                             (inr first:a+b)::>(snd <?loop <second) 
                         |wait one _, rest=>
                             (inl one:a+b) :: >(<rest)
@@ -246,8 +245,7 @@ def runFairMut[a,b] =
                 fun xs:Fair'(b,a) => 
                     urec xs with 
                         |now result => 
-                            let first =fst result in 
-                            let second =snd result in 
+                            let (first,second) = result in 
                             (inl first:a+b)::>(fst <?loop <second) 
                         |wait one _, rest=>
                             (inr one:a+b) :: >(<rest)
@@ -257,7 +255,7 @@ def runFairMut[a,b] =
 def runFair[a,b] #= fst ?runFairMut[a,b]
 
 //for debugging fair streams
-//def test' #= ?runFair[Bool,Nat] ?test
+def main /*test'*/ #= ?runFair[Bool,Nat] ?test
 
 def schMut[Limit a,Limit b] =
     rec loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
