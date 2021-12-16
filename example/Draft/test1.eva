@@ -1,0 +1,6 @@
+import Draft.test2
+import Draft.test3
+def find = hiddenfunction
+def main  =repeat
+
+//type Test= Testr

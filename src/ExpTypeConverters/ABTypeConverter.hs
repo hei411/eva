@@ -18,6 +18,7 @@ abTypeConverter file functionName polyParams definedTypenames varStack aType = c
   ATypeAt at -> BTypeAt (abTypeConverterCur varStack at)
   ATypeFix s at -> BTypeFix (abTypeConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
+  ATypeBool -> BTypeBool
   where
     abTypeConverterCur = abTypeConverter file functionName polyParams definedTypenames
 

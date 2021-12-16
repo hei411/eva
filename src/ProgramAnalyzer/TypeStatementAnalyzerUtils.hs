@@ -7,5 +7,13 @@ checkTypeSynonymNameExists file createdTypeSynonymNames typeSynonymName = case c
   [] -> return ()
   (name, _, _) : tl ->
     if typeSynonymName == name
-      then error (file ++ ": Type Synonym \"" ++ typeSynonymName ++ "\" already defined or exported!")
+      then error (file ++ ": Type Synonym \"" ++ typeSynonymName ++ "\" already defined or imported!")
       else checkTypeSynonymNameExists file tl typeSynonymName
+
+checkAliasClash :: FilePath -> [String] -> String -> IO ()
+checkAliasClash file usedAlias typeSynonymName = case usedAlias of
+  [] -> return ()
+  s : ss ->
+    if typeSynonymName == s
+      then error (file ++ ": Type Synonym \"" ++ typeSynonymName ++ "\" already used as an alias for a qualified import!")
+      else checkAliasClash file ss typeSynonymName

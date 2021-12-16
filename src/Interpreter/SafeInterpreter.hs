@@ -2,7 +2,6 @@ module Interpreter.SafeInterpreter where
 
 import Datatype
 import Interpreter.EvaluationInterpreter
-import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint (printCExp)
 
 safeInterpreter :: CExp -> Integer -> IO ()

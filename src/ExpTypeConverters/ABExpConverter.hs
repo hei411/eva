@@ -31,6 +31,24 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpOut ae -> BExpOut (abExpConverterCur ae)
   AExpInto ae at -> BExpInto (abExpConverterCur ae) (abTypeConverterCur at)
   AExpLet s ae ae' -> BExpLet s (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpTrue -> BExpTrue
+  AExpFalse -> BExpFalse
+  AExpIf ae ae' ae2 -> BExpIf (abExpConverterCur ae) (abExpConverterCur ae') (abExpConverterCur ae2)
+  AExpAnd ae ae' -> BExpAnd (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpOr ae ae' -> BExpOr (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpNot ae -> BExpNot (abExpConverterCur ae)
+  AExpEquals ae ae' -> BExpEquals (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpNotEquals ae ae' -> BExpNotEquals (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpInteger n -> BExpInteger n
+  AExpIncrement ae -> BExpIncrement (abExpConverterCur ae)
+  AExpAdd ae ae' -> BExpAdd (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpMinus ae ae' -> BExpMinus (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpMultiply ae ae' -> BExpMultiply (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpDivide ae ae' -> BExpDivide (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpMod ae ae' -> BExpMod (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpPower ae ae' -> BExpPower (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpPrepend ae ae' -> BExpPrepend (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpLetStream s s' ae ae' -> BExpLetStream s s' (abExpConverterCur ae) (abExpConverterCur ae')
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

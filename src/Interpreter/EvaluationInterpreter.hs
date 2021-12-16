@@ -33,6 +33,22 @@ evaluationInterpreter exp store = case exp of
   CExpOut ce -> outEval ce store
   CExpInto ce -> intoEval ce store
   CExpLocation n -> (CExpLocation n, store)
+  CExpTrue -> (CExpTrue, store)
+  CExpFalse -> (CExpFalse, store)
+  CExpIf ce ce' ce2 -> ifEval ce ce' ce2 store
+  CExpAnd ce ce' -> andEval ce ce' store
+  CExpOr ce ce' -> orEval ce ce' store
+  CExpNot ce -> notEval ce store
+  CExpEquals ce ce' -> equalsEval ce ce' store
+  CExpNotEquals ce ce' -> notEqualsEval ce ce' store
+  CExpInteger n -> (CExpInteger n, store)
+  CExpIncrement ce -> incrementEval ce store
+  CExpAdd ce ce' -> addEval ce ce' store
+  CExpMinus ce ce' -> minusEval ce ce' store
+  CExpMultiply ce ce' -> multiplyEval ce ce' store
+  CExpDivide ce ce' -> divideEval ce ce' store
+  CExpMod ce ce' -> modEval ce ce' store
+  CExpPower ce ce' -> powerEval ce ce' store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
@@ -100,11 +116,21 @@ primrecEval e e1 e2 s =
     case e' of
       CExpZero -> evaluationInterpreter e1 s'
       CExpSuc pred -> do
-        let fbyExp = CExpPrimrec pred e1 e2
-        let (fbyValue, s'') = evaluationInterpreter fbyExp s'
-        let e2' = substituteCExp fbyValue 0 e2
+        let nextExp = CExpPrimrec pred e1 e2
+        let (nextValue, s'') = evaluationInterpreter nextExp s'
+        let e2' = substituteCExp nextValue 0 e2
         let e2'' = substituteCExp pred 1 e2'
         evaluationInterpreter e2'' s''
+      CExpInteger n -> do
+        if n == 0
+          then evaluationInterpreter e1 s'
+          else do
+            let pred = CExpInteger (n -1)
+            let nextExp = CExpPrimrec pred e1 e2
+            let (nextValue, s'') = evaluationInterpreter nextExp s'
+            let e2' = substituteCExp nextValue 0 e2
+            let e2'' = substituteCExp pred 1 e2'
+            evaluationInterpreter e2'' s''
       _ -> error "Should not happen! primrec applied to a non nat expression"
 
 delayEval :: CExp -> Store -> (CExp, Store)
@@ -158,8 +184,8 @@ urecEval e e1 e2 s = do
       let e1' = substituteCExp v 0 e1
       evaluationInterpreter e1' s'
     CExpWait v1 v2 -> do
-      let fbyExp = CExpUrec (CExpAdv v2) e1 e2
-      let (s'', location) = addStoreElem s' fbyExp
+      let nextExp = CExpUrec (CExpAdv v2) e1 e2
+      let (s'', location) = addStoreElem s' nextExp
       let e2_one = substituteCExp location 0 e2
       let e2_two = substituteCExp v2 1 e2_one
       let e2_three = substituteCExp v1 2 e2_two
@@ -177,6 +203,163 @@ intoEval :: CExp -> Store -> (CExp, Store)
 intoEval e s = do
   let (e', s') = evaluationInterpreter e s
   (CExpInto e', s')
+
+ifEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+ifEval e e1 e2 s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpTrue -> evaluationInterpreter e1 s'
+    CExpFalse -> evaluationInterpreter e2 s'
+    _ -> error "Should not happen! if applied to a non-boolean expression"
+
+andEval :: CExp -> CExp -> Store -> (CExp, Store)
+andEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    (CExpTrue, CExpTrue) -> (CExpTrue, s'')
+    (CExpTrue, CExpFalse) -> (CExpFalse, s'')
+    (CExpFalse, CExpTrue) -> (CExpFalse, s'')
+    (CExpFalse, CExpFalse) -> (CExpFalse, s'')
+    _ -> error "Should not happen! and applied to a non-boolean argument"
+
+orEval :: CExp -> CExp -> Store -> (CExp, Store)
+orEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    (CExpTrue, CExpTrue) -> (CExpTrue, s'')
+    (CExpTrue, CExpFalse) -> (CExpTrue, s'')
+    (CExpFalse, CExpTrue) -> (CExpTrue, s'')
+    (CExpFalse, CExpFalse) -> (CExpFalse, s'')
+    _ -> error "Should not happen! or applied to a non-boolean argument"
+
+notEval :: CExp -> Store -> (CExp, Store)
+notEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpTrue -> (CExpFalse, s')
+    CExpFalse -> (CExpTrue, s')
+    _ -> error "Should not happen! not applied to a non-boolean argument"
+
+equalsEval :: CExp -> CExp -> Store -> (CExp, Store)
+equalsEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  if e1' == e2'
+    then (CExpTrue, s'')
+    else (CExpFalse, s'')
+
+notEqualsEval :: CExp -> CExp -> Store -> (CExp, Store)
+notEqualsEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  if e1' /= e2'
+    then (CExpTrue, s'')
+    else (CExpFalse, s'')
+
+incrementEval :: CExp -> Store -> (CExp, Store)
+incrementEval e s = do
+  let (e', s') = evaluationInterpreter e s
+  case e' of
+    CExpInteger n ->
+      (CExpInteger (n + 1), s')
+    _ -> error "Should not happen! increment applied to a non-integer argument"
+
+addEval :: CExp -> CExp -> Store -> (CExp, Store)
+addEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 + n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 + n2), s'')
+
+minusEval :: CExp -> CExp -> Store -> (CExp, Store)
+minusEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (max 0 (n1 - n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      ((integerToPeano (max 0 (n1 - n2))), s'')
+
+multiplyEval :: CExp -> CExp -> Store -> (CExp, Store)
+multiplyEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 * n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 * n2), s'')
+
+divideEval :: CExp -> CExp -> Store -> (CExp, Store)
+divideEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 `quot` (max 1 n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 `quot` (max 1 n2)), s'')
+
+modEval :: CExp -> CExp -> Store -> (CExp, Store)
+modEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 `rem` (max 1 n2)), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 `rem` (max 1 n2)), s'')
+
+powerEval :: CExp -> CExp -> Store -> (CExp, Store)
+powerEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    --Nonpeano
+    (CExpInteger n1, CExpInteger n2) ->
+      (CExpInteger (n1 ^ n2), s'')
+    --peano
+    _ -> do
+      let n1 = peanoToInteger e1'
+      let n2 = peanoToInteger e2'
+      (integerToPeano (n1 ^ n2), s'')
+
+peanoToInteger :: CExp -> Integer
+peanoToInteger e =
+  case e of
+    CExpZero -> 0
+    CExpSuc x -> 1 + (peanoToInteger x)
+    _ -> error "Should not happen. peanoToInteger applied to a non-peano expression"
+
+integerToPeano :: Integer -> CExp
+integerToPeano n =
+  if n == 0 then CExpZero else CExpSuc (integerToPeano (n -1))
 
 {-
 import Datatype

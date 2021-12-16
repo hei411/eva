@@ -1,0 +1,67 @@
+//Partial Recusive Functions
+
+//Example constant function
+def constant3 # a:Nat b:Nat c:Nat = 0
+
+//Successor Function
+def successor # a:Nat = suc a 
+
+//Example projection function 
+def projection3_2 # a:Nat b:Nat c:Nat =b 
+
+//Example Composition
+def composition3_2 
+    h:#(Nat->Nat->Nat->Nat) 
+    g1: #(Nat->Nat->Nat)
+    g2: #(Nat->Nat->Nat)
+    g3: #(Nat->Nat->Nat) # = 
+        fun one:Nat two:Nat => 
+            ?h (?g1 one two) (?g2 one two) (?g3 one two)
+
+//Example primitive recursion 
+def primitiveRecursion2 
+    g: #(Nat->Nat->Nat)
+    h: #(Nat->Nat->Nat->Nat->Nat) # = 
+        fun y:Nat x1:Nat x2:Nat => 
+            primrec y with 
+                | 0=> ?g x1 x2 
+                | suc z, rest => ?h z rest x1 x2
+
+import Prelude.Bool 
+import Prelude.Nat 
+import Modality.Stream
+
+//Example minimization 
+def minimization2 
+    f:#(Nat->Nat->Nat->Nat) = 
+        fun x1:Nat x2:Nat =>
+            let repeat = (rec loop:#(Nat-> Str(Unit+Nat)) =>
+                        fun i:Nat => 
+                            let b = ?isZero (?f i x1 x2) in
+                            let successCase = ?constantStr[Unit+Nat] (inr i:Unit+Nat) in
+                            let failureCaseHd = inl ():Unit+Nat in
+                            let failureCaseTl = > (<?loop (suc i)) in
+                            let failureStream = failureCaseHd :: failureCaseTl in
+                            if b then successCase else failureStream 
+                        ) in 
+            # (?repeat 0)
+
+def liftForHiaton1 # f:Nat->Nat = 
+    fun x:(Unit+Nat) => 
+        match x with 
+            |inl u => x 
+            |inr num => inr (f num) :Unit+Nat
+
+
+def ackermann # m:Nat n:Nat = 
+    let iter f:Nat->Nat n':Nat = 
+        (primrec n' with 
+            |0=> f 1
+            |suc x, rest => f rest
+
+        ) in 
+    (primrec m with 
+        |0 => (fun x:Nat => suc x) 
+        |suc x, rest => iter rest) n          
+
+//def main #=?constantStr[Nat] (?ackermann 2 1)

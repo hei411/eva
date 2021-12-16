@@ -113,7 +113,7 @@ printCExp n cExp =
           ++ " | suc "
           ++ "\'"
           ++ show n
-          ++ " fby "
+          ++ ", "
           ++ "\'"
           ++ show (n + 1)
           ++ " => "
@@ -122,7 +122,7 @@ printCExp n cExp =
                  else printCExp (n + 2) ce2
              )
       CExpAdv ce ->
-        "adv "
+        "< "
           ++ ( if cExpLevel ce <= cExpLevel cExp
                  then "(" ++ printCExp n ce ++ ")"
                  else printCExp n ce
@@ -181,7 +181,7 @@ printCExp n cExp =
           ++ show n
           ++ " \'"
           ++ show (n + 1)
-          ++ " fby "
+          ++ ", "
           ++ "\'"
           ++ show (n + 2)
           ++ " => "
@@ -205,12 +205,133 @@ printCExp n cExp =
                  else printCExp n ce
              )
       CExpLocation i -> "l_" ++ show (i)
+      CExpTrue -> "true"
+      CExpFalse -> "false"
+      CExpIf ce ce' ce2 ->
+        "if " ++ printCExp n ce ++ " then " ++ printCExp n ce' ++ " else "
+          ++ ( if cExpLevel ce2 <= cExpLevel cExp
+                 then "(" ++ printCExp n ce2 ++ ")"
+                 else printCExp n ce2
+             )
+      CExpAnd ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ " and "
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpOr ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ " or "
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpNot ce ->
+        "not "
+          ++ ( if cExpLevel ce <= cExpLevel cExp
+                 then "(" ++ printCExp n ce ++ ")"
+                 else printCExp n ce
+             )
+      CExpEquals ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "=="
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpNotEquals ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "!="
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpInteger n -> show (n)
+      CExpIncrement ce -> do
+        "suc "
+          ++ ( if cExpLevel ce <= cExpLevel cExp
+                 then "(" ++ printCExp n ce ++ ")"
+                 else printCExp n ce
+             )
+      CExpAdd ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "+"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpMinus ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "-"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpMultiply ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "*"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpDivide ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "/"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpMod ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "%"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpPower ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "^"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
 
 cExpLevel :: CExp -> Integer
 cExpLevel cExp = case cExp of
   CExpIndex n -> 3
   CExpUnit -> 3
-  CExpLambda ce -> 0
+  CExpLambda ce -> -3
   CExpApplication ce ce' -> 1
   CExpProduct ce ce' -> 2
   CExpFst ce -> 2
@@ -228,7 +349,23 @@ cExpLevel cExp = case cExp of
   CExpNow ce -> 2
   CExpWait ce ce' -> 2
   CExpUrec ce ce' ce2 -> 2
-  CExpRec ce -> 0
+  CExpRec ce -> -3
   CExpOut ce -> 2
   CExpInto ce -> 2
   CExpLocation n -> 3
+  CExpTrue -> 3
+  CExpFalse -> 3
+  CExpIf ce ce' ce2 -> 1
+  CExpAnd ce ce' -> 1
+  CExpOr ce ce' -> 1
+  CExpNot ce -> 2
+  CExpEquals ce ce' -> 1
+  CExpNotEquals ce ce' -> 1
+  CExpInteger n -> 3
+  CExpIncrement ce -> 2
+  CExpAdd ce ce' -> -2
+  CExpMinus ce ce' -> -2
+  CExpMultiply ce ce' -> -1
+  CExpDivide ce ce' -> -1
+  CExpMod ce ce' -> -1
+  CExpPower ce ce' -> 0

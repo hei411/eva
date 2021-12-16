@@ -1,0 +1,19 @@
+def hiddenfunction = 0
+
+def test = 
+    primrec 0 with 
+        |suc o, test => 0
+        | 0=> 1
+
+def test2 = 
+    match inl 0:Nat+Unit with 
+        |inr x => 0
+        |inl y =>2
+
+def test3 #= 
+    urec now 0:Unit Until Nat  with 
+        |wait x y, test =>2
+        |now x => 0
+
+def repeat' =0 
+type Testr=Nat

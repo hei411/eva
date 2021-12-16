@@ -5,24 +5,24 @@ import GHC.IO (evaluate)
 import Interpreter.EvaluationInterpreter (evaluationInterpreter)
 import Interpreter.InputFunctions
 import Interpreter.StoreFunctions
-import PrintFunctions.CExpPrint
+import PrintFunctions.CExpPrint (printCExp)
 
-iSafeInterpreter :: CExp -> BType -> IO ()
-iSafeInterpreter cExp expectedBType =
+iSafeInterpreter :: CExp -> BType -> Bool -> IO ()
+iSafeInterpreter cExp expectedBType isPeano =
   do
     putStrLn "Running ISafe interpreter (For stream types to stream types):"
     let (s, l0) = addStoreElem (TicklessStore []) CExpUnit
     let exp = CExpApplication (CExpUnbox cExp) (CExpAdv l0)
-    iSafeInterpreterHelper exp s l0 1 expectedBType
+    iSafeInterpreterHelper exp s l0 1 expectedBType isPeano
 
-iSafeInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> IO ()
-iSafeInterpreterHelper cExp s location nowNum expectedBType =
+iSafeInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> Bool -> IO ()
+iSafeInterpreterHelper cExp s location nowNum expectedBType isPeano =
   do
     putStrLn ("Input expression for timestep " ++ show nowNum ++ ": ")
-    (input) <- parseInputExp expectedBType
+    (input) <- parseInputExp expectedBType isPeano
     let (cExp', s', l', output) = iStreamStep cExp s location input
     putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-    iSafeInterpreterHelper cExp' s' l' (nowNum + 1) expectedBType
+    iSafeInterpreterHelper cExp' s' l' (nowNum + 1) expectedBType isPeano
 
 iStreamStep :: CExp -> Store -> CExp -> CExp -> (CExp, Store, CExp, CExp)
 iStreamStep cExp s l input = do

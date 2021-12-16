@@ -1,0 +1,130 @@
+import Modality.Stream as MS 
+import Prelude.Nat 
+import Prelude.Bool
+
+type Result = Unit + Nat 
+def hiaton = inl() :Result 
+
+def encodePairToPos # x:Nat y:Nat =     
+    let a= 2 ^x in 
+    let b= suc (2* y) in 
+    a *b 
+
+def extractPosToPair # s:Nat = 
+    let first = (primrec (?log 2 s) with 
+                    | 0 => 0 
+                    | suc x, rest => 
+                        let b = ?divisible s ( 2^ (suc x)) in 
+                        if b then (suc x) else rest) in 
+    let second = (let rest = s /(2 ^first) in 
+                    ?div (?pred rest) 2) in 
+    (first,second)
+
+def encodePairToNat # x:Nat y:Nat =     
+    ?pred (?encodePairToPos x y)
+
+def extractNatToPair # s:Nat = 
+    ?extractPosToPair (suc s)
+
+type Stack = Nat 
+
+def emptyStack # = 0 
+
+def addToStack  = 
+    encodePairToNat
+
+def topStack # s:Stack = 
+    fst (?extractPosToPair s)
+
+def tailStack # s:Stack = 
+    snd (?extractPosToPair s)
+
+type HaltInstruction =Unit 
+type AddInstruction = Nat*Nat 
+type MinusInstruction = Nat*(Nat*Nat) 
+type Instruction = HaltInstruction + (AddInstruction + MinusInstruction) 
+
+def analyzeInstruction # x:Nat = 
+    let helper i:Nat = (let pair = ?extractPosToPair i in 
+                        let (y,z) = pair in
+                        let b = ?divisible y 2 in 
+                        if b
+                            // add case  
+                          then  (let r =?div y 2 in 
+                            inr (inl (r,z):(AddInstruction+MinusInstruction) ) : Instruction)
+                            //subtract case
+                          else  (let r1 = ?div y 2 in 
+                            let p = ?extractNatToPair z in 
+                            let instr = (r1,(fst p,snd p)) in 
+                            inr (inr instr:AddInstruction+MinusInstruction):Instruction
+                            )
+    
+            )
+    in 
+    if (?isZero x) then (inl ():Instruction) else (helper x)
+
+
+def splitStack # n:Nat s:Stack = 
+    primrec n with 
+        |0 => (0, s)
+        |suc x, pair =>  
+            let (one,two) = pair in 
+            let hd =  ?topStack two in 
+            let restTwo = ?tailStack two in 
+            let updatedOne = ?addToStack hd one in 
+            (updatedOne, restTwo)
+
+def combineStacks # n:Nat one:Stack two:Stack = 
+    let helper = (
+        fun n:Nat a:Stack b:Stack => 
+            primrec n with 
+                |0 => (a,b) 
+                |suc x, rest => 
+                    let (x,y) =rest in 
+                    (?tailStack x, ?addToStack (?topStack x) y) 
+        ) in 
+    snd (helper n one two)
+
+def getInstruction # n:Nat program:Nat = 
+    let p = ?splitStack n program in 
+    let topInstr = ?topStack (snd p) in 
+    ?analyzeInstruction topInstr
+
+def machineLoop program:Nat = 
+    rec loop: # ( Nat -> Stack-> MS.Str(Result)) => 
+        fun instructionLine:Nat args:Stack => 
+            let instruction = ?getInstruction instructionLine program in 
+            match instruction with 
+                |inl _ => //halting instruction
+                        ?MS.constantStr[Result] (inr (?topStack args):Result)
+                |inr other => 
+                    match other with 
+                        |inl addInstr =>
+                            //add instruction
+                            let (argIndex,nextInstr) = addInstr in
+                            let stackPairs = ?splitStack argIndex args in 
+                            let toAddElem = ?topStack (snd stackPairs) in 
+                            let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (suc toAddElem) (?tailStack (snd stackPairs))) in 
+                            hiaton :: >(<?loop nextInstr newargs)
+                        |inr subInstr =>
+                            //substract instruction 
+                            let argIndex = fst subInstr in 
+                            let (nextInstr1,nextInstr2) = snd subInstr in 
+                            let stackPairs = ?splitStack argIndex args in 
+                            let toSubElem = ?topStack (snd stackPairs) in 
+                            let b = ?isZero toSubElem in
+                            if b 
+                             then   (//the element to be subtracted is zero
+                                hiaton :: >(<?loop nextInstr2 args)
+                                )
+
+                              else  (//the element can be subtracted
+                                let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (?pred toSubElem) (?tailStack (snd stackPairs))) in 
+                                hiaton :: >(<?loop nextInstr1 newargs)
+                                )
+
+def machineEntry program:Nat args:Stack # = 
+    ?(machineLoop program) 0 (?addToStack 0 args)
+
+//def main #= ?MS.constantStr[Instruction] (?getInstruction 0 64)
+//def main = machineEntry 64 23

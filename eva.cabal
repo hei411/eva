@@ -30,6 +30,7 @@ library
       ExpFunctions.SubstituteCExp
       ExpTypeConverters.ABExpConverter
       ExpTypeConverters.ABTypeConverter
+      ExpTypeConverters.PeanoConverter
       ExpTypeConverters.TypeNameResolveUtils
       ExpTypeConverters.TypeSynonymConverter
       Interpreter.EvaluationInterpreter
@@ -57,6 +58,7 @@ library
       StringFunctions.CommentHandler
       TypeChecker.ContextFunctions
       TypeChecker.MainTypeChecker
+      TypeFunctions.ComparableChecker
       TypeFunctions.LimitChecker
       TypeFunctions.StableChecker
       TypeFunctions.SubstituteParametric

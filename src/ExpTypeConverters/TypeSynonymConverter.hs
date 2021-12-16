@@ -18,6 +18,7 @@ typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStac
   ATypeAt at -> BTypeAt (typeSynonymConverterCur varStack at)
   ATypeFix s at -> BTypeFix (typeSynonymConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')
+  ATypeBool -> BTypeBool
   where
     typeSynonymConverterCur = typeSynonymConverter file typeSynonymName typeVariables definedTypenames
 

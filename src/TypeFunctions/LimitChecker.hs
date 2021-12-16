@@ -10,6 +10,8 @@ isLimit bType = case bType of
     Stable -> False
     None -> False
     Both -> True
+    CStable -> False
+    CBoth -> True
   BTypeNameParam n -> error "Should not happen! Found a typename parameter index when checking whether overall type is limit"
   BTypeUnit -> True
   BTypeNat -> True
@@ -21,3 +23,4 @@ isLimit bType = case bType of
   BTypeAt bt -> isLimit bt
   BTypeFix bt -> isLimit bt
   BTypeUntil bt bt' -> False
+  BTypeBool -> True

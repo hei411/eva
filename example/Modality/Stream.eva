@@ -4,43 +4,54 @@ type Str(a) = Fix b --> a*b
 type Ev(a) = Fix b--> a+b
 
 def hdStr [a] # stream:Str(a)  = 
-    fst (out stream)
+    let x::_ = stream in x
+    //fst (out stream)
 
 def tlStr [a] # stream:Str(a) = 
-    snd (out stream)
+    let _::x = stream in x
+    //snd (out stream)
 
 def conStr [a] # (head: a) tail: >Str(a) = 
-    into (head, tail) : Str(a)
+    head::tail
+    //into (head, tail) : Str(a)
 
 def mapStr [a, b] f:#(a->b)= 
     rec m : # (Str(a) -> Str(b)) 
         => fun  str:Str(a) 
-            => ?conStr[b] (?f (?hdStr[a] str)) ( > (<?m (<(?tlStr[a] str))))
+            => (?f (?hdStr[a] str)) :: ( > (<?m (<(?tlStr[a] str))))
 
 def zipStr [a,b] = 
     rec m: # (Str(a)->Str(b) -> Str(a*b)) 
         => fun x:Str(a) y:Str(b) 
-            => ?conStr[a*b] (?hdStr[a] x, ?hdStr[b] y) (> (<?m <(?tlStr[a] x) <(?tlStr[b] y) ) )
+            => (?hdStr[a] x, ?hdStr[b] y) :: (> (<?m <(?tlStr[a] x) <(?tlStr[b] y) ) )
 
 def fstStr[a,b] = 
     rec m: #(Str(a*b)->Str(a))
         => fun x:Str(a*b) 
-            => ?conStr[a] (fst (?hdStr[a*b] x)) (> (<?m <(?tlStr[a*b] x)))
+            =>  (fst (?hdStr[a*b] x)) :: (> (<?m <(?tlStr[a*b] x)))
             
 def sndStr[a,b] = 
     rec m: #(Str(a*b)->Str(b))
         => fun x:Str(a*b) 
-            => ?conStr[b] (snd (?hdStr[a*b] x)) (> (<?m <(?tlStr[a*b] x)))
+            => (snd (?hdStr[a*b] x)) :: (> (<?m <(?tlStr[a*b] x)))
 
 def constantStr [Stable a] = 
     rec m : # (a-> Str(a)) 
         => fun x: a 
-            => ?conStr[a] x >(<?m x)
+            =>  x :: >(<?m x)
+
+def natStr = 
+    let repeat = (rec m: #(Nat->Str(Nat)) => 
+                    fun start:Nat =>
+                        let rest = > (<?m (suc start)) in
+                         start:: rest) 
+    in 
+        # (?repeat 0)
 
 def delayStr [Stable a] = 
     rec m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
-            => ?conStr[a] x  ((fun b:a => > (<?m  b <(?tlStr[a] str)) ) (?hdStr[a] str) )
+            =>  x  ::((fun b:a => > (<?m  b <(?tlStr[a] str)) ) (?hdStr[a] str) )
 
 /*
 def wrongDelayStr [Stable a] = 
@@ -63,14 +74,14 @@ def wrongDelayStr [Stable a] =
 
 
 
-def scan[Stable a,b] f:#(a->b->a)  = 
+def scanStr[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
-            => ?conStr[a] (?f z (?hdStr[b] str))
+            => (?f z (?hdStr[b] str))::
               ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )
 
 // With syntactic sugar!
-/*def scan2[Stable a,b] f:#(a->b->a)  = 
+/*def scanStr'[Stable a,b] f:#(a->b->a)  = 
     rec m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (

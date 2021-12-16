@@ -1,1 +1,6 @@
-type List(A) = A Until ()
+type List(a) = a Until Unit
+
+def countdown n:Nat = 
+    primrec n with 
+        | 0 => # now () : List(Nat)
+        | suc x, rest => # wait n @(?rest)  

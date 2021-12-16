@@ -30,6 +30,7 @@ defStatementParser = do
   secondParameters <- many (annoVarParser)
   spaces
   char '='
+  notFollowedBy (char '>')
   spaces
   exp <- expParser
   spaces
@@ -73,6 +74,13 @@ oneParameterParser =
       )
     <|> try
       ( do
+          string "CStable"
+          skipMany1 space
+          v <- varParser
+          return (CStable, v)
+      )
+    <|> try
+      ( do
           string "Limit"
           skipMany1 space
           v <- varParser
@@ -89,12 +97,30 @@ oneParameterParser =
       )
     <|> try
       ( do
+          string "Limit"
+          skipMany1 space
+          string "CStable"
+          skipMany1 space
+          v <- varParser
+          return (CBoth, v)
+      )
+    <|> try
+      ( do
           string "Stable"
           skipMany1 space
           string "Limit"
           skipMany1 space
           v <- varParser
           return (Both, v)
+      )
+    <|> try
+      ( do
+          string "CStable"
+          skipMany1 space
+          string "Limit"
+          skipMany1 space
+          v <- varParser
+          return (CBoth, v)
       )
 
 typeStatementParser :: Parser Statement
@@ -107,6 +133,7 @@ typeStatementParser = do
   parameters <- optionMaybe (try typenameParameterParser)
   spaces
   char '='
+  notFollowedBy (char '>')
   spaces
   t <- typeParser
   spaces
@@ -151,9 +178,8 @@ aliasParser =
     ( do
         string "as"
         skipMany1 space
-        alias <- many1 (choice [alphaNum, oneOf "_"])
-        checkedVar <- checkVar alias
-        checkUpperVar checkedVar
+        alias <- upperVarParser
+        checkUpperVar alias
     )
 
 processFilePath :: FilePath -> FilePath

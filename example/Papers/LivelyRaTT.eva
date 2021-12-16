@@ -1,0 +1,296 @@
+//Programs from Diamonds Are Not Forever: Liveness in Reactive Programming with Guarded Recursion
+//Patrick Bahr, Christian Uldal Graulund and Rasmus Ejlers Møgelberg 2021
+
+import Modality.Stream 
+
+def map[a,b] = mapStr[a,b]
+
+def loopEvent[a] = 
+    rec loop:#(Ev(a)) => 
+        let temp = inr ?loop : a +>Ev(a) in 
+        into temp:Ev(a)
+
+type Dia(a) = Unit Until a
+
+def nowDia[aType] # a:aType = 
+    now a:Dia(aType)
+
+def waitDia[aType] # d:@Dia(aType) =
+    wait () d
+
+def nowEv[aType] # a:aType = 
+    let temp = inl a:aType+>Ev(aType) in 
+    into temp:Ev(aType)
+
+def waitEv[aType] # e:>Ev(aType) = 
+    let temp = inr e:aType+>Ev(aType) in 
+    into temp:Ev(aType)
+
+def bindEv[aType,bType] f:#(aType->Ev(bType)) = 
+    rec loop:#(Ev(aType) -> Ev(bType) ) => 
+        fun ev:Ev(aType) =>
+            let ev' = out ev in 
+            match ev' with 
+                |inl result => ?f result 
+                |inr rest => ?waitEv[bType] >(<?loop <rest)
+
+def bindDia[aType,bType] f:#(aType->Dia(bType)) # d:Dia(aType) =
+    urec d with 
+        | now result => ?f result
+        | wait _ _, rest => ?waitDia[bType] rest
+
+def diaInclusion[aType] # a:Dia(aType)= 
+    urec a with 
+        |now result => ?nowEv[aType] result 
+        |wait _ _, rest => ?waitEv[aType] >(< rest)
+
+def diamondEvent[a]  = 
+    bindEv[Dia(a),a] diaInclusion[a]
+
+def timeout[Limit a] n:Nat = 
+    primrec n with 
+        |0 => #(
+            fun e:Ev(a) =>
+                let e' = out e in 
+                match e' with 
+                    |inl result=> ?nowDia[Unit+a] (inr result:Unit+a)
+                    |inr _ => ?nowDia[Unit+a] (inl ():Unit+a)
+            )
+        |suc _, rest => #(
+            fun e:Ev(a) => 
+                let e' = out e in 
+                match e' with 
+                    |inl result => ?nowDia[Unit+a] (inr result:Unit+a)
+                    |inr tl => ?waitDia[Unit+a] @(?rest <tl)
+            )
+
+def eventDiamond[Limit a] n:Nat = 
+    bindDia[Ev(a), Unit +a] (timeout[a] n)
+
+//similar to Simply RaTT's await, but for until types, not event types
+def joinAuxA[Stable aType,bType] #=
+    fun b:Dia(bType) => 
+        urec b with 
+            |now bResult => (fun a:aType => ?nowDia[aType*bType] (a,bResult))
+            |wait _ _, rest => 
+                (fun a:aType =>
+                ?waitDia[aType*bType] @(<rest a)
+                )
+
+def joinAuxB[aType,Stable bType] #=
+    fun a:Dia(aType) => 
+        urec a with 
+            |now aResult => (fun b:bType => ?nowDia[aType*bType] (aResult,b))
+            |wait _ _, rest => 
+                (fun b:bType =>
+                ?waitDia[aType*bType] @(<rest b)
+                )
+
+def joinNowA[Stable aType, Stable bType] # =
+    fun b:Dia(bType) =>
+        urec b with 
+            |now bResult => fun a:aType=> ?nowDia[aType*bType] (a,bResult)
+            |wait u v, _ => ?joinAuxA[aType,bType] (wait u v)
+
+def joinWaitA[Stable aType,Stable bType] # = 
+    fun b:Dia(bType) => 
+        urec b with 
+            | now bResult => 
+                fun a:Dia(aType) f:@(Dia(bType)->Dia(aType*bType)) => 
+                    ?joinAuxB[aType,bType] a bResult
+            | wait _ bRest, _ => 
+                fun a:Dia(aType) f:@(Dia(bType)->Dia(aType*bType)) => 
+                    ?waitDia[aType*bType] @(<f <bRest)
+
+//slightly complicated since recursors of urec must be stable
+def join[Stable aType,Stable bType] #=
+    fun a:Dia(aType) => 
+        urec a with 
+            | now aResult => fun b:Dia(bType) => 
+                ?joinNowA[aType,bType] b aResult
+            | wait _ d, rest => fun b:Dia(bType) => 
+                ?joinWaitA[aType,bType] b (wait () d) rest
+
+type TempNat = Dia(Unit)
+
+def zeroTempNat #= ?nowDia[Unit] ()
+
+def sucTempNat # n:@TempNat= ?waitDia[Unit] n
+
+def importTempNat # n:TempNat = 
+    urec n with 
+        |now _ =>  @?zeroTempNat
+        |wait _ _, rest => @(?sucTempNat <rest)
+
+def timer  # n:Nat= 
+    primrec n with 
+        | 0=> ?zeroTempNat 
+        | suc _, rest => ?sucTempNat (?importTempNat rest)
+
+def buffer[Stable aType] # n:TempNat =
+    urec n with 
+        |now _ => fun a:aType => ?nowDia[aType] a 
+        |wait _ _ , rest=> fun a:aType => ?waitDia[aType] @(<rest a)
+
+type Server(req, resp) = Fix alpha --> alpha* (req -> (Dia(resp)*alpha)) 
+//Assume String is stable, so we let it be nat for now
+type String = Nat
+type Req = Nat * String 
+type Resp = String *Nat 
+//We will work with this server
+type TestServer =Server(Req,Resp)
+
+def rServer = 
+    rec loop:#(Nat -> TestServer) => 
+        fun m:Nat =>
+            let rServerFst = >(<?loop m) in 
+            let rServerSnd p:(Req) = (
+                let n=fst p in 
+                let s=snd p in 
+                let one = ?buffer[Resp] (?timer n) (s,m) in
+                let two = >(<?loop (suc m) )in
+                (one,two)
+                ) in
+            into (rServerFst, rServerSnd) : TestServer
+
+def rServerRun #=?rServer 0
+
+def proj1[aType,bType] # p:>(aType*bType) = 
+    >(fst < p)
+
+def proj2[aType,bType] # p:>(aType*bType) = 
+    >(snd < p)
+//Section 3.2 Fair Streams
+def altStrMut[a,b] = 
+    rec loop:#((Str(a)->Str(b)->Str(a+b)) *
+               (Str(a)->Str(b)->Str(a+b)) ) =>
+        let one = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    (inr y:a+b):: >(<(?proj2[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                ) in 
+        let two = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    (inl x:a+b):: >(<(?proj1[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                ) in 
+        (one,two)
+
+def altStr[a,b] # = fst ?altStrMut[a,b]
+def altStr'[a,b] # = snd ?altStrMut[a,b]
+
+def dropSnd[a,b] # xs:Str(a) ys:Str(b) = 
+    ?(let f #x:a = inl x:a+b in
+        map[a,a+b] f) xs
+
+import Modality.FairStream
+
+def stay[a,b] # x:a y:@OutFair(a,b) =
+    into (wait x y) : Fair(a,b)
+
+def stay'[a,b] # x:a y:@Fair'(a,b) = 
+    wait x y
+
+def switch [a,b] # x:b y:>Fair'(b,a) = 
+    let temp = now (x,y) : OutFair(a,b) in 
+    into temp: Fair(a,b)
+
+def switch' [a,b] # x:b y: >Fair(b,a) = 
+    now(x,y) :Fair'(a,b)
+
+def altFairMut[a,b] = 
+    rec loop:#((Str(a)->Str(b) -> Fair(a,b))*
+                (Str(a)->Str(b)->Fair'(b,a))) => 
+        let one = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    ?switch[a,b] y >(snd <?loop <xs' <ys')
+                ) in 
+        let two = (
+                fun xs:Str(a) ys:Str(b) => 
+                    let x::xs' = xs in
+                    let y::ys' = ys in 
+                    ?switch'[b,a] x >(fst <?loop <xs' <ys')
+                ) in 
+        (one,two)
+
+def altFair[a,b] #= fst ?altFairMut[a,b]
+def altFair'[b,a] #= snd ?altFairMut[a,b]
+
+
+//for debugging fair streams
+def zeros = 
+    rec loop: #Str(Nat)=> 
+        0::?loop
+def trues = 
+    rec loop: #Str(Bool)=> 
+        true::?loop
+
+//def test #= ?altFair[Bool,Nat] ?trues ?zeros 
+
+def runFairMut[a,b] = 
+    rec loop:#((Fair(a,b)->Str(a+b))*
+              (Fair'(b,a)->Str(a+b))) => 
+        let one = (
+                fun xs:Fair(a,b) => 
+                    let xs' = out xs in
+                    urec xs' with 
+                        |now result => 
+                            let (first,second) = result in 
+                            (inr first:a+b)::>(snd <?loop <second) 
+                        |wait one _, rest=>
+                            (inl one:a+b) :: >(<rest)
+                ) in 
+        let two = (
+                fun xs:Fair'(b,a) => 
+                    urec xs with 
+                        |now result => 
+                            let (first,second) = result in 
+                            (inl first:a+b)::>(fst <?loop <second) 
+                        |wait one _, rest=>
+                            (inr one:a+b) :: >(<rest)
+                ) in 
+        (one,two)
+
+def runFair[a,b] #= fst ?runFairMut[a,b]
+
+//for debugging fair streams
+//def test' #= ?runFair[Bool,Nat] ?test
+
+def schMut[Limit a,Limit b] =
+    rec loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
+                (Nat->Str(a)->Str(b)->Fair'(b,a)))=>
+        let sch = (
+                let until num:TempNat = 
+                    (urec num with 
+                        |now _ =>
+                            fun m:Nat xs:Str(a) ys:Str(b) => 
+                                let x::xs' = xs in 
+                                let y::ys' = ys in 
+                                ?switch[a,b] y >(snd <?loop (suc m) <xs' <ys')
+                        |wait _ _, rest => 
+                            fun m:Nat xs:Str(a) ys:Str(b) => 
+                                let x::xs' = xs in 
+                                let y::ys' = ys in 
+                                ?stay[a,b] x @ out (<rest m <xs' <ys')
+                    )
+                    in
+                //stuff involving until 
+                fun n:Nat xs:Str(a) ys:Str(b) => 
+                    until (?timer n) n xs ys
+                ) in 
+        let sch' = (
+            fun n:Nat xs:Str(a) ys:Str(b) => 
+                let x::xs' = xs in 
+                let y::ys' = ys in 
+                ?switch'[b,a] x >(fst <?loop n <xs' <ys')
+                ) in 
+        (sch,sch')
+
+def sch[Limit a,Limit b] # =fst ?schMut[a,b]
+
+//for debugging
+//def test3 # =?sch[Bool,Nat] 0 ?trues ?zeros

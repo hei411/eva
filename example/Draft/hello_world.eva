@@ -9,7 +9,7 @@ import Prelude.Nat
 
 import Modality.Stream 
 //def main  # = ?constantStr[Nat] 0 
-def main # = wait () (@ (now 0): Unit Until Nat)
+def main  = if true and false and true then 0 else 3-5^2
 //import ervrev.erg.erv;
 /*
 type Kef(s, b) = Nat;
@@ -28,10 +28,10 @@ def q = fix e : # Fix a -> Nat + a => into(inr(unbox e)
 
 def primrectry =  fun x : Nat => primrec (x )with
                                | 0 => 0 
-                               | suc k fby t => t;
+                               | suc k, t => t;
 
 def urectry =#fun x : Nat Until Nat => urec(x) with
-                                         | now x => suc 0 | wait x y fby z => 0;
+                                         | now x => suc 0 | wait x y, z => 0;
 
 def embed = # fun x : @Nat  => > (adv x);
 /*Comment block

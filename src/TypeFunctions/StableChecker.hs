@@ -10,6 +10,8 @@ isStable bType = case bType of
     Stable -> True
     None -> False
     Both -> True
+    CStable -> True
+    CBoth -> True
   BTypeNameParam n -> error "Should not happen! Found a typename parameter index when checking whether overall type is stable"
   BTypeUnit -> True
   BTypeNat -> True
@@ -21,3 +23,4 @@ isStable bType = case bType of
   BTypeAt bt -> False
   BTypeFix bt -> False
   BTypeUntil bt bt' -> False
+  BTypeBool -> True

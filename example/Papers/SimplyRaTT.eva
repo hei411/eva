@@ -1,0 +1,309 @@
+//Programs from Simply RaTT: A Fitch-style Modal Calculus for Reactive Programming Without Space Leaks
+//Patrick Bahr, Christian Uldal Graulund and Rasmus Ejlers Møgelberg 2019
+
+import Modality.Stream 
+
+def leakyNats = 
+    let addOne # n:Nat = suc n in 
+    rec loop:#Str(Nat) => 
+        0:: >(?(mapStr[Nat,Nat] addOne) <?loop) 
+
+
+def from = 
+    rec loop :#(Nat -> Str(Nat) ) =>
+        fun n:Nat => 
+            n:: >(<?loop (suc n) ) 
+
+def nats # = ?from 0 
+
+import Modality.Primitives
+
+def delayApp[a,b] = angleDelayApp[a,b]
+
+def zeros = 
+    rec loop: #Str(Nat)=> 
+        0::?loop
+
+def map[a,b] = mapStr[a,b]
+
+//map for events
+def map'[a,b] f:#(a->b) = 
+    rec loop : #(Ev(a)->Ev(b)) => 
+        fun x:Ev(a) =>
+            let x' = out x in 
+            match x' with 
+                |inl v => 
+                    let result = ?f v in 
+                    let temp = inl result: b+ >Ev(b) in
+                    into temp:Ev(b) 
+                |inr rest => 
+                    let rest' = >(<?loop <rest) in 
+                    let temp = inr rest': b+>Ev(b) in 
+                    into temp:Ev(b)
+
+//This is the f function in subsection 2.3
+def addProgram = map[Nat,Nat->Nat] #(fun n:Nat x:Nat => n+x)
+
+def strApp [a,b]=
+    rec loop:#(Str(a->b)->Str(a)->Str(b) ) => 
+        fun fs:Str(a->b) xs:Str(a) =>
+            let f::fs' = fs in 
+            let x::xs' = xs in 
+            f x:: > (<?loop <fs' <xs')
+
+//function abstraction under delay. Should type reject.
+/*def leaky' = 
+    rec loop :#((Unit->Bool)->Str(Bool)) => 
+        fun p:(Unit->Bool) => 
+            true :: > ( <(if p () then ?loop else ?loop) 
+                      (fun x:Unit => 
+                        let s= <?leaky' (fun y:Unit->Bool=>true) in 
+                        let hd::_ = s in 
+                        hd
+                        )  
+                     )
+def leaky #= 
+    ?leaky' (fun x:Unit => true) 
+*/
+
+
+//Same sum function as Neel's paper
+def sum_acc = 
+    rec loop: # (Str(Nat) -> Nat -> Str(Nat)) => 
+        fun ns:Str(Nat) acc:Nat => 
+            let hd::tl = ns in 
+            let acc'=acc+hd in 
+            acc':: >(<?loop <tl acc')
+
+def sum # ns:Str(Nat) = ?sum_acc ns 0
+
+def const[a] x:#a =
+    rec loop:#(Str(a)) => 
+        ?x:: ?loop
+
+def zeros' = const[Nat] #0
+
+def iter[Stable a] f:#(a->a) = 
+    rec loop:#(a->Str(a))=>
+        fun acc:a => 
+            acc::> (<?loop (?f acc))
+
+def nats' # = 
+    ?(iter[Nat] (#(fun n:Nat=>suc n))) 0
+
+def iter'[a] f:#(a-> >a) =
+    rec loop:#(a->Str(a) )=>
+        fun acc:a => 
+            acc:: >(<?loop <(?f acc))
+
+type Maybe(a) = Unit + a 
+
+def filter[a] p:#(a->Bool) = 
+    map[a,Maybe(a)] 
+    #(fun x:a => 
+        if ?p x 
+            then inr x:Maybe(a) 
+            else inl ():Maybe(a)
+    )
+
+def fromMaybe[a] default:#a = 
+    rec loop: # (Str(Maybe(a)) ->Str(a))=>
+        fun xs:Str(Maybe(a))  => 
+            let x::xs' = xs in 
+            match x with 
+                | inr v => v::>(<?loop <xs')
+                | inl _ => ?default:: >(<?loop <xs')
+
+def zipWith[a,b,c] f:#(a->b->c) = 
+    rec loop:#(Str(a)->Str(b)->Str(c))=>
+        fun xs:Str(a) ys:Str(b) => 
+            let x::xs' = xs in 
+            let y::ys' = ys in 
+            ?f x y :: >(<?loop <xs' <ys')
+
+def zip[a,b] = 
+    zipWith[a,b,a*b] #(fun x:a y:b=> (x,y))
+
+//Same switch function from Neel's paper
+def switch[a] = 
+    rec loop:#(Str(a)->Ev(Str(a)) -> Str(a) )=> 
+        fun xs:Str(a) e:Ev(Str(a)) => 
+            let x::xs' = xs in 
+            let e' = out e in
+            match e' with 
+                |inl ys => ys
+                |inr t => 
+                    x:: >(<?loop <xs' <t)
+
+//scan function, similar to Neel's unfold function
+def scan'[a,Stable b] f:#(b->a->b) = 
+    rec loop:#(b->Str(a)->Str(b)) => 
+        fun acc:b xs:Str(a) =>
+            let x::xs' = xs in 
+            let acc' = ?f acc x in 
+            acc' :: >(<?loop acc' <xs')
+
+//new definition of sum using scan
+def sum'# =
+    ?(scan'[Nat,Nat] #(fun n:Nat m:Nat => n+m)) 0 
+
+//same unfold function as Neel's paper
+def unfold[x,a] h:#(x-> (a* >x)) =
+    rec loop: #(x->Str(a)) =>
+        fun arg:x => 
+            let result = ?h arg in 
+            let hd = fst result in 
+            let rest = snd result in 
+            hd:: >(<?loop <rest)
+
+def awaitA[Stable a,b] = 
+    rec loop:#(a->Ev(b) ->Ev(a*b) )=>
+        fun x:a y:Ev(b) => 
+            let y' = out y in 
+            match y' with 
+                | inl v => into (inl (x,v): (a*b)+>Ev(a*b) ):Ev(a*b)
+                | inr rest => 
+                    let temp = >(<?loop x <rest) in 
+                    into (inr temp: (a*b)+>Ev(a*b)) :Ev(a*b)
+
+def awaitB[Stable b,a] = 
+    rec loop:#(b->Ev(a) ->Ev(a*b) )=>
+        fun x:b y:Ev(a) => 
+            let y' = out y in 
+            match y' with 
+                | inl v => into (inl (v,x): (a*b)+>Ev(a*b) ):Ev(a*b)
+                | inr rest => 
+                    let temp = >(<?loop x <rest) in 
+                    into (inr temp: (a*b)+>Ev(a*b)) :Ev(a*b)
+
+
+def await[Stable a,Stable b] =
+    rec loop:#(Ev(a)->Ev(b)->Ev(a*b)) => 
+        fun x:Ev(a) y:Ev(b) => 
+            let x'=out x in 
+            let y'=out y in 
+            match x' with 
+                | inl xResult => ?awaitA[a,b] xResult y 
+                | inr xRest => 
+                    match y' with 
+                        | inl yResult => ?awaitB[b,a] yResult x 
+                        | inr yRest => 
+                            let tl = >(<?loop <xRest <yRest) in 
+                            let temp = inr tl: (a*b)+>Ev(a*b) in 
+                            into temp: Ev(a*b)
+
+def eventApp[a,b] x:#a = 
+    map'[a->b,b] #(fun f:(a->b) => f ?x)
+
+def accum[a,b] x:#a =
+    map[Ev(a->b), Ev(b)] (eventApp[a,b] x) 
+
+
+// Lustre Simulation
+type Clock = Str(Bool)
+
+type Flow(a) = Str(Maybe(a)) 
+
+def basicClock = const[Bool] #true
+
+def never = const[Bool] #false 
+
+def everyNthAux step:Nat = 
+    rec loop:#(Nat->Clock->Clock) => 
+        fun count:Nat cs:Clock => 
+            let c::cs' = cs in 
+            if step == count 
+                then c::>(<?loop 0 <cs')
+                else false:: >(<?loop (suc count) <cs')
+
+def everyNth n:Nat #=
+    ?(everyNthAux n) 0
+
+def when[typeX] =
+    rec loop:#(Clock->Flow(typeX)->Flow(typeX)) => 
+        fun cs:Clock xs:Flow(typeX) => 
+            let c::cs'=cs in 
+            let x::xs'= xs in 
+            let hd = if c then x else inl ():Maybe(typeX) in 
+            hd:: >(<?loop <cs' <xs') 
+
+def natsAux =
+    rec loop:#(Nat->Flow(Nat))=>
+        fun pre:Nat =>
+            let hd = inr pre:Maybe(Nat) in 
+            hd::>(<?loop (suc pre))
+
+def natsLustre #= ?natsAux 0 
+
+def edgeAux = 
+    rec loop:#(Bool -> Flow(Bool) -> Flow(Bool) )=>
+        fun pre:Bool bs:Flow(Bool) =>
+            let b::bs' = bs in 
+            match b with 
+                |inl _ => (inr pre:Maybe(Bool)):: >(<?loop pre <bs')
+                |inr bResult => 
+                    let b' = bResult and (not pre) in 
+                    (inr b':Maybe(Bool))::>(<?loop b' <bs')
+
+def edge # = ?edgeAux false
+
+def currentAux [Stable xType] = 
+    rec loop:#(Maybe(xType) -> Flow(xType) -> Flow(xType)) => 
+        fun pre:Maybe(xType) xs:Flow(xType) =>
+            let x::xs' = xs in 
+            match x with 
+                |inl _ => pre:: >(<?loop pre <xs')
+                |inr xResult => x::>(<?loop x <xs')
+
+def current[Stable xType] # =
+    fun xs:Flow(xType) => 
+        let x::_ = xs in 
+        ?currentAux[xType] x xs
+
+def counter init:Nat incr:Nat = 
+    rec loop:#(Nat->Flow(Bool) -> Flow(Bool) -> Flow(Nat) ) =>
+        fun pre:Nat ss:Flow(Bool) rs:Flow(Bool) => 
+            let s::ss' = ss in
+            let r::rs' = rs in 
+            match s with 
+                |inr sResult =>
+                    match r with 
+                        |inr rResult =>
+                            //both increment and reset
+                            if rResult 
+                                then 
+                                    let hd= inr init:Maybe(Nat) in 
+                                    hd::>(<?loop init <ss' <rs')
+                                else 
+                                    if sResult 
+                                        then 
+                                            let hd = inr (pre+incr) :Maybe(Nat) in 
+                                            hd:: >(<?loop (pre+incr) <ss' <rs')
+                                        else 
+                                            let hd = inr pre :Maybe(Nat) in 
+                                            hd:: >(<?loop pre <ss' <rs')
+                        |inl _ => 
+                            //just increment
+                            if sResult 
+                                then 
+                                    let hd = inr (pre+incr) :Maybe(Nat) in 
+                                    hd:: >(<?loop (pre+incr) <ss' <rs')
+                                else 
+                                    let hd = inr pre :Maybe(Nat) in 
+                                    hd:: >(<?loop pre <ss' <rs')
+
+                |inl _ => 
+                    match r with 
+                        |inr rResult =>
+                            //just reset
+                            if rResult 
+                                then 
+                                    let hd= inr init:Maybe(Nat) in 
+                                    hd::>(<?loop init <ss' <rs')
+                                else 
+                                    let hd = inr pre :Maybe(Nat) in 
+                                    hd:: >(<?loop pre <ss' <rs')
+                        |inl _ => 
+                            //none
+                            let hd = inr pre :Maybe(Nat) in 
+                            hd:: >(<?loop pre <ss' <rs')

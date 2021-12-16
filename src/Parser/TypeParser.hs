@@ -301,9 +301,15 @@ type4'Parser =
       )
     <|> try typeVarParser
     <|> try typeNameParser
+    <|> try
+      ( do
+          string "Nat"
+          notFollowedBy alphaNum
+          return ATypeNat
+      )
     <|> ( do
-            string "Nat"
+            string "Bool"
             notFollowedBy alphaNum
-            return ATypeNat
+            return ATypeBool
         )
     <|> fail "Can't parse Type4'"

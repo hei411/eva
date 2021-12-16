@@ -3,19 +3,19 @@ module MainFunctions.MainFunctions where
 import Datatype
 import TypeFunctions.TypeCompare
 
-getMain :: CompiledFilesData -> (CExp, BType)
+getMain :: CompiledFilesData -> Maybe (CExp, BType)
 getMain compiledFilesData =
   do
     let (_, entryFileData, _) : _ = compiledFilesData
     getMainHelper entryFileData
   where
-    getMainHelper :: TypeCheckedProgram -> (CExp, BType)
+    getMainHelper :: TypeCheckedProgram -> Maybe (CExp, BType)
     getMainHelper l = case l of
-      [] -> error "Can't find main program in entry file"
+      [] -> Nothing
       (name, cExp, bType, tps) : x1 ->
         if "main" /= name
           then getMainHelper x1
-          else if length tps /= 0 then error "main program can't be polymorphic!" else (cExp, bType)
+          else if length tps /= 0 then error "main program can't be polymorphic!" else Just (cExp, bType)
 
 getInterpreter :: BType -> InterpreterMode
 getInterpreter bType =
@@ -63,3 +63,8 @@ getInputType bType =
   case bType of
     BTypeBox (BTypeFunction (BTypeFix (BTypeProduct input _)) _) -> input
     _ -> error "Should not happen. Error in get input type function"
+
+checkPeano :: [String] -> Bool
+checkPeano args = case args of
+  [] -> False
+  s : ss -> (s == "--peano") || checkPeano ss
