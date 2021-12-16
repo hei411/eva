@@ -16,4 +16,3 @@ def test3 #=
         |now x => 0
 
 def repeat' =0 
-type Testr=Nat

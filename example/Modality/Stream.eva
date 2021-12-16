@@ -90,3 +90,39 @@ def scanStr[Stable a,b] f:#(a->b->a)  =
                 ?conStr[a] head tail
             ) 
 */
+
+import Prelude.Nat 
+
+def angleDelayStr[Stable a] # xs:Str(a) =
+    let x::_ = xs in  
+    let _::xs' = ?delayStr[a] x xs in 
+    xs'
+    
+def sort=
+    rec loop :#(Str(Nat)->Str(Nat)->Str(Nat))=> 
+        fun xs:Str(Nat) ys:Str(Nat) => 
+            let x::xs' = xs in 
+            let y::ys' = ys in 
+            if ?lessthan x y 
+                then 
+                    let temp = ?angleDelayStr[Nat] ys in
+                    x::>(<?loop <xs' <temp)
+                else 
+                    let temp = ?angleDelayStr[Nat] xs in 
+                    y::>(<?loop <temp <ys')
+
+//test sort 
+/*
+def even = 
+    let even' = rec loop:#(Nat->Str(Nat) ) => 
+        fun n:Nat => 
+            n::>(<?loop (n+2))
+    in #(?even' 0)
+
+def odd = 
+    let odd' = rec loop:#(Nat->Str(Nat) ) => 
+        fun n:Nat => 
+            n::>(<?loop (n+2))
+    in #(?odd' 1)
+
+def main# = ?sort ?odd ?even*/
