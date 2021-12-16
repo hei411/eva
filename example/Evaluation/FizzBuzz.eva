@@ -1,0 +1,24 @@
+import Modality.Stream 
+
+type FBType = (Unit+Unit) + (Unit+Nat)
+def fizz #= inl (inl () :(Unit+Unit))  :FBType
+def buzz #= inl (inr () :(Unit+Unit))  :FBType
+def fizzbuzz # = inr (inl () :(Unit+Nat))  :FBType
+def fbNat # n:Nat= inr (inr n :(Unit+Nat))  :FBType
+
+def fbRun = 
+    let helper =
+        rec loop:#(Nat -> Str(FBType))=>
+            fun n:Nat =>
+                let rest = >(<?loop (suc n)) in  
+                if n%15 ==0 then 
+                    ?fizzbuzz::rest 
+                else if n%3 ==0 then 
+                    ?fizz::rest 
+                else if n%5==0 then 
+                    ?buzz::rest 
+                else ?fbNat n::rest 
+    in 
+    # (?helper 1)
+
+//def main =fbRun

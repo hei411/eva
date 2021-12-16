@@ -66,11 +66,11 @@ def collatz =
 
 
 //Just for fun 
-def collatz' = 
+/*def collatz' = 
     rec loop:#(Nat -> Stream) => 
         fun n:Nat => 
             if n%2==0 
                 then n::>(<?loop (n/2))
                 else n:: >(<?loop (3*n+1))
 
-def main # = ?collatz' 2349
+def main # = ?collatz' 2349*/
