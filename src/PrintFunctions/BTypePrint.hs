@@ -84,21 +84,25 @@ printBType n bType =
           BTypeBool -> "Bool"
 
 bTypeLevel :: BType -> Integer
-bTypeLevel bType = case bType of
-  BTypeIndex n -> 4
-  BTypeParametric n tp -> 4
-  BTypeNameParam n -> 4
-  BTypeUnit -> 4
-  BTypeNat -> 4
-  BTypeProduct bt bt' -> 3
-  BTypeSum bt bt' -> 2
-  BTypeFunction bt bt' -> 0
-  BTypeBox bt -> 4
-  BTypeAngle bt -> 4
-  BTypeAt bt -> 4
-  BTypeFix bt -> -1
-  BTypeUntil bt bt' -> 1
-  BTypeBool -> 4
+bTypeLevel bType =
+  case findSpecialBType 0 bType of
+    Nothing ->
+      case bType of
+        BTypeIndex n -> 4
+        BTypeParametric n tp -> 4
+        BTypeNameParam n -> 4
+        BTypeUnit -> 4
+        BTypeNat -> 4
+        BTypeProduct bt bt' -> 3
+        BTypeSum bt bt' -> 2
+        BTypeFunction bt bt' -> 0
+        BTypeBox bt -> 4
+        BTypeAngle bt -> 4
+        BTypeAt bt -> 4
+        BTypeFix bt -> -1
+        BTypeUntil bt bt' -> 1
+        BTypeBool -> 4
+    _ -> 4
 
 findSpecialBType :: Integer -> BType -> Maybe String
 findSpecialBType n bType =

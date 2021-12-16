@@ -641,10 +641,14 @@ prependRule file functionName definedFunctions context varStack e1 e2 = do
 
 letStreamRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> String -> BExp -> BExp -> (CExp, BType)
 letStreamRule file functionName definedFunctions context varStack var1 var2 e1 e2 = do
-  let var1Exp = BExpFst (BExpOut (BExpVar "_Stream" []))
-  let var2Exp = BExpSnd (BExpOut (BExpVar "_Stream" []))
-  let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))
-  mainTypeChecker file functionName definedFunctions context varStack newExp
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  case e1Type of
+    BTypeFix (BTypeProduct _ (BTypeIndex 0)) -> do
+      let var1Exp = BExpFst (BExpOut (BExpVar "_Stream" []))
+      let var2Exp = BExpSnd (BExpOut (BExpVar "_Stream" []))
+      let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))
+      mainTypeChecker file functionName definedFunctions context varStack newExp
+    _ -> typeCheckerErrorMsg file functionName ("letStreamRule applied to non-stream expresions of exp: " ++ printCExp 0 e1Exp ++ " and type: " ++ printBType 0 e1Type)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =
