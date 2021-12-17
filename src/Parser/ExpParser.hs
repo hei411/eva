@@ -718,67 +718,69 @@ urecParser =
         spaces
         string "with"
         spaces
-        char '|'
-        spaces
-        string "now"
-        skipMany1 space
-        v1 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp1 <- expParser
-        spaces
-        char '|'
-        spaces
-        string "wait"
-        skipMany1 space
-        v2 <- choice [try varParser, try wildcardParser]
-        skipMany1 space
-        v3 <- choice [try varParser, try wildcardParser]
-        spaces
-        string ","
-        spaces
-        v4 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp2 <- expParser
-        return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+        helper exp
     )
-    <|> do
-      string "urec"
-      notFollowedBy alphaNum
-      spaces
-      exp <- expParser
-      spaces
-      string "with"
-      spaces
-      char '|'
-      spaces
-      string "wait"
-      skipMany1 space
-      v2 <- choice [try varParser, try wildcardParser]
-      skipMany1 space
-      v3 <- choice [try varParser, try wildcardParser]
-      spaces
-      string ","
-      spaces
-      v4 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp2 <- expParser
-      spaces
-      char '|'
-      spaces
-      string "now"
-      skipMany1 space
-      v1 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp1 <- expParser
-      return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+  where
+    helper :: AExp -> Parser AExp
+    helper exp =
+      try
+        ( do
+            char '|'
+            spaces
+            string "now"
+            skipMany1 space
+            v1 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp1 <- expParser
+            spaces
+            char '|'
+            spaces
+            string "wait"
+            skipMany1 space
+            v2 <- choice [try varParser, try wildcardParser]
+            skipMany1 space
+            v3 <- choice [try varParser, try wildcardParser]
+            spaces
+            string ","
+            spaces
+            v4 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp2 <- expParser
+            return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+        )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              string "wait"
+              skipMany1 space
+              v2 <- choice [try varParser, try wildcardParser]
+              skipMany1 space
+              v3 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v4 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              spaces
+              char '|'
+              spaces
+              string "now"
+              skipMany1 space
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+          )
 
 outParser :: Parser AExp
 outParser = do
