@@ -7,10 +7,10 @@ printCExp n cExp =
   do
     let currentLevel = cExpLevel cExp
     case cExp of
-      CExpIndex i -> "\'" ++ show (n -1 - i)
+      CExpIndex i -> "\'v" ++ show (n -1 - i)
       CExpUnit -> "()"
       CExpLambda ce ->
-        "fun " ++ "\'" ++ show n ++ " => "
+        "fun " ++ "\'v" ++ show n ++ " => "
           ++ printCExp (n + 1) ce
       CExpApplication ce ce' ->
         ( if cExpLevel ce <= cExpLevel cExp
@@ -65,7 +65,7 @@ printCExp n cExp =
                  else printCExp n ce
              )
           ++ " with | inl "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -73,7 +73,7 @@ printCExp n cExp =
                  else printCExp (n + 1) ce'
              )
           ++ " | inl "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -111,10 +111,10 @@ printCExp n cExp =
                  else printCExp n ce'
              )
           ++ " | suc "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ ", "
-          ++ "\'"
+          ++ "\'v"
           ++ show (n + 1)
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -169,7 +169,7 @@ printCExp n cExp =
                  else printCExp n ce
              )
           ++ " with | now "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -177,12 +177,12 @@ printCExp n cExp =
                  else printCExp (n + 1) ce'
              )
           ++ " | wait "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
-          ++ " \'"
+          ++ " \'v"
           ++ show (n + 1)
           ++ ", "
-          ++ "\'"
+          ++ "\'v"
           ++ show (n + 2)
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -190,7 +190,7 @@ printCExp n cExp =
                  else printCExp (n + 3) ce2
              )
       CExpRec ce ->
-        "rec " ++ "\'" ++ show n ++ " => "
+        "rec " ++ "\'v" ++ show n ++ " => "
           ++ printCExp (n + 1) ce
       CExpOut ce ->
         "out "

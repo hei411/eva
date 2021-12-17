@@ -1,5 +1,6 @@
 import Draft.test2
 import Draft.test3
 def find = hiddenfunction
-
+def wrong n:#Nat # n:#Bool = ?n
 //type Test= Testr
+def main # = ?(wrong #3) 

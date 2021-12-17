@@ -15,7 +15,7 @@ printBType n bType =
       do
         let currentLevel = bTypeLevel bType
         case bType of
-          BTypeIndex ind -> "\'" ++ show (n -1 - ind)
+          BTypeIndex ind -> "\'t" ++ show (n -1 - ind)
           BTypeParametric n tp -> "p" ++ show (n)
           BTypeNameParam n -> "p" ++ show (n)
           BTypeUnit -> "Unit"
@@ -69,7 +69,7 @@ printBType n bType =
                      else printBType n bt
                  )
           BTypeFix bt ->
-            "Fix " ++ "\'" ++ show n ++ " --> "
+            "Fix " ++ "\'t" ++ show n ++ " --> "
               ++ printBType (n + 1) bt
           BTypeUntil bt bt' ->
             ( if bTypeLevel bt <= currentLevel
