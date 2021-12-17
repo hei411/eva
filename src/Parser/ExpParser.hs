@@ -26,7 +26,7 @@ expParser =
     <|> try letProductExpParser
     <|> try ifExpParser
     <|> try bindExpParser
-    <|> orExpParser
+    <|> infixExpParser
     <|> fail "Cannot parse an expression"
 
 letExpParser :: Parser AExp
@@ -178,15 +178,36 @@ bindExpParser =
     <|> recParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
 
+infixExpParser :: Parser AExp
+infixExpParser =
+  try
+    ( chainl1 orExpParser operator
+    )
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "`"
+            spaces
+            exp <- expParser
+            spaces
+            string "`"
+            spaces
+            return (\x y -> AExpApplication (AExpApplication exp x) y)
+        )
+
 orExpParser :: Parser AExp
 orExpParser =
-  ( do
-      e1 <- andExpParser
-      e2 <- optionMaybe helper
-      case e2 of
-        Nothing -> return e1
-        Just ae -> return (AExpOr e1 ae)
-  )
+  try
+    ( do
+        e1 <- andExpParser
+        e2 <- optionMaybe helper
+        case e2 of
+          Nothing -> return e1
+          Just ae -> return (AExpOr e1 ae)
+    )
   where
     helper :: Parser AExp
     helper =
@@ -202,13 +223,14 @@ orExpParser =
 
 andExpParser :: Parser AExp
 andExpParser =
-  ( do
-      e1 <- notExpParser
-      e2 <- optionMaybe helper
-      case e2 of
-        Nothing -> return e1
-        Just ae -> return (AExpAnd e1 ae)
-  )
+  try
+    ( do
+        e1 <- notExpParser
+        e2 <- optionMaybe helper
+        case e2 of
+          Nothing -> return e1
+          Just ae -> return (AExpAnd e1 ae)
+    )
   where
     helper :: Parser AExp
     helper =
