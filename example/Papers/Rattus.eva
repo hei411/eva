@@ -6,7 +6,7 @@ import Modality.Stream
 //Can't implement as intended
 /*def clairvoyance # xs:Str(Nat) = 
     let x:::xs' = xs in 
-    ?(mapStr[Nat,Nat] #(fun n:Nat =>suc n)) <xs' */
+    ?(mapStr{Nat,Nat} #(fun n:Nat =>suc n)) <xs' */
 
 def constInt x:Nat = 
     rec loop:#Str(Nat) =>
@@ -14,7 +14,7 @@ def constInt x:Nat =
 
 //Can't implement as a is not stable type
 //Specifying that a is stable will work though, see const
-/*def leakyConst[a] x:a =
+/*def leakyConst{a} x:a =
     rec loop:#Str(a) =>
         x:::?loop*/
 
@@ -35,20 +35,20 @@ def inc =
     <xs'*/
 
 //See Modality.Stream mapStr
-def map[a,b] = mapStr[a,b]
+def map{a,b} = mapStr{a,b}
 
-def inc' = map[Nat,Nat] #(fun n:Nat => suc n)
+def inc' = map{Nat,Nat} #(fun n:Nat => suc n)
 
-def constBox[a] x:#a =
+def constBox{a} x:#a =
     rec loop:#Str(a) => 
         ?x:::?loop
 
-def const[Stable a] x:a =
+def const{Stable a} x:a =
     rec loop:#Str(a) =>
         x:::?loop
 
 //Can't implement as f is not stable
-/*def leakyMap[a,b] f:(a->b) = 
+/*def leakyMap{a,b} f:(a->b) = 
     rec loop:#(Str(a)->Str(b)) =>
         fun xs:Str(a) =>    
             let x:::xs' = xs in 
@@ -59,7 +59,7 @@ def const[Stable a] x:a =
 def stutter =
     rec loop:#(Nat->Str(Nat)) => 
         fun n:Nat => 
-            n::: >(?delayStr[Nat] n (<?loop (suc n)))
+            n::: >(?delayStr{Nat} n (<?loop (suc n)))
 
 def stutter' = 
     let helper = 
@@ -75,16 +75,16 @@ def stutter' =
 
 type Maybe(a) = Unit+ a
 
-def zip[a,b] = zipStr[a,b]
+def zip{a,b} = zipStr{a,b}
 
 //See scanStr in Modality.Stream
-def scan[a,Stable b] = scanStr[b,a]
+def scan{a,Stable b} = scanStr{b,a}
 
 //Note that this is different Event is different from Ev
 //Ev will terminate once an event occurs
 type Event(a) = Str(Maybe(a)) 
 
-def switch[a] = 
+def switch{a} = 
     rec loop:#(Str(a)->Event(a)->Str(a))=>
         fun xs:Str(a) ys:Event(a) =>
             let x:::xs' = xs in 
@@ -95,7 +95,7 @@ def switch[a] =
                 |inr yResult => 
                     yResult:::>(<?loop <xs' <ys')
 
-def switchTrans[a,b] # f:Str(a)->Str(b) es:Event(Str(a)->Str(b)) xs:Str(a)= 
+def switchTrans{a,b} # f:Str(a)->Str(b) es:Event(Str(a)->Str(b)) xs:Str(a)= 
     let switchTrans'=
         ?(rec loop:#(Str(b)->Event(Str(a)->Str(b))->Str(a)->Str(b))=>
             fun ys:Str(b) fs:Event(Str(a)->Str(b)) xs:Str(a) =>
@@ -114,7 +114,7 @@ def switchTrans[a,b] # f:Str(a)->Str(b) es:Event(Str(a)->Str(b)) xs:Str(a)=
     switchTrans' (f xs) es xs
 
 import Modality.Primitives
-def delayApp[a,b] = angleDelayApp[a,b]
+def delayApp{a,b} = angleDelayApp{a,b}
 
 //Section 3.2 and 3.3 (A simple reactive program and Arrowized FRP) ommitted 
 
@@ -154,7 +154,7 @@ def leakySums2 =
             x::: > (?add (?const x) <xs')
 
 //Implementing altermap requires two recursive functions
-def alterMap[a,b] f:#(a->b) g:#(a->b) =
+def alterMap{a,b} f:#(a->b) g:#(a->b) =
     let helper = 
         rec loop:#((Str(a)->Str(b))*
                    (Str(a)->Str(b))) =>
@@ -173,5 +173,5 @@ def alterMap[a,b] f:#(a->b) g:#(a->b) =
     #(fst ?helper)
 
 //eta is typable because it uses the same unbox rule as Simply RaTT
-def eta[a,b] f:a->#b x:a =
+def eta{a,b} f:a->#b x:a =
     #(?(f x))

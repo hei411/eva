@@ -6,7 +6,7 @@ import Modality.Stream
 def leakyNats = 
     let addOne # n:Nat = suc n in 
     rec loop:#Str(Nat) => 
-        0::: >(?(mapStr[Nat,Nat] addOne) <?loop) 
+        0::: >(?(mapStr{Nat,Nat} addOne) <?loop) 
 
 
 def from = 
@@ -18,16 +18,16 @@ def nats # = ?from 0
 
 import Modality.Primitives
 
-def delayApp[a,b] = angleDelayApp[a,b]
+def delayApp{a,b} = angleDelayApp{a,b}
 
 def zeros = 
     rec loop: #Str(Nat)=> 
         0:::?loop
 
-def map[a,b] = mapStr[a,b]
+def map{a,b} = mapStr{a,b}
 
 //map for events
-def map'[a,b] f:#(a->b) = 
+def map'{a,b} f:#(a->b) = 
     rec loop : #(Ev(a)->Ev(b)) => 
         fun x:Ev(a) =>
             let x' = out x in 
@@ -42,9 +42,9 @@ def map'[a,b] f:#(a->b) =
                     into temp:Ev(b)
 
 //This is the f function in subsection 2.3
-def addProgram = map[Nat,Nat->Nat] #(fun n:Nat x:Nat => n+x)
+def addProgram = map{Nat,Nat->Nat} #(fun n:Nat x:Nat => n+x)
 
-def strApp [a,b]=
+def strApp {a,b}=
     rec loop:#(Str(a->b)->Str(a)->Str(b) ) => 
         fun fs:Str(a->b) xs:Str(a) =>
             let f:::fs' = fs in 
@@ -77,36 +77,36 @@ def sum_acc =
 
 def sum # ns:Str(Nat) = ?sum_acc ns 0
 
-def const[a] x:#a =
+def const{a} x:#a =
     rec loop:#(Str(a)) => 
         ?x::: ?loop
 
-def zeros' = const[Nat] #0
+def zeros' = const{Nat} #0
 
-def iter[Stable a] f:#(a->a) = 
+def iter{Stable a} f:#(a->a) = 
     rec loop:#(a->Str(a))=>
         fun acc:a => 
             acc:::> (<?loop (?f acc))
 
 def nats' # = 
-    ?(iter[Nat] (#(fun n:Nat=>suc n))) 0
+    ?(iter{Nat} (#(fun n:Nat=>suc n))) 0
 
-def iter'[a] f:#(a-> >a) =
+def iter'{a} f:#(a-> >a) =
     rec loop:#(a->Str(a) )=>
         fun acc:a => 
             acc::: >(<?loop <(?f acc))
 
 type Maybe(a) = Unit + a 
 
-def filter[a] p:#(a->Bool) = 
-    map[a,Maybe(a)] 
+def filter{a} p:#(a->Bool) = 
+    map{a,Maybe(a)} 
     #(fun x:a => 
         if ?p x 
             then inr x:Maybe(a) 
             else inl ():Maybe(a)
     )
 
-def fromMaybe[a] default:#a = 
+def fromMaybe{a} default:#a = 
     rec loop: # (Str(Maybe(a)) ->Str(a))=>
         fun xs:Str(Maybe(a))  => 
             let x:::xs' = xs in 
@@ -114,18 +114,18 @@ def fromMaybe[a] default:#a =
                 | inr v => v:::>(<?loop <xs')
                 | inl _ => ?default::: >(<?loop <xs')
 
-def zipWith[a,b,c] f:#(a->b->c) = 
+def zipWith{a,b,c} f:#(a->b->c) = 
     rec loop:#(Str(a)->Str(b)->Str(c))=>
         fun xs:Str(a) ys:Str(b) => 
             let x:::xs' = xs in 
             let y:::ys' = ys in 
             ?f x y ::: >(<?loop <xs' <ys')
 
-def zip[a,b] = 
-    zipWith[a,b,a*b] #(fun x:a y:b=> (x,y))
+def zip{a,b} = 
+    zipWith{a,b,a*b} #(fun x:a y:b=> (x,y))
 
 //Same switch function from Neel's paper
-def switch[a] = 
+def switch{a} = 
     rec loop:#(Str(a)->Ev(Str(a)) -> Str(a) )=> 
         fun xs:Str(a) e:Ev(Str(a)) => 
             let x:::xs' = xs in 
@@ -136,7 +136,7 @@ def switch[a] =
                     x::: >(<?loop <xs' <t)
 
 //scan function, similar to Neel's unfold function
-def scan'[a,Stable b] f:#(b->a->b) = 
+def scan'{a,Stable b} f:#(b->a->b) = 
     rec loop:#(b->Str(a)->Str(b)) => 
         fun acc:b xs:Str(a) =>
             let x:::xs' = xs in 
@@ -145,10 +145,10 @@ def scan'[a,Stable b] f:#(b->a->b) =
 
 //new definition of sum using scan
 def sum'# =
-    ?(scan'[Nat,Nat] #(fun n:Nat m:Nat => n+m)) 0 
+    ?(scan'{Nat,Nat} #(fun n:Nat m:Nat => n+m)) 0 
 
 //same unfold function as Neel's paper
-def unfold[x,a] h:#(x-> (a* >x)) =
+def unfold{x,a} h:#(x-> (a* >x)) =
     rec loop: #(x->Str(a)) =>
         fun arg:x => 
             let result = ?h arg in 
@@ -156,7 +156,7 @@ def unfold[x,a] h:#(x-> (a* >x)) =
             let rest = snd result in 
             hd::: >(<?loop <rest)
 
-def awaitA[Stable a,b] = 
+def awaitA{Stable a,b} = 
     rec loop:#(a->Ev(b) ->Ev(a*b) )=>
         fun x:a y:Ev(b) => 
             let y' = out y in 
@@ -166,7 +166,7 @@ def awaitA[Stable a,b] =
                     let temp = >(<?loop x <rest) in 
                     into (inr temp: (a*b)+>Ev(a*b)) :Ev(a*b)
 
-def awaitB[Stable b,a] = 
+def awaitB{Stable b,a} = 
     rec loop:#(b->Ev(a) ->Ev(a*b) )=>
         fun x:b y:Ev(a) => 
             let y' = out y in 
@@ -177,26 +177,26 @@ def awaitB[Stable b,a] =
                     into (inr temp: (a*b)+>Ev(a*b)) :Ev(a*b)
 
 
-def await[Stable a,Stable b] =
+def await{Stable a,Stable b} =
     rec loop:#(Ev(a)->Ev(b)->Ev(a*b)) => 
         fun x:Ev(a) y:Ev(b) => 
             let x'=out x in 
             let y'=out y in 
             match x' with 
-                | inl xResult => ?awaitA[a,b] xResult y 
+                | inl xResult => ?awaitA{a,b} xResult y 
                 | inr xRest => 
                     match y' with 
-                        | inl yResult => ?awaitB[b,a] yResult x 
+                        | inl yResult => ?awaitB{b,a} yResult x 
                         | inr yRest => 
                             let tl = >(<?loop <xRest <yRest) in 
                             let temp = inr tl: (a*b)+>Ev(a*b) in 
                             into temp: Ev(a*b)
 
-def eventApp[a,b] x:#a = 
-    map'[a->b,b] #(fun f:(a->b) => f ?x)
+def eventApp{a,b} x:#a = 
+    map'{a->b,b} #(fun f:(a->b) => f ?x)
 
-def accum[a,b] x:#a =
-    map[Ev(a->b), Ev(b)] (eventApp[a,b] x) 
+def accum{a,b} x:#a =
+    map{Ev(a->b), Ev(b)} (eventApp{a,b} x) 
 
 
 // Lustre Simulation
@@ -204,9 +204,9 @@ type Clock = Str(Bool)
 
 type Flow(a) = Str(Maybe(a)) 
 
-def basicClock = const[Bool] #true
+def basicClock = const{Bool} #true
 
-def never = const[Bool] #false 
+def never = const{Bool} #false 
 
 def everyNthAux step:Nat = 
     rec loop:#(Nat->Clock->Clock) => 
@@ -219,7 +219,7 @@ def everyNthAux step:Nat =
 def everyNth n:Nat #=
     ?(everyNthAux n) 0
 
-def when[typeX] =
+def when{typeX} =
     rec loop:#(Clock->Flow(typeX)->Flow(typeX)) => 
         fun cs:Clock xs:Flow(typeX) => 
             let c:::cs'=cs in 
@@ -247,7 +247,7 @@ def edgeAux =
 
 def edge # = ?edgeAux false
 
-def currentAux [Stable xType] = 
+def currentAux {Stable xType} = 
     rec loop:#(Maybe(xType) -> Flow(xType) -> Flow(xType)) => 
         fun pre:Maybe(xType) xs:Flow(xType) =>
             let x:::xs' = xs in 
@@ -255,10 +255,10 @@ def currentAux [Stable xType] =
                 |inl _ => pre::: >(<?loop pre <xs')
                 |inr xResult => x:::>(<?loop x <xs')
 
-def current[Stable xType] # =
+def current{Stable xType} # =
     fun xs:Flow(xType) => 
         let x:::_ = xs in 
-        ?currentAux[xType] x xs
+        ?currentAux{xType} x xs
 
 def counter init:Nat incr:Nat = 
     rec loop:#(Nat->Flow(Bool) -> Flow(Bool) -> Flow(Nat) ) =>

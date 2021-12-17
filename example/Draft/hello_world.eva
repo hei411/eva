@@ -1,14 +1,14 @@
 //def two_test = 2;
-def test [a,b] f:a->b x:a=f x
-def test2 = test [Nat,Unit]
-def inlInsert [Stable a,b] # (var:a) = inl var :a+b
+def test {a,b} f:a->b x:a=f x
+def test2 = test {Nat,Unit}
+def inlInsert {Stable a,b} # (var:a) = inl var :a+b
 type Nattest (f,e) = Nat
 type Weird(e,g) = e*(g+g)
 
 import Prelude.Nat 
 
 import Modality.Stream 
-//def main  # = ?constantStr[Nat] 0 
+//def main  # = ?constantStr{Nat} 0 
 def main  = if true and false and true then 0 else 3-5^2
 //import ervrev.erg.erv;
 /*

@@ -38,7 +38,7 @@ def minimization2
             let repeat = (rec loop:#(Nat-> Str(Unit+Nat)) =>
                         fun i:Nat => 
                             let b = ?isZero (?f i x1 x2) in
-                            let successCase = ?constantStr[Unit+Nat] (inr i:Unit+Nat) in
+                            let successCase = ?constantStr{Unit+Nat} (inr i:Unit+Nat) in
                             let failureCaseHd = inl ():Unit+Nat in
                             let failureCaseTl = > (<?loop (suc i)) in
                             let failureStream = failureCaseHd ::: failureCaseTl in
@@ -64,4 +64,4 @@ def ackermann # m:Nat n:Nat =
         |0 => (fun x:Nat => suc x) 
         |suc x, rest => iter rest) n          
 
-//def main #=?constantStr[Nat] (?ackermann 2 1)
+//def main #=?constantStr{Nat} (?ackermann 2 1)

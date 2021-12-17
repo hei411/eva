@@ -96,7 +96,7 @@ def machineLoop program:Nat =
             let instruction = ?getInstruction instructionLine program in 
             match instruction with 
                 |inl _ => //halting instruction
-                        ?MS.constantStr[Result] (inr (?topStack args):Result)
+                        ?MS.constantStr{Result} (inr (?topStack args):Result)
                 |inr other => 
                     match other with 
                         |inl addInstr =>
@@ -126,5 +126,5 @@ def machineLoop program:Nat =
 def machineEntry program:Nat args:Stack # = 
     ?(machineLoop program) 0 (?addToStack 0 args)
 
-//def main #= ?MS.constantStr[Instruction] (?getInstruction 0 64)
+//def main #= ?MS.constantStr{Instruction} (?getInstruction 0 64)
 //def main = machineEntry 64 23

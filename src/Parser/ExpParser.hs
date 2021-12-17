@@ -852,11 +852,11 @@ expParameterParser :: Parser [AType]
 expParameterParser =
   do
     spaces
-    char '['
+    char '{'
     spaces
     l <- sepBy1 typeParser (try commaParser)
     spaces
-    char ']'
+    char '}'
     return l
   where
     commaParser :: Parser ()

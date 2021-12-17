@@ -12,7 +12,7 @@ def fibHelper =
 
 //def main = fib
 
-def delayStream = MS.delayStr [Nat]
+def delayStream = MS.delayStr {Nat}
 
 def addStream = 
     rec repeat:# (Stream->Stream->Stream) => 
