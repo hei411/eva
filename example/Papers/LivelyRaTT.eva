@@ -293,4 +293,4 @@ def schMut[Limit a,Limit b] =
 def sch[Limit a,Limit b] # =fst ?schMut[a,b]
 
 //for debugging
-//def test3 # =?sch[Bool,Nat] 0 ?trues ?zeros
+def test3 # =?sch[Bool,Nat] 0 ?trues ?zeros

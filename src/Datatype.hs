@@ -199,7 +199,8 @@ data CExp
   
 
 -- Type checking
-type ContextElem = (String, BType)
+--Integer stores how many elements are in the var stack before pushing it in
+type ContextElem = (String, BType, Integer)
 
 type ContextElemList = [ContextElem]
 
