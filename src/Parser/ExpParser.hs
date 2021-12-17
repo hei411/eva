@@ -574,59 +574,61 @@ primrecParser =
         spaces
         string "with"
         spaces
-        char '|'
-        spaces
-        char '0'
-        spaces
-        string "=>"
-        spaces
-        exp1 <- expParser
-        spaces
-        char '|'
-        spaces
-        string "suc"
-        skipMany1 space
-        v1 <- choice [try varParser, try wildcardParser]
-        spaces
-        string ","
-        spaces
-        v2 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp2 <- expParser
-        return (AExpPrimrec exp exp1 v1 v2 exp2)
+        helper exp
     )
-    <|> do
-      string "primrec"
-      notFollowedBy alphaNum
-      spaces
-      exp <- expParser
-      spaces
-      string "with"
-      spaces
-      char '|'
-      spaces
-      string "suc"
-      skipMany1 space
-      v1 <- choice [try varParser, try wildcardParser]
-      spaces
-      string ","
-      spaces
-      v2 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp2 <- expParser
-      spaces
-      char '|'
-      spaces
-      char '0'
-      spaces
-      string "=>"
-      spaces
-      exp1 <- expParser
-      return (AExpPrimrec exp exp1 v1 v2 exp2)
+  where
+    helper :: AExp -> Parser AExp
+    helper exp =
+      try
+        ( do
+            char '|'
+            spaces
+            char '0'
+            spaces
+            string "=>"
+            spaces
+            exp1 <- expParser
+            spaces
+            char '|'
+            spaces
+            string "suc"
+            skipMany1 space
+            v1 <- choice [try varParser, try wildcardParser]
+            spaces
+            string ","
+            spaces
+            v2 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp2 <- expParser
+            return (AExpPrimrec exp exp1 v1 v2 exp2)
+        )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              string "suc"
+              skipMany1 space
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v2 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              spaces
+              char '|'
+              spaces
+              char '0'
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              return (AExpPrimrec exp exp1 v1 v2 exp2)
+          )
 
 angleParser :: Parser AExp
 angleParser = do
