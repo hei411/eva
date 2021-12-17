@@ -55,7 +55,7 @@ peanoConverterAExp e = do
     AExpDivide ae ae' -> AExpDivide (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpMod ae ae' -> AExpMod (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpPower ae ae' -> AExpPower (peanoConverterAExp ae) (peanoConverterAExp ae')
-    AExpPrepend ae ae' -> AExpPrepend (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpStreamCons ae ae' -> AExpStreamCons (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpLetStream s s' ae ae' -> AExpLetStream s s' (peanoConverterAExp ae) (peanoConverterAExp ae')
   where
     helper :: Integer -> AExp

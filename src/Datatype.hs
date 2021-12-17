@@ -66,8 +66,12 @@ data AExp
   | AExpDivide AExp AExp 
   | AExpMod AExp AExp 
   | AExpPower AExp AExp 
-  | AExpPrepend AExp AExp 
+  | AExpStreamCons AExp AExp 
   | AExpLetStream String String AExp AExp
+  {-| AExpEmptyList AType 
+  | AExpNonEmptyList [AExp]
+  | AExpAppend AExp 
+  | AExp-}
   deriving (Show, Eq)
 
 data AType
@@ -147,7 +151,7 @@ data BExp
   | BExpDivide BExp BExp 
   | BExpMod BExp BExp 
   | BExpPower BExp BExp 
-  | BExpPrepend BExp BExp 
+  | BExpStreamCons BExp BExp 
   | BExpLetStream String String BExp BExp
   deriving (Show, Eq)
 

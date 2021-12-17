@@ -47,7 +47,7 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpDivide ae ae' -> BExpDivide (abExpConverterCur ae) (abExpConverterCur ae')
   AExpMod ae ae' -> BExpMod (abExpConverterCur ae) (abExpConverterCur ae')
   AExpPower ae ae' -> BExpPower (abExpConverterCur ae) (abExpConverterCur ae')
-  AExpPrepend ae ae' -> BExpPrepend (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpStreamCons ae ae' -> BExpStreamCons (abExpConverterCur ae) (abExpConverterCur ae')
   AExpLetStream s s' ae ae' -> BExpLetStream s s' (abExpConverterCur ae) (abExpConverterCur ae')
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames

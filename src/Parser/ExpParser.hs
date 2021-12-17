@@ -260,7 +260,7 @@ compareExpParser :: Parser AExp
 compareExpParser =
   try
     ( do
-        e <- prependParser
+        e <- streamConsParser
         e1 <- optionMaybe helper1
         case e1 of
           Nothing ->
@@ -279,7 +279,7 @@ compareExpParser =
             spaces
             string "=="
             spaces
-            e2 <- prependParser
+            e2 <- streamConsParser
             return e2
         )
     helper2 :: Parser AExp
@@ -289,12 +289,12 @@ compareExpParser =
             spaces
             string "!="
             spaces
-            e2 <- prependParser
+            e2 <- streamConsParser
             return e2
         )
 
-prependParser :: Parser AExp
-prependParser = do
+streamConsParser :: Parser AExp
+streamConsParser = do
   chainr1 addMinusParser operator
   where
     operator :: Parser (AExp -> AExp -> AExp)
@@ -304,7 +304,7 @@ prependParser = do
             spaces
             string ":::"
             spaces
-            return AExpPrepend
+            return AExpStreamCons
         )
 
 addMinusParser :: Parser AExp
