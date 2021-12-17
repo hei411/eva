@@ -26,7 +26,7 @@ def mergef f:#(Nat->Nat-> > Stream -> Stream) =
             ?f x y >(<?loop <xs' <ys')
 
 import Modality.UntilList 
-type NatList = List(Nat)
+type NatList = UList(Nat)
 
 //We use Until modality to encode finite lists
 def take n:Nat  = 

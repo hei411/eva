@@ -40,7 +40,7 @@ typeNameParameterParser =
 typeParser :: Parser AType
 typeParser = do
   try fixTypeParser
-    <|> type0Parser
+    <|> functionTypeParser --type0Parser
     <|> fail "Can't parse type"
 
 fixTypeParser :: Parser AType
@@ -54,6 +54,122 @@ fixTypeParser = do
   t <- typeParser
   return (ATypeFix v t)
 
+functionTypeParser :: Parser AType
+functionTypeParser =
+  do
+    chainr1 untilTypeParser operator
+  where
+    operator :: Parser (AType -> AType -> AType)
+    operator =
+      try
+        ( do
+            spaces
+            string "->"
+            spaces
+            return ATypeFunction
+        )
+
+untilTypeParser :: Parser AType
+untilTypeParser =
+  do
+    chainr1 sumTypeParser operator
+  where
+    operator :: Parser (AType -> AType -> AType)
+    operator =
+      try
+        ( do
+            spaces
+            string "Until"
+            notFollowedBy alphaNum
+            spaces
+            return ATypeUntil
+        )
+
+sumTypeParser :: Parser AType
+sumTypeParser =
+  do
+    chainl1 productTypeParser operator
+  where
+    operator :: Parser (AType -> AType -> AType)
+    operator =
+      try
+        ( do
+            spaces
+            string "+"
+            spaces
+            return ATypeSum
+        )
+
+productTypeParser :: Parser AType
+productTypeParser =
+  do
+    chainl1 oneTypeParser operator
+  where
+    operator :: Parser (AType -> AType -> AType)
+    operator =
+      try
+        ( do
+            spaces
+            string "*"
+            spaces
+            return ATypeProduct
+        )
+
+oneTypeParser :: Parser AType
+oneTypeParser =
+  try fixTypeParser
+    <|> try
+      ( do
+          string "Unit"
+          notFollowedBy alphaNum
+          return ATypeUnit
+      )
+    <|> try
+      ( do
+          char '('
+          spaces
+          t <- typeParser
+          spaces
+          char ')'
+          return t
+      )
+    <|> try
+      ( do
+          char '@'
+          spaces
+          t <- oneTypeParser
+          return (ATypeAt t)
+      )
+    <|> try
+      ( do
+          char '>'
+          spaces
+          t <- oneTypeParser
+          return (ATypeAngle t)
+      )
+    <|> try
+      ( do
+          string "#"
+          spaces
+          t <- oneTypeParser
+          return (ATypeBox t)
+      )
+    <|> try typeVarParser
+    <|> try typeNameParser
+    <|> try
+      ( do
+          string "Nat"
+          notFollowedBy alphaNum
+          return ATypeNat
+      )
+    <|> ( do
+            string "Bool"
+            notFollowedBy alphaNum
+            return ATypeBool
+        )
+    <|> fail "Can't parse Type4'"
+
+{-
 type0Parser :: Parser AType
 type0Parser =
   try
@@ -189,7 +305,7 @@ foldType3' l = case l of
     foldApplicationHelper h t = case t of
       [] -> h
       hd : tl -> foldApplicationHelper (ATypeProduct h hd) tl
-
+-}
 -- removed since we replace lambda and application with <> for type synonyms
 {-
 type4Parser :: Parser AType
@@ -229,6 +345,7 @@ foldType4' l = case l of
       hd : tl -> foldApplicationHelper (ATypeApplication h hd) tl
 
 -}
+{-
 firstTypeParser :: Parser AType
 firstTypeParser =
   try fixTypeParser
@@ -313,3 +430,4 @@ type4'Parser =
             return ATypeBool
         )
     <|> fail "Can't parse Type4'"
+-}

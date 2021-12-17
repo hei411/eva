@@ -8,7 +8,7 @@ def fibHelper =
             let rest = > (<?repeat y sum) in 
             sum::rest
 
-def fib # = ?fibHelper 0 1
+//def fib # = ?fibHelper 0 1
 
 //def main = fib
 

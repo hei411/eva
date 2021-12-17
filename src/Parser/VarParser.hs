@@ -83,6 +83,7 @@ checkUpperVar str = case str of
   "Limit" -> fail "Limit cannot be type variable name."
   "Bool" -> fail "Bool cannot be type variable name."
   "CStable" -> fail "CStable cannot be type variable name."
+  "List" -> fail "List cannot be type variable name."
   _ -> return (str)
 
 potentialDotVarParser :: Parser String
