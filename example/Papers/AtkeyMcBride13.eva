@@ -7,22 +7,22 @@ type Stream = Str(Nat)
 
 def ones = 
     rec loop:#Stream => 
-        1::?loop
+        1:::?loop
 
 //filter can't be implemented as expected
 /*def filter f:#(Nat->Bool) =
     rec loop:#(Stream->Stream) =>
         fun xs:Stream => 
-            let x::xs' = xs in 
+            let x:::xs' = xs in 
             if ?f x 
-                then x::>(<?loop <xs')
+                then x:::>(<?loop <xs')
             else >(<?loop <xs')*/
 
 def mergef f:#(Nat->Nat-> > Stream -> Stream) = 
     rec loop:#(Stream->Stream->Stream) => 
         fun xs:Stream ys:Stream => 
-            let x::xs' = xs in 
-            let y::ys' = ys in 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
             ?f x y >(<?loop <xs' <ys')
 
 import Modality.UntilList 
@@ -34,13 +34,13 @@ def take n:Nat  =
         |0 =># fun xs:Stream => now () :NatList 
         |suc _, rest => 
             # fun xs:Stream =>
-                let x::xs' = xs in 
+                let x:::xs' = xs in 
                 (wait x @(?rest <xs')) 
 
 //debugging take
 /*def constInt x:Nat = 
     rec loop:#Str(Nat) =>
-        x::?loop
+        x:::?loop
 
 def test #= ?(take 8)   ?(constInt 4)*/
 
@@ -70,7 +70,7 @@ def collatz =
     rec loop:#(Nat -> Stream) => 
         fun n:Nat => 
             if n%2==0 
-                then n::>(<?loop (n/2))
-                else n:: >(<?loop (3*n+1))
+                then n:::>(<?loop (n/2))
+                else n::: >(<?loop (3*n+1))
 
 def main # = ?collatz' 2349*/

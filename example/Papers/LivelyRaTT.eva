@@ -166,15 +166,15 @@ def altStrMut[a,b] =
                (Str(a)->Str(b)->Str(a+b)) ) =>
         let one = (
                 fun xs:Str(a) ys:Str(b) => 
-                    let x::xs' = xs in
-                    let y::ys' = ys in 
-                    (inr y:a+b):: >(<(?proj2[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                    let x:::xs' = xs in
+                    let y:::ys' = ys in 
+                    (inr y:a+b)::: >(<(?proj2[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
                 ) in 
         let two = (
                 fun xs:Str(a) ys:Str(b) => 
-                    let x::xs' = xs in
-                    let y::ys' = ys in 
-                    (inl x:a+b):: >(<(?proj1[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
+                    let x:::xs' = xs in
+                    let y:::ys' = ys in 
+                    (inl x:a+b)::: >(<(?proj1[Str(a)->Str(b)->Str(a+b),Str(a)->Str(b)->Str(a+b)] ?loop) <xs' <ys')
                 ) in 
         (one,two)
 
@@ -205,14 +205,14 @@ def altFairMut[a,b] =
                 (Str(a)->Str(b)->Fair'(b,a))) => 
         let one = (
                 fun xs:Str(a) ys:Str(b) => 
-                    let x::xs' = xs in
-                    let y::ys' = ys in 
+                    let x:::xs' = xs in
+                    let y:::ys' = ys in 
                     ?switch[a,b] y >(snd <?loop <xs' <ys')
                 ) in 
         let two = (
                 fun xs:Str(a) ys:Str(b) => 
-                    let x::xs' = xs in
-                    let y::ys' = ys in 
+                    let x:::xs' = xs in
+                    let y:::ys' = ys in 
                     ?switch'[b,a] x >(fst <?loop <xs' <ys')
                 ) in 
         (one,two)
@@ -224,10 +224,10 @@ def altFair'[b,a] #= snd ?altFairMut[a,b]
 //for debugging fair streams
 def zeros = 
     rec loop: #Str(Nat)=> 
-        0::?loop
+        0:::?loop
 def trues = 
     rec loop: #Str(Bool)=> 
-        true::?loop
+        true:::?loop
 
 //def test #= ?altFair[Bool,Nat] ?trues ?zeros 
 
@@ -240,18 +240,18 @@ def runFairMut[a,b] =
                     urec xs' with 
                         |now result => 
                             let (first,second) = result in 
-                            (inr first:a+b)::>(snd <?loop <second) 
+                            (inr first:a+b):::>(snd <?loop <second) 
                         |wait one _, rest=>
-                            (inl one:a+b) :: >(<rest)
+                            (inl one:a+b) ::: >(<rest)
                 ) in 
         let two = (
                 fun xs:Fair'(b,a) => 
                     urec xs with 
                         |now result => 
                             let (first,second) = result in 
-                            (inl first:a+b)::>(fst <?loop <second) 
+                            (inl first:a+b):::>(fst <?loop <second) 
                         |wait one _, rest=>
-                            (inr one:a+b) :: >(<rest)
+                            (inr one:a+b) ::: >(<rest)
                 ) in 
         (one,two)
 
@@ -268,13 +268,13 @@ def schMut[Limit a,Limit b] =
                     (urec num with 
                         |now _ =>
                             fun m:Nat xs:Str(a) ys:Str(b) => 
-                                let x::xs' = xs in 
-                                let y::ys' = ys in 
+                                let x:::xs' = xs in 
+                                let y:::ys' = ys in 
                                 ?switch[a,b] y >(snd <?loop (suc m) <xs' <ys')
                         |wait _ _, rest => 
                             fun m:Nat xs:Str(a) ys:Str(b) => 
-                                let x::xs' = xs in 
-                                let y::ys' = ys in 
+                                let x:::xs' = xs in 
+                                let y:::ys' = ys in 
                                 ?stay[a,b] x @ out (<rest m <xs' <ys')
                     )
                     in
@@ -284,8 +284,8 @@ def schMut[Limit a,Limit b] =
                 ) in 
         let sch' = (
             fun n:Nat xs:Str(a) ys:Str(b) => 
-                let x::xs' = xs in 
-                let y::ys' = ys in 
+                let x:::xs' = xs in 
+                let y:::ys' = ys in 
                 ?switch'[b,a] x >(fst <?loop n <xs' <ys')
                 ) in 
         (sch,sch')

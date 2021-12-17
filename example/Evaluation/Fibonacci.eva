@@ -6,7 +6,7 @@ def fibHelper =
         fun x:Nat y:Nat =>
             let sum =  x + y in 
             let rest = > (<?repeat y sum) in 
-            sum::rest
+            sum:::rest
 
 //def fib # = ?fibHelper 0 1
 
@@ -17,14 +17,14 @@ def delayStream = MS.delayStr [Nat]
 def addStream = 
     rec repeat:# (Stream->Stream->Stream) => 
         fun one:Stream two:Stream =>
-            let onehd::onetl = one in
-            let twohd::twotl = two in 
-            (onehd + twohd):: >(<?repeat <onetl <twotl)
+            let onehd:::onetl = one in
+            let twohd:::twotl = two in 
+            (onehd + twohd)::: >(<?repeat <onetl <twotl)
 
 def fibLeaky = 
     rec repeat: #Stream => 
         let delayedOnce = ?repeat in
         let delayedTwice = > (?delayStream 0 <?repeat) in
-        1 :: >(?addStream <delayedOnce <delayedTwice) 
+        1 ::: >(?addStream <delayedOnce <delayedTwice) 
 
 //def main = fibLeaky

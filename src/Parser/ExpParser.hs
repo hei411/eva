@@ -66,7 +66,7 @@ letStreamExpParser =
         spaces
         v1 <- choice [try varParser, try wildcardParser]
         spaces
-        string "::"
+        string ":::"
         spaces
         v2 <- choice [try varParser, try wildcardParser]
         spaces
@@ -280,7 +280,7 @@ prependParser = do
       try
         ( do
             spaces
-            string "::"
+            string ":::"
             spaces
             return AExpPrepend
         )

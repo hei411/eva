@@ -7,32 +7,32 @@ def from2 =
         rec loop:#(Nat ->Str(MaybeNat))=>
             fun n:Nat =>
                 let hd = inr n:MaybeNat in 
-                hd::>(<?loop (suc n))
+                hd:::>(<?loop (suc n))
     in
     #(?helper 2)
 
 def filter = 
     rec loop:#(Nat->Str(MaybeNat) -> Str(MaybeNat) ) => 
         fun n:Nat xs:Str(MaybeNat) => 
-            let x::xs' = xs in 
+            let x:::xs' = xs in 
             let tl = >(<?loop n <xs') in 
             match x with 
-                |inl _ => x::tl
+                |inl _ => x:::tl
                 |inr xResult => 
                     if xResult%n==0 
-                        then inl () :MaybeNat ::tl 
-                        else x::tl
+                        then inl () :MaybeNat :::tl 
+                        else x:::tl
 
 def sieve = 
     let helper = 
         rec loop:#(Str(MaybeNat)->Str(MaybeNat))=>
             fun xs:Str(MaybeNat) => 
-                let x::xs' =xs in 
+                let x:::xs' =xs in 
                 match x with 
-                    |inl _ => x::>(<?loop <xs')
+                    |inl _ => x:::>(<?loop <xs')
                     |inr xResult =>
                         let tl = >(?filter xResult (<?loop <xs')) in 
-                        x::tl
+                        x:::tl
     in # (?helper ?from2)
 
 def main =sieve

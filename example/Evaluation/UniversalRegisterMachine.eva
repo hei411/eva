@@ -105,7 +105,7 @@ def machineLoop program:Nat =
                             let stackPairs = ?splitStack argIndex args in 
                             let toAddElem = ?topStack (snd stackPairs) in 
                             let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (suc toAddElem) (?tailStack (snd stackPairs))) in 
-                            hiaton :: >(<?loop nextInstr newargs)
+                            hiaton ::: >(<?loop nextInstr newargs)
                         |inr subInstr =>
                             //substract instruction 
                             let argIndex = fst subInstr in 
@@ -115,12 +115,12 @@ def machineLoop program:Nat =
                             let b = ?isZero toSubElem in
                             if b 
                              then   (//the element to be subtracted is zero
-                                hiaton :: >(<?loop nextInstr2 args)
+                                hiaton ::: >(<?loop nextInstr2 args)
                                 )
 
                               else  (//the element can be subtracted
                                 let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (?pred toSubElem) (?tailStack (snd stackPairs))) in 
-                                hiaton :: >(<?loop nextInstr1 newargs)
+                                hiaton ::: >(<?loop nextInstr1 newargs)
                                 )
 
 def machineEntry program:Nat args:Stack # = 
