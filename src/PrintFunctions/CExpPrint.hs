@@ -376,50 +376,50 @@ printCExp n cExp =
 --Probably all wrong
 cExpLevel :: CExp -> Integer
 cExpLevel cExp = case cExp of
-  CExpIndex n -> 3
-  CExpUnit -> 3
-  CExpLambda ce -> -3
-  CExpApplication ce ce' -> 1
-  CExpProduct ce ce' -> 2
-  CExpFst ce -> 2
-  CExpSnd ce -> 2
-  CExpInl ce -> 2
-  CExpInr ce -> 2
-  CExpMatch ce ce' ce2 -> 2
-  CExpZero -> 3
-  CExpSuc ce -> 2
-  CExpPrimrec ce ce' ce2 -> 2
-  CExpAdv ce -> 2
-  CExpDelay ce -> 2
-  CExpBox ce -> 2
-  CExpUnbox ce -> 2
-  CExpNow ce -> 2
-  CExpWait ce ce' -> 2
-  CExpUrec ce ce' ce2 -> 2
-  CExpNfix ce -> -3
-  CExpOut ce -> 2
-  CExpInto ce -> 2
-  CExpLocation n -> 3
-  CExpTrue -> 3
-  CExpFalse -> 3
-  CExpIf ce ce' ce2 -> -1
-  CExpAnd ce ce' -> -1
-  CExpOr ce ce' -> -1
-  CExpNot ce -> -1
-  CExpEquals ce ce' -> 0
-  CExpNotEquals ce ce' -> 0
-  CExpInteger n -> 3
-  CExpIncrement ce -> 2
-  CExpAdd ce ce' -> 0
-  CExpMinus ce ce' -> 0
-  CExpMultiply ce ce' -> 1
-  CExpDivide ce ce' -> 1
-  CExpMod ce ce' -> 1
-  CExpPower ce ce' -> 2
-  CExpList ces -> 3
-  CExpListAppend ce ce' -> -2
-  CExpListCons ce ce' -> -2
-  CExpListRec ce ce' ce2 -> 2
+  CExpIndex n -> 11
+  CExpUnit -> 11
+  CExpLambda ce -> 0
+  CExpApplication ce ce' -> 0
+  CExpProduct ce ce' -> 11
+  CExpFst ce -> 10
+  CExpSnd ce -> 10
+  CExpInl ce -> 9
+  CExpInr ce -> 9
+  CExpMatch ce ce' ce2 -> 0
+  CExpZero -> 11
+  CExpSuc ce -> 10
+  CExpPrimrec ce ce' ce2 -> 0
+  CExpAdv ce -> 10
+  CExpDelay ce -> 10
+  CExpBox ce -> 10
+  CExpUnbox ce -> 10
+  CExpNow ce -> 10
+  CExpWait ce ce' -> 9
+  CExpUrec ce ce' ce2 -> 0
+  CExpNfix ce -> 0
+  CExpOut ce -> 10
+  CExpInto ce -> 10
+  CExpLocation n -> 11
+  CExpTrue -> 11
+  CExpFalse -> 11
+  CExpIf ce ce' ce2 -> 0
+  CExpAnd ce ce' -> 2
+  CExpOr ce ce' -> 1
+  CExpNot ce -> 3
+  CExpEquals ce ce' -> 4
+  CExpNotEquals ce ce' -> 4
+  CExpInteger n -> 11
+  CExpIncrement ce -> 10
+  CExpAdd ce ce' -> 6
+  CExpMinus ce ce' -> 6
+  CExpMultiply ce ce' -> 7
+  CExpDivide ce ce' -> 7
+  CExpMod ce ce' -> 7
+  CExpPower ce ce' -> 8
+  CExpList ces -> 11
+  CExpListAppend ce ce' -> 5
+  CExpListCons ce ce' -> 5
+  CExpListRec ce ce' ce2 -> 0
 
 cExpListToString :: Integer -> [CExp] -> String
 cExpListToString n xs =
