@@ -26,6 +26,10 @@ dependencies:
 
 library:
   source-dirs: src
+  ghc-options:
+  - -fwarn-incomplete-patterns 
+  - -fwarn-incomplete-uni-patterns
+  - -Werror
 
 executables:
   eva:
