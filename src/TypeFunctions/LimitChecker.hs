@@ -21,7 +21,7 @@ isLimit bType = case bType of
   BTypeBox bt -> isLimit bt
   BTypeAngle bt -> True
   BTypeAt bt -> isLimit bt
-  BTypeFix bt -> isLimit bt
+  BTypeNFix bt -> isLimit bt
   BTypeUntil bt bt' -> False
   BTypeBool -> True
   BTypeList bt -> isLimit bt

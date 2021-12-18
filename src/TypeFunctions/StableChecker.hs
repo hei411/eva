@@ -21,7 +21,7 @@ isStable bType = case bType of
   BTypeBox bt -> True
   BTypeAngle bt -> False
   BTypeAt bt -> False
-  BTypeFix bt -> False
+  BTypeNFix bt -> False
   BTypeUntil bt bt' -> False
   BTypeBool -> True
   BTypeList bt -> isStable bt

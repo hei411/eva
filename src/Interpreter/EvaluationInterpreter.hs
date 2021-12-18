@@ -448,7 +448,7 @@ evaluationInterpreter exp s =
       AExpNow ae at -> aExpNowEval ae at s
       AExpWait ae ae' -> aExpWaitEval ae ae' s
       AExpUrec ae str ae' cs s' str' ae2 -> aExpUrecEval ae str ae' cs s' str' ae2 s
-      AExpFix str at ae -> error ("Should not happen! isValue did not detect fix as value")
+      AExpNFix str at ae -> error ("Should not happen! isValue did not detect fix as value")
       AExpOut ae -> aExpOutEval ae s
       AExpInto ae at -> aExpIntoEval ae at s
       AExpLocation n -> error ("Should not happen! isValue did not detect location as value")
@@ -570,7 +570,7 @@ aExpUnboxEval t s =
           NullStore ->
             case result of
               AExpBox t' -> evaluationInterpreter t' s
-              AExpFix x tascrip t' ->
+              AExpNFix x tascrip t' ->
                 do
                   let subExp = AExpBox (AExpArrow (AExpUnbox result))
                   evaluationInterpreter (substituteExp t' x (subExp)) s

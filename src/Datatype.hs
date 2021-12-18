@@ -86,7 +86,7 @@ data AType
   | ATypeBox AType
   | ATypeAngle AType
   | ATypeAt AType
-  | ATypeFix String AType
+  | ATypeNFix String AType
   | ATypeUntil AType AType
   | ATypeBool
   | ATypeList AType 
@@ -105,7 +105,7 @@ data BType
   | BTypeBox BType
   | BTypeAngle BType
   | BTypeAt BType
-  | BTypeFix BType
+  | BTypeNFix BType
   | BTypeUntil BType BType
   | BTypeBool
   | BTypeList BType

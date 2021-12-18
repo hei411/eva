@@ -16,7 +16,7 @@ abTypeConverter file functionName polyParams definedTypenames varStack aType = c
   ATypeBox at -> BTypeBox (abTypeConverterCur varStack at)
   ATypeAngle at -> BTypeAngle (abTypeConverterCur varStack at)
   ATypeAt at -> BTypeAt (abTypeConverterCur varStack at)
-  ATypeFix s at -> BTypeFix (abTypeConverterCur (s : varStack) at)
+  ATypeNFix s at -> BTypeNFix (abTypeConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (abTypeConverterCur varStack at) (abTypeConverterCur varStack at')
   ATypeBool -> BTypeBool
   ATypeList at -> BTypeList (abTypeConverterCur varStack at)
@@ -32,7 +32,7 @@ resolveTypeVarDef file functionName polyParams varStack str =
         do
           let polyParamsIndexPair = findPolyParam 0 polyParams str
           case polyParamsIndexPair of
-            Nothing -> error (file ++ ": " ++ "Cannot resolve the typevariable \"" ++ str ++ "\" with polymorphic parameters or Fix variables in \"" ++ functionName ++ "\"")
+            Nothing -> error (file ++ ": " ++ "Cannot resolve the typevariable \"" ++ str ++ "\" with polymorphic parameters or NFix variables in \"" ++ functionName ++ "\"")
             Just (n, prop) -> BTypeParametric n prop
       Just n -> BTypeIndex (toInteger n)
   where

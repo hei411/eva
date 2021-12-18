@@ -68,8 +68,8 @@ printBType n bType =
                      then "(" ++ (printBType n bt) ++ ")"
                      else printBType n bt
                  )
-          BTypeFix bt ->
-            "Fix " ++ "\'t" ++ show n ++ " --> "
+          BTypeNFix bt ->
+            "NFix " ++ "\'t" ++ show n ++ " --> "
               ++ printBType (n + 1) bt
           BTypeUntil bt bt' ->
             ( if bTypeLevel bt <= currentLevel
@@ -100,7 +100,7 @@ bTypeLevel bType =
         BTypeBox bt -> 4
         BTypeAngle bt -> 4
         BTypeAt bt -> 4
-        BTypeFix bt -> -1
+        BTypeNFix bt -> -1
         BTypeUntil bt bt' -> 1
         BTypeBool -> 4
         BTypeList bt -> 4
@@ -109,9 +109,9 @@ bTypeLevel bType =
 findSpecialBType :: Integer -> BType -> Maybe String
 findSpecialBType n bType =
   case bType of
-    BTypeFix (BTypeProduct x (BTypeIndex 0)) -> Just ("'Str(" ++ printBType n x ++ ")")
-    BTypeFix (BTypeSum x (BTypeIndex 0)) -> Just ("'Ev(" ++ printBType n x ++ ")")
-    BTypeFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0)))))) ->
+    BTypeNFix (BTypeProduct x (BTypeIndex 0)) -> Just ("'Str(" ++ printBType n x ++ ")")
+    BTypeNFix (BTypeSum x (BTypeIndex 0)) -> Just ("'Ev(" ++ printBType n x ++ ")")
+    BTypeNFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0)))))) ->
       if generalBTypeCompare a a' && generalBTypeCompare b b' then Just ("'Fair(" ++ printBType n a ++ ", " ++ printBType n b ++ ")") else Nothing
     BTypeSum BTypeUnit x -> Just ("'Maybe(" ++ printBType n x ++ ")")
     BTypeUntil BTypeUnit x -> Just ("'Dia(" ++ printBType n x ++ ")")

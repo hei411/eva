@@ -16,7 +16,7 @@ substituteParametric bType typeArguments =
     BTypeBox bt -> BTypeBox (substituteParametric bt typeArguments)
     BTypeAngle bt -> BTypeAngle (substituteParametric bt typeArguments)
     BTypeAt bt -> BTypeAt (substituteParametric bt typeArguments)
-    BTypeFix bt -> BTypeFix (substituteParametric bt typeArguments)
+    BTypeNFix bt -> BTypeNFix (substituteParametric bt typeArguments)
     BTypeUntil bt bt' -> BTypeUntil (substituteParametric bt typeArguments) (substituteParametric bt' typeArguments)
     BTypeBool -> BTypeBool
     BTypeList bt -> BTypeList (substituteParametric bt typeArguments)
@@ -38,6 +38,6 @@ where
     BTypeBox bt -> BTypeBox (substituteOneParametric index bt arg)
     BTypeAngle bt -> BTypeAngle (substituteOneParametric index bt arg)
     BTypeAt bt -> BTypeAt (substituteOneParametric index bt arg)
-    BTypeFix bt -> BTypeFix (substituteOneParametric index bt arg)
+    BTypeNFix bt -> BTypeNFix (substituteOneParametric index bt arg)
     BTypeUntil bt bt' -> BTypeUntil (substituteOneParametric index bt arg) (substituteOneParametric index bt' arg)
     -}

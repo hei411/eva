@@ -21,7 +21,7 @@ isComparable bType = case bType of
   BTypeBox bt -> False
   BTypeAngle bt -> False
   BTypeAt bt -> False
-  BTypeFix bt -> False
+  BTypeNFix bt -> False
   BTypeUntil bt bt' -> False
   BTypeBool -> True
   BTypeList bt -> (isComparable bt)

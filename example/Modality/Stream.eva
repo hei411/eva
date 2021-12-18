@@ -1,7 +1,7 @@
 import Modality.Primitives
 
-type Str(a) = Fix b --> a*b
-type Ev(a) = Fix b--> a+b
+type Str(a) = NFix b --> a*b
+type Ev(a) = NFix b--> a+b
 
 def hdStr {a} # stream:Str(a)  = 
     let x:::_ = stream in x

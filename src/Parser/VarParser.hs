@@ -75,7 +75,7 @@ upperVarParser =
 
 checkUpperVar :: String -> Parser String
 checkUpperVar str = case str of
-  "Fix" -> fail "Fix cannot be type variable name."
+  "NFix" -> fail "NFix cannot be type variable name."
   "Until" -> fail "Until cannot be type variable name."
   "Nat" -> fail "Nat cannot be type variable name."
   "Unit" -> fail "Unit cannot be type variable name."

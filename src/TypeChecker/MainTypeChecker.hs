@@ -452,21 +452,21 @@ outRule file functionName definedFunctions context varStack e =
   do
     let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
     case eType of
-      BTypeFix t ->
+      BTypeNFix t ->
         (CExpOut eExp, unfoldBType eType)
-      _ -> typeCheckerErrorMsg file functionName ("outRule not applied to an Fix type for exp " ++ printCExp 0 eExp)
+      _ -> typeCheckerErrorMsg file functionName ("outRule not applied to an NFix type for exp " ++ printCExp 0 eExp)
 
 intoRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BType -> (CExp, BType)
 intoRule file functionName definedFunctions context varStack e ascription =
   case ascription of
-    BTypeFix t ->
+    BTypeNFix t ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
-        let unfoldFixType = unfoldBType ascription
-        if generalBTypeCompare unfoldFixType eType
+        let unfoldNFixType = unfoldBType ascription
+        if generalBTypeCompare unfoldNFixType eType
           then (CExpInto eExp, ascription)
           else typeCheckerErrorMsg file functionName ("intoRule ascription doesnt match inner expression type for exp " ++ printCExp 0 eExp)
-    _ -> typeCheckerErrorMsg file functionName ("intoRule ascription is not Fix type for " ++ show e)
+    _ -> typeCheckerErrorMsg file functionName ("intoRule ascription is not NFix type for " ++ show e)
 
 letRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BExp -> BExp -> (CExp, BType)
 letRule file functionName definedFunctions context varStack str e body =
@@ -654,16 +654,16 @@ streamConsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String
 streamConsRule file functionName definedFunctions context varStack e1 e2 = do
   let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
   let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
-  let targetE2Type = BTypeAngle (BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
+  let targetE2Type = BTypeAngle (BTypeNFix (BTypeProduct e1Type (BTypeIndex 0)))
   if generalBTypeCompare targetE2Type e2Type
-    then (CExpInto (CExpProduct e1Exp e2Exp), BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
+    then (CExpInto (CExpProduct e1Exp e2Exp), BTypeNFix (BTypeProduct e1Type (BTypeIndex 0)))
     else typeCheckerErrorMsg file functionName ("streamConsRule applied to non-compatible expresions of type: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
 
 letStreamRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> String -> BExp -> BExp -> (CExp, BType)
 letStreamRule file functionName definedFunctions context varStack var1 var2 e1 e2 = do
   let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
   case e1Type of
-    BTypeFix (BTypeProduct _ (BTypeIndex 0)) -> do
+    BTypeNFix (BTypeProduct _ (BTypeIndex 0)) -> do
       let var1Exp = BExpFst (BExpOut (BExpVar "_Stream" []))
       let var2Exp = BExpSnd (BExpOut (BExpVar "_Stream" []))
       let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))

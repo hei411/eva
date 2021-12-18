@@ -33,7 +33,7 @@ substituteTypenameArg levelNum bType arg = case bType of
   BTypeBox bt -> BTypeBox (substituteTypenameArg levelNum bt arg)
   BTypeAngle bt -> BTypeAngle (substituteTypenameArg levelNum bt arg)
   BTypeAt bt -> BTypeAt (substituteTypenameArg levelNum bt arg)
-  BTypeFix bt -> BTypeFix (substituteTypenameArg (levelNum + 1) bt arg)
+  BTypeNFix bt -> BTypeNFix (substituteTypenameArg (levelNum + 1) bt arg)
   BTypeUntil bt bt' -> BTypeUntil (substituteTypenameArg levelNum bt arg) (substituteTypenameArg levelNum bt' arg)
   BTypeBool -> BTypeBool
   BTypeList bt -> BTypeList (substituteTypenameArg levelNum bt arg)
@@ -53,7 +53,7 @@ substituteTypenameArg levelNum bType arg = case bType of
     BTypeBox bt -> BTypeBox (promoteFreeVariablesHelper bt)
     BTypeAngle bt -> BTypeAngle (promoteFreeVariablesHelper bt)
     BTypeAt bt -> BTypeAt (promoteFreeVariablesHelper bt)
-    BTypeFix bt -> BTypeFix (promoteFreeVariables levelNum (current + 1) bt)
+    BTypeNFix bt -> BTypeNFix (promoteFreeVariables levelNum (current + 1) bt)
     BTypeUntil bt bt' -> BTypeUntil (promoteFreeVariablesHelper bt) (promoteFreeVariablesHelper bt')
     BTypeBool -> BTypeBool
     where

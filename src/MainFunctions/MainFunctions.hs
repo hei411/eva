@@ -22,18 +22,18 @@ getMain compiledFilesData =
 getInterpreter :: BType -> InterpreterMode
 getInterpreter bType =
   case bType of
-    BTypeBox (BTypeFix (BTypeProduct _ (BTypeIndex 0))) -> Safe
+    BTypeBox (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) -> Safe
     BTypeBox (BTypeUntil _ _) -> Lively
-    BTypeBox (BTypeFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0))))))) ->
+    BTypeBox (BTypeNFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0))))))) ->
       if generalBTypeCompare a a' && generalBTypeCompare b b' then Fair else Normal
-    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct _ (BTypeIndex 0))) (BTypeFix (BTypeProduct _ (BTypeIndex 0)))) ->
+    BTypeBox (BTypeFunction (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) (BTypeNFix (BTypeProduct _ (BTypeIndex 0)))) ->
       ISafe
-    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct _ (BTypeIndex 0))) (BTypeUntil _ _)) ->
+    BTypeBox (BTypeFunction (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) (BTypeUntil _ _)) ->
       ILively
     BTypeBox
       ( BTypeFunction
-          (BTypeFix (BTypeProduct _ (BTypeIndex 0)))
-          (BTypeFix (BTypeUntil b (BTypeProduct c (BTypeAngle (BTypeUntil c' (BTypeProduct b' (BTypeIndex 0)))))))
+          (BTypeNFix (BTypeProduct _ (BTypeIndex 0)))
+          (BTypeNFix (BTypeUntil b (BTypeProduct c (BTypeAngle (BTypeUntil c' (BTypeProduct b' (BTypeIndex 0)))))))
         ) ->
         if generalBTypeCompare b b' && generalBTypeCompare c c' then IFair else Normal
     _ -> Normal
@@ -63,7 +63,7 @@ getSrcPath args = case args of
 getInputType :: BType -> BType
 getInputType bType =
   case bType of
-    BTypeBox (BTypeFunction (BTypeFix (BTypeProduct input _)) _) -> input
+    BTypeBox (BTypeFunction (BTypeNFix (BTypeProduct input _)) _) -> input
     _ -> error "Should not happen. Error in get input type function"
 
 checkPeano :: [String] -> Bool

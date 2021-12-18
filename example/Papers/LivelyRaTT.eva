@@ -132,7 +132,7 @@ def buffer{Stable aType} # n:TempNat =
         |now _ => fun a:aType => ?nowDia{aType} a 
         |wait _ _ , rest=> fun a:aType => ?waitDia{aType} @(<rest a)
 
-type Server(req, resp) = Fix alpha --> alpha* (req -> (Dia(resp)*alpha)) 
+type Server(req, resp) = NFix alpha --> alpha* (req -> (Dia(resp)*alpha)) 
 //Assume String is stable, so we let it be nat for now
 type String = Nat
 type Req = Nat * String 

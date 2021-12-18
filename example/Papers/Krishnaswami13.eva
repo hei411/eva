@@ -92,7 +92,7 @@ def bind{a,b} h:#(a->Ev(b)) =
                     into temp: Ev(b)
 
 
-type R (i,o,a) = Fix alpha --> alpha * (a + (i->(o* alpha) ))
+type R (i,o,a) = NFix alpha --> alpha * (a + (i->(o* alpha) ))
 
 def par{i,o,a}  = 
     nfix loop:#( (R(i,o,a)*R(i,o,a)) -> R(i,o,a) )=>
@@ -114,7 +114,7 @@ def par{i,o,a}  =
                     into ((p',inr f':a+(i->(o*>R(i,o,a))))):R(i,o,a)
 
 
-type X(a) = Fix alpha --> #(alpha -> a)
+type X(a) = NFix alpha --> #(alpha -> a)
 
 //selfapp and fixed point cannot type check due to type system rules
 

@@ -18,12 +18,12 @@ type K = Unit;
 def zero = 0;
 def zero2 = zero;
 def function = fun (k): Nat => suc suc 0;
-def intofun = into 0 : Fix a ->Nat;
+def intofun = into 0 : NFix a ->Nat;
 def inlfun = inl(0) : Nat + Unit;
 //This is a comment
 
-def q = fix e : # Fix a -> Nat + a => into(inr(unbox e)
-                                             : (Nat + > Fix a->Nat + a)) : Fix a->Nat
+def q = nfix e : # NFix a -> Nat + a => into(inr(unbox e)
+                                             : (Nat + > NFix a->Nat + a)) : Fix a->Nat
                                             + a;
 
 def primrectry =  fun x : Nat => primrec (x )with

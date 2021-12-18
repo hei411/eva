@@ -37,7 +37,7 @@ def fibHelperLeaky =
 //def main = MS.natStr//fibHelperLeaky
 
 //Streams
-//type Stream = Fix a --> Nat*a
+//type Stream = NFix a --> Nat*a
 //def tl  (s: Stream) = snd (out s)
 
 //Box

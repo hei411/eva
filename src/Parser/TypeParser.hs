@@ -45,14 +45,14 @@ typeParser = do
 
 fixTypeParser :: Parser AType
 fixTypeParser = do
-  string "Fix"
+  string "NFix"
   skipMany1 space
   v <- varParser
   spaces
   string "-->"
   spaces
   t <- typeParser
-  return (ATypeFix v t)
+  return (ATypeNFix v t)
 
 functionTypeParser :: Parser AType
 functionTypeParser =
