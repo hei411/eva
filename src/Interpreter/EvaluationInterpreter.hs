@@ -147,13 +147,14 @@ advEval e s = case s of
   NullStore -> error "Should not happen! adv applied to a nullstore"
   TicklessStore x0 -> error "Should not happen! adv applied to a tickless store"
   TickStore sN sL -> do
-    ---Wno-incomplete-uni-patterns
-    let (e', TicklessStore expList) = evaluationInterpreter e (TicklessStore sN)
-    case e' of
-      CExpLocation n -> do
-        let e'' = elemStore expList n
-        evaluationInterpreter e'' (TickStore expList sL)
-      _ -> error "Should not happen! adv expression doesnt produce a location"
+    case evaluationInterpreter e (TicklessStore sN) of
+      (e', TicklessStore expList) ->
+        case e' of
+          CExpLocation n -> do
+            let e'' = elemStore expList n
+            evaluationInterpreter e'' (TickStore expList sL)
+          _ -> error "Should not happen! adv expression doesnt produce a location"
+      _ -> error "Should not happen! tickless store produced after passing a tickless store into evaluationInterpreter"
 
 unboxEval :: CExp -> Store -> (CExp, Store)
 unboxEval e s = do

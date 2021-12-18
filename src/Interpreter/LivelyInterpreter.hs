@@ -29,15 +29,16 @@ livelyInterpreterHelper cExp s stepNum nowNum =
           else livelyInterpreterHelper ce s' stepNum (nowNum + 1)
 
 untilStep :: CExp -> Store -> (Maybe CExp, Store, CExp)
-untilStep cExp s = do
-  ---Wno-incomplete-uni-patterns
-  let TicklessStore elemList = s
-  let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
+untilStep cExp s =
+  case s of
+    TicklessStore elemList -> do
+      let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
 
-  case s' of
-    TickStore x0 x1 ->
-      case cExp' of
-        CExpWait hd tl -> (Just (CExpAdv tl), TicklessStore x1, hd)
-        CExpNow v -> (Nothing, TicklessStore x1, v)
-        _ -> error "until Step semantics doesnt step into another until constructor"
-    _ -> error "until step semantics doesnt produce a tickstore"
+      case s' of
+        TickStore x0 x1 ->
+          case cExp' of
+            CExpWait hd tl -> (Just (CExpAdv tl), TicklessStore x1, hd)
+            CExpNow v -> (Nothing, TicklessStore x1, v)
+            _ -> error "until Step semantics doesnt step into another until constructor"
+        _ -> error "until step semantics doesnt produce a tickstore"
+    _ -> error "Should not happen. Non tickless store passed to until step"
