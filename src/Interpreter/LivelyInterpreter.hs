@@ -30,6 +30,7 @@ livelyInterpreterHelper cExp s stepNum nowNum =
 
 untilStep :: CExp -> Store -> (Maybe CExp, Store, CExp)
 untilStep cExp s = do
+  ---Wno-incomplete-uni-patterns
   let TicklessStore elemList = s
   let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
 

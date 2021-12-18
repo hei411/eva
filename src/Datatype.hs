@@ -206,8 +206,8 @@ data CExp
   | CExpMod CExp CExp 
   | CExpPower CExp CExp 
   | CExpList [CExp]
-  -- | CExpListAppend CExp CExp
-  -- | CExpListCons CExp CExp 
+  | CExpListAppend CExp CExp
+  | CExpListCons CExp CExp 
   | CExpListRec CExp CExp CExp
   deriving (Show, Eq)
   -- | CExpAt CExp

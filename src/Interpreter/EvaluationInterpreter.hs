@@ -50,8 +50,8 @@ evaluationInterpreter exp store = case exp of
   CExpMod ce ce' -> modEval ce ce' store
   CExpPower ce ce' -> powerEval ce ce' store
   CExpList ceList -> listEval ceList store
-  --CExpListAppend ce ce' -> listAppendEval ce ce' store
-  --CExpListCons ce ce' -> listConsEval ce ce' store
+  CExpListAppend ce ce' -> listAppendEval ce ce' store
+  CExpListCons ce ce' -> listConsEval ce ce' store
   CExpListRec ce ce' ce2 -> listRecEval ce ce' ce2 store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
@@ -147,6 +147,7 @@ advEval e s = case s of
   NullStore -> error "Should not happen! adv applied to a nullstore"
   TicklessStore x0 -> error "Should not happen! adv applied to a tickless store"
   TickStore sN sL -> do
+    ---Wno-incomplete-uni-patterns
     let (e', TicklessStore expList) = evaluationInterpreter e (TicklessStore sN)
     case e' of
       CExpLocation n -> do
@@ -379,7 +380,6 @@ listEval ceList s = do
           let (xs'', store'') = helper xs' store'
           (x' : xs'', store'')
 
-{-
 listAppendEval :: CExp -> CExp -> Store -> (CExp, Store)
 listAppendEval e1 e2 s = do
   let (e1', s') = evaluationInterpreter e1 s
@@ -398,7 +398,7 @@ listConsEval e1 e2 s = do
     CExpList lis2 ->
       (CExpList (e1' : lis2), s'')
     _ -> error "Should not happen. listConsEval applied to a non-list second expression"
--}
+
 listRecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
 listRecEval e e1 e2 s =
   do

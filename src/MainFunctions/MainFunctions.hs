@@ -6,8 +6,10 @@ import TypeFunctions.TypeCompare
 getMain :: CompiledFilesData -> Maybe (CExp, BType)
 getMain compiledFilesData =
   do
-    let (_, entryFileData, _) : _ = compiledFilesData
-    getMainHelper entryFileData
+    case compiledFilesData of
+      (_, entryFileData, _) : _ ->
+        getMainHelper entryFileData
+      _ -> error "Should not happen, compiled Files Data for getMain is empty"
   where
     getMainHelper :: TypeCheckedProgram -> Maybe (CExp, BType)
     getMainHelper l = case l of

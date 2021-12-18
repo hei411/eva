@@ -45,8 +45,8 @@ substituteCExp arg level cExp = case cExp of
   CExpMod ce ce' -> CExpMod (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpPower ce ce' -> CExpPower (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpList ceList -> CExpList (map substituteCExpHelper ceList)
-  --CExpListAppend ce ce' -> CExpListAppend (substituteCExpHelper ce) (substituteCExpHelper ce')
-  --CExpListCons ce ce' -> CExpListAppend (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpListAppend ce ce' -> CExpListAppend (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpListCons ce ce' -> CExpListCons (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpListRec ce ce' ce2 -> CExpListRec (substituteCExpHelper ce) (substituteCExpHelper ce') (substituteCExp arg (level + 3) ce2)
   where
     substituteCExpHelper = substituteCExp arg level

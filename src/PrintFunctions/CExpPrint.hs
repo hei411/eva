@@ -327,7 +327,6 @@ printCExp n cExp =
                  else printCExp n ce'
              )
       CExpList ces -> "[" ++ cExpListToString n ces ++ "]"
-      {-
       CExpListAppend ce ce' ->
         ( if cExpLevel ce <= cExpLevel cExp
             then "(" ++ printCExp n ce ++ ")"
@@ -348,7 +347,6 @@ printCExp n cExp =
                  then "(" ++ printCExp n ce' ++ ")"
                  else printCExp n ce'
              )
-      -}
       CExpListRec ce ce' ce2 ->
         "primrec "
           ++ ( if cExpLevel ce <= cExpLevel cExp
@@ -419,8 +417,8 @@ cExpLevel cExp = case cExp of
   CExpMod ce ce' -> 1
   CExpPower ce ce' -> 2
   CExpList ces -> 3
-  --CExpListAppend ce ce' -> -2
-  --CExpListCons ce ce' -> -2
+  CExpListAppend ce ce' -> -2
+  CExpListCons ce ce' -> -2
   CExpListRec ce ce' ce2 -> 2
 
 cExpListToString :: Integer -> [CExp] -> String

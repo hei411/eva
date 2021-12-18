@@ -37,6 +37,7 @@ transformInputStore s input l =
   case s of
     TicklessStore lis -> do
       let (s', l') = addStoreElem (TickStore lis []) CExpUnit
+      --- activate Wno-incomplete-uni-patterns for next two lines
       let TickStore a b = s'
       let CExpLocation n = l
       let a' = modifyStoreElem a n (CExpInto (CExpProduct input l'))

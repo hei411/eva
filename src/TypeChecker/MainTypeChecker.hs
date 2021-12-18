@@ -700,9 +700,7 @@ listAppendRule file functionName definedFunctions context varStack e1 e2 = do
   case (e1Type, e2Type) of
     (BTypeList t1, BTypeList t2) ->
       if generalBTypeCompare t1 t2
-        then case (e1Exp, e2Exp) of
-          (CExpList x, CExpList y) -> (CExpList (x ++ y), e1Type)
-          _ -> typeCheckerErrorMsg file functionName ("should not happen. list type exp is not actually a list")
+        then (CExpListAppend e1Exp e2Exp, e1Type)
         else typeCheckerErrorMsg file functionName ("listAppendRule applied to list expresions of different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
     (BTypeList t1, _) -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
     _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to first argument of non list type: " ++ printCExp 0 e1Exp ++ " of type " ++ printBType 0 e1Type)
@@ -714,9 +712,7 @@ listConsRule file functionName definedFunctions context varStack e1 e2 = do
   case e2Type of
     BTypeList t2 ->
       if generalBTypeCompare e1Type t2
-        then case e2Exp of
-          CExpList y -> (CExpList (e1Exp : y), e2Type)
-          _ -> typeCheckerErrorMsg file functionName ("should not happen. list type exp is not actually a list")
+        then (CExpListCons e1Exp e2Exp, e2Type)
         else typeCheckerErrorMsg file functionName ("listConsRule applied to expresions of incompatible types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
     _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
 

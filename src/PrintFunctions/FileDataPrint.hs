@@ -43,6 +43,8 @@ functionsPrint functions = case functions of
             Stable -> "Stable "
             Both -> "Limit Stable "
             None -> ""
+            CStable -> "CStable "
+            CBoth -> "Limit CStable "
         )
           ++ "p"
           ++ show (n)

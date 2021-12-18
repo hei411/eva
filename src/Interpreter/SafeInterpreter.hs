@@ -25,6 +25,7 @@ safeInterpreterHelper cExp s stepNum nowNum =
 streamStep :: CExp -> Store -> (CExp, Store, CExp)
 streamStep cExp s =
   do
+    ----Wno-incomplete-uni-patterns
     let TicklessStore elemList = s
     let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
     case cExp' of

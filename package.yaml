@@ -29,7 +29,6 @@ library:
   ghc-options:
   - -fwarn-incomplete-patterns 
   - -fwarn-incomplete-uni-patterns
-  - -Werror
 
 executables:
   eva:

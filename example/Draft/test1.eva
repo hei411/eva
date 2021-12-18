@@ -5,5 +5,5 @@ def find = hiddenfunction
 //type Test= Testr
 import Prelude.Nat
 def main  = primrec [true,false] with 
-    |[] =>  true
-    |x::xs, rest => rest and x
+    |[] =>  [true]
+    |x::xs, rest => x::rest
