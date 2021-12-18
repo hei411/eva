@@ -1,5 +1,9 @@
 type Maybe(a) = Unit + a
 
+def nothing{a}# = inl ():Maybe(a) 
+
+def just{a} # x:a = inr x:Maybe(a)
+
 def maybe{a,b} # default:b f:(a->b) x:Maybe(a) = 
     match x with 
         |inl _ => default 
