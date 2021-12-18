@@ -24,3 +24,4 @@ isStable bType = case bType of
   BTypeFix bt -> False
   BTypeUntil bt bt' -> False
   BTypeBool -> True
+  BTypeList bt -> isStable bt

@@ -82,6 +82,7 @@ printBType n bType =
                      else printBType n bt'
                  )
           BTypeBool -> "Bool"
+          BTypeList t -> "List(" ++ printBType n t ++ ")"
 
 bTypeLevel :: BType -> Integer
 bTypeLevel bType =
@@ -102,6 +103,7 @@ bTypeLevel bType =
         BTypeFix bt -> -1
         BTypeUntil bt bt' -> 1
         BTypeBool -> 4
+        BTypeList bt -> 4
     _ -> 4
 
 findSpecialBType :: Integer -> BType -> Maybe String

@@ -49,6 +49,11 @@ abExpConverter file functionName polyParams definedTypenames aExp = case aExp of
   AExpPower ae ae' -> BExpPower (abExpConverterCur ae) (abExpConverterCur ae')
   AExpStreamCons ae ae' -> BExpStreamCons (abExpConverterCur ae) (abExpConverterCur ae')
   AExpLetStream s s' ae ae' -> BExpLetStream s s' (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpEmptyList at -> BExpEmptyList (abTypeConverterCur at)
+  AExpNonEmptyList aeList -> BExpNonEmptyList (map abExpConverterCur aeList)
+  AExpListAppend ae ae' -> BExpListAppend (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpListCons ae ae' -> BExpListCons (abExpConverterCur ae) (abExpConverterCur ae')
+  AExpListRec ae ae' s s' str ae2 -> BExpListRec (abExpConverterCur ae) (abExpConverterCur ae') s s' str (abExpConverterCur ae2)
   where
     abExpConverterCur = abExpConverter file functionName polyParams definedTypenames
     abTypeConverterCur = (abTypeConverter file functionName polyParams definedTypenames [])

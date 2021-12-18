@@ -19,6 +19,7 @@ substituteParametric bType typeArguments =
     BTypeFix bt -> BTypeFix (substituteParametric bt typeArguments)
     BTypeUntil bt bt' -> BTypeUntil (substituteParametric bt typeArguments) (substituteParametric bt' typeArguments)
     BTypeBool -> BTypeBool
+    BTypeList bt -> BTypeList (substituteParametric bt typeArguments)
 
 {-case typeArguments of
   [] -> bType

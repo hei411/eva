@@ -57,6 +57,11 @@ peanoConverterAExp e = do
     AExpPower ae ae' -> AExpPower (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpStreamCons ae ae' -> AExpStreamCons (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpLetStream s s' ae ae' -> AExpLetStream s s' (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpEmptyList at -> AExpEmptyList at
+    AExpNonEmptyList aeList -> AExpNonEmptyList (map peanoConverterAExp aeList)
+    AExpListAppend ae ae' -> AExpListAppend (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpListCons ae ae' -> AExpListCons (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpListRec ae ae' s s' str ae2 -> AExpListRec (peanoConverterAExp ae) (peanoConverterAExp ae') s s' str (peanoConverterAExp ae2)
   where
     helper :: Integer -> AExp
     helper n =

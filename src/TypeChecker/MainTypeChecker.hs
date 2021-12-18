@@ -60,6 +60,11 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpPower be be' -> powerRule file functionName definedFunctions context varStack be be'
   BExpStreamCons be be' -> streamConsRule file functionName definedFunctions context varStack be be'
   BExpLetStream s s' be be' -> letStreamRule file functionName definedFunctions context varStack s s' be be'
+  BExpEmptyList bt -> emptyListRule file functionName definedFunctions context varStack bt
+  BExpNonEmptyList bes -> nonEmptyListRule file functionName definedFunctions context varStack bes
+  BExpListAppend be be' -> listAppendRule file functionName definedFunctions context varStack be be'
+  BExpListCons be be' -> listConsRule file functionName definedFunctions context varStack be be'
+  BExpListRec be be' s s' str be2 -> listRecRule file functionName definedFunctions context varStack be be' s s' str be2
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -664,6 +669,80 @@ letStreamRule file functionName definedFunctions context varStack var1 var2 e1 e
       let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))
       mainTypeChecker file functionName definedFunctions context varStack newExp
     _ -> typeCheckerErrorMsg file functionName ("letStreamRule applied to non-stream expresions of exp: " ++ printCExp 0 e1Exp ++ " and type: " ++ printBType 0 e1Type)
+
+emptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BType -> (CExp, BType)
+emptyListRule file functionName definedFunctions context varStack t =
+  case t of
+    BTypeList t' ->
+      (CExpList [], t)
+    _ -> typeCheckerErrorMsg file functionName ("emptyListRule applied to nil list of non list type ascription: " ++ printBType 0 t)
+
+nonEmptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> [BExp] -> (CExp, BType)
+nonEmptyListRule file functionName definedFunctions context varStack bes = do
+  let expTypePairList = map (mainTypeChecker file functionName definedFunctions context varStack) bes
+  let expTypePairList' = (map fst expTypePairList, map snd expTypePairList)
+  case expTypePairList' of
+    (expList, typeList) ->
+      if sameType typeList
+        then (CExpList expList, BTypeList (head typeList))
+        else typeCheckerErrorMsg file functionName ("nonEmptyListRule applied to expresions of different types: " ++ printCExp 0 (CExpList expList))
+  where
+    sameType xs =
+      case xs of
+        [] -> True
+        x : x' : xs' -> if generalBTypeCompare x x' then sameType (x' : xs') else False
+        x : [] -> True
+
+listAppendRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+listAppendRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  case (e1Type, e2Type) of
+    (BTypeList t1, BTypeList t2) ->
+      if generalBTypeCompare t1 t2
+        then case (e1Exp, e2Exp) of
+          (CExpList x, CExpList y) -> (CExpList (x ++ y), e1Type)
+          _ -> typeCheckerErrorMsg file functionName ("should not happen. list type exp is not actually a list")
+        else typeCheckerErrorMsg file functionName ("listAppendRule applied to list expresions of different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+    (BTypeList t1, _) -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
+    _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to first argument of non list type: " ++ printCExp 0 e1Exp ++ " of type " ++ printBType 0 e1Type)
+
+listConsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+listConsRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  case e2Type of
+    BTypeList t2 ->
+      if generalBTypeCompare e1Type t2
+        then case e2Exp of
+          CExpList y -> (CExpList (e1Exp : y), e2Type)
+          _ -> typeCheckerErrorMsg file functionName ("should not happen. list type exp is not actually a list")
+        else typeCheckerErrorMsg file functionName ("listConsRule applied to expresions of incompatible types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+    _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
+
+listRecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+listRecRule file functionName definedFunctions context varStack e e1 v1 v2 v3 e2 = do
+  let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+  case eType of
+    BTypeList t ->
+      do
+        let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+        let extendedContext = addContextElem (addContextElem (addContextElem context (v1, t, toInteger (length varStack))) (v2, BTypeList t, 1 + toInteger (length varStack))) (v3, e1Type, 2 + toInteger (length varStack))
+        --StableContext firstContextList [(v3, e1Type, 2 + toInteger (length varStack)), (v2, BTypeList t, 1 + toInteger (length varStack)), (v1, t, toInteger (length varStack))]
+        let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (v3 : v2 : v1 : varStack) e2
+        if generalBTypeCompare e2Type e1Type
+          then (CExpListRec eExp e1Exp e2Exp, e1Type)
+          else
+            typeCheckerErrorMsg
+              file
+              functionName
+              ( "listRecRule branches' types do not match for exp " ++ printCExp 0 eExp
+                  ++ "\n t1 = "
+                  ++ printBType 0 e1Type
+                  ++ "\n t2 = "
+                  ++ printBType 0 e2Type
+              )
+    _ -> typeCheckerErrorMsg file functionName ("listRecRule not applied to an list type exp" ++ printCExp 0 eExp)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

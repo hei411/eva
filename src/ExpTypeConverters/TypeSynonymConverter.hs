@@ -4,6 +4,7 @@ import Data.List
 import Datatype
 import ExpTypeConverters.TypeNameResolveUtils
 
+-- used in defining a type synonym
 typeSynonymConverter :: FilePath -> String -> [String] -> TypenameList -> [String] -> AType -> BType
 typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStack aType = case aType of
   ATypeVar s -> resolveTypeVarType file typeSynonymName typeVariables varStack s
@@ -19,6 +20,7 @@ typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStac
   ATypeFix s at -> BTypeFix (typeSynonymConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')
   ATypeBool -> BTypeBool
+  ATypeList at -> BTypeList (typeSynonymConverterCur varStack at)
   where
     typeSynonymConverterCur = typeSynonymConverter file typeSynonymName typeVariables definedTypenames
 

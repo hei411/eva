@@ -68,10 +68,11 @@ data AExp
   | AExpPower AExp AExp 
   | AExpStreamCons AExp AExp 
   | AExpLetStream String String AExp AExp
-  {-| AExpEmptyList AType 
+  | AExpEmptyList AType 
   | AExpNonEmptyList [AExp]
-  | AExpAppend AExp 
-  | AExp-}
+  | AExpListAppend AExp AExp
+  | AExpListCons AExp AExp 
+  | AExpListRec AExp AExp String String String AExp
   deriving (Show, Eq)
 
 data AType
@@ -88,6 +89,7 @@ data AType
   | ATypeFix String AType
   | ATypeUntil AType AType
   | ATypeBool
+  | ATypeList AType 
   deriving (Show, Eq)
 
 -- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
@@ -106,6 +108,7 @@ data BType
   | BTypeFix BType
   | BTypeUntil BType BType
   | BTypeBool
+  | BTypeList BType
   deriving (Show, Eq)
 
 -- BExp are AExp except all type ascriptions are valid
@@ -153,6 +156,11 @@ data BExp
   | BExpPower BExp BExp 
   | BExpStreamCons BExp BExp 
   | BExpLetStream String String BExp BExp
+  | BExpEmptyList BType 
+  | BExpNonEmptyList [BExp]
+  | BExpListAppend BExp BExp
+  | BExpListCons BExp BExp 
+  | BExpListRec BExp BExp String String String BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
@@ -197,6 +205,10 @@ data CExp
   | CExpDivide CExp CExp 
   | CExpMod CExp CExp 
   | CExpPower CExp CExp 
+  | CExpList [CExp]
+  -- | CExpListAppend CExp CExp
+  -- | CExpListCons CExp CExp 
+  | CExpListRec CExp CExp CExp
   deriving (Show, Eq)
   -- | CExpAt CExp
   -- | CExpArrow CExp

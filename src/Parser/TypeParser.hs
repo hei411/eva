@@ -162,11 +162,23 @@ oneTypeParser =
           notFollowedBy alphaNum
           return ATypeNat
       )
-    <|> ( do
-            string "Bool"
-            notFollowedBy alphaNum
-            return ATypeBool
-        )
+    <|> try
+      ( do
+          string "Bool"
+          notFollowedBy alphaNum
+          return ATypeBool
+      )
+    <|> try
+      ( do
+          string "List"
+          spaces
+          string "("
+          spaces
+          t <- typeParser
+          spaces
+          string ")"
+          return (ATypeList t)
+      )
     <|> fail "Can't parse Type4'"
 
 {-

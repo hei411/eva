@@ -24,3 +24,4 @@ isComparable bType = case bType of
   BTypeFix bt -> False
   BTypeUntil bt bt' -> False
   BTypeBool -> True
+  BTypeList bt -> (isComparable bt)

@@ -24,3 +24,4 @@ isLimit bType = case bType of
   BTypeFix bt -> isLimit bt
   BTypeUntil bt bt' -> False
   BTypeBool -> True
+  BTypeList bt -> isLimit bt

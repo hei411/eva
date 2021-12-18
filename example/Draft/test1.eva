@@ -4,4 +4,6 @@ def find = hiddenfunction
 //def wrong n:#Nat # n:#Bool = ?n
 //type Test= Testr
 import Prelude.Nat
-def main # = now ( 33 `?add` 4 `?minus` 5) :Unit Until Nat
+def main  = primrec [true,false] with 
+    |[] =>  true
+    |x::xs, rest => rest and x
