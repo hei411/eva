@@ -29,7 +29,7 @@ evaluationInterpreter exp store = case exp of
   CExpNow ce -> nowEval ce store
   CExpWait ce ce' -> waitEval ce ce' store
   CExpUrec ce ce' ce2 -> urecEval ce ce' ce2 store
-  CExpRec ce -> (CExpRec ce, store)
+  CExpNfix ce -> (CExpNfix ce, store)
   CExpOut ce -> outEval ce store
   CExpInto ce -> intoEval ce store
   CExpLocation n -> (CExpLocation n, store)
@@ -164,7 +164,7 @@ unboxEval e s = do
       case e' of
         CExpBox body ->
           evaluationInterpreter body s
-        CExpRec body -> do
+        CExpNfix body -> do
           let arg = CExpBox (CExpDelay (CExpUnbox e'))
           let e'' = substituteCExp arg 0 body
           evaluationInterpreter e'' s

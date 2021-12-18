@@ -189,8 +189,8 @@ printCExp n cExp =
                  then "(" ++ printCExp (n + 3) ce2 ++ ")"
                  else printCExp (n + 3) ce2
              )
-      CExpRec ce ->
-        "rec " ++ "\'v" ++ show n ++ " => "
+      CExpNfix ce ->
+        "nfix " ++ "\'v" ++ show n ++ " => "
           ++ printCExp (n + 1) ce
       CExpOut ce ->
         "out "
@@ -396,7 +396,7 @@ cExpLevel cExp = case cExp of
   CExpNow ce -> 2
   CExpWait ce ce' -> 2
   CExpUrec ce ce' ce2 -> 2
-  CExpRec ce -> -3
+  CExpNfix ce -> -3
   CExpOut ce -> 2
   CExpInto ce -> 2
   CExpLocation n -> 3

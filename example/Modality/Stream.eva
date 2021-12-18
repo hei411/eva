@@ -16,32 +16,32 @@ def conStr {a} # (head: a) tail: >Str(a) =
     //into (head, tail) : Str(a)
 
 def mapStr {a, b} f:#(a->b)= 
-    rec m : # (Str(a) -> Str(b)) 
+    nfix m : # (Str(a) -> Str(b)) 
         => fun  str:Str(a) 
             => (?f (?hdStr{a} str)) ::: ( > (<?m (<(?tlStr{a} str))))
 
 def zipStr {a,b} = 
-    rec m: # (Str(a)->Str(b) -> Str(a*b)) 
+    nfix m: # (Str(a)->Str(b) -> Str(a*b)) 
         => fun x:Str(a) y:Str(b) 
             => (?hdStr{a} x, ?hdStr{b} y) ::: (> (<?m <(?tlStr{a} x) <(?tlStr{b} y) ) )
 
 def fstStr{a,b} = 
-    rec m: #(Str(a*b)->Str(a))
+    nfix m: #(Str(a*b)->Str(a))
         => fun x:Str(a*b) 
             =>  (fst (?hdStr{a*b} x)) ::: (> (<?m <(?tlStr{a*b} x)))
             
 def sndStr{a,b} = 
-    rec m: #(Str(a*b)->Str(b))
+    nfix m: #(Str(a*b)->Str(b))
         => fun x:Str(a*b) 
             => (snd (?hdStr{a*b} x)) ::: (> (<?m <(?tlStr{a*b} x)))
 
 def constantStr {Stable a} = 
-    rec m : # (a-> Str(a)) 
+    nfix m : # (a-> Str(a)) 
         => fun x: a 
             =>  x ::: >(<?m x)
 
 def natStr = 
-    let repeat = (rec m: #(Nat->Str(Nat)) => 
+    let repeat = (nfix m: #(Nat->Str(Nat)) => 
                     fun start:Nat =>
                         let rest = > (<?m (suc start)) in
                          start::: rest) 
@@ -49,20 +49,20 @@ def natStr =
         # (?repeat 0)
 
 def delayStr {Stable a} = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
             =>  x  :::((fun b:a => > (<?m  b <(?tlStr{a} str)) ) (?hdStr{a} str) )
 
 /*
 def wrongDelayStr {Stable a} = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
             => ?conStr{a} x  > (<?m  (?hdStr{a} str)  <(?tlStr{a} str)) 
 */
 
 // With syntactic sugar!
 /*def delayStr2 {Stable a} = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
             => (
                 let head = ?hdStr{a} str in 
@@ -75,14 +75,14 @@ def wrongDelayStr {Stable a} =
 
 
 def scanStr{Stable a,b} f:#(a->b->a)  = 
-    rec m: # ( a -> Str(b)->Str(a))
+    nfix m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (?f z (?hdStr{b} str)):::
               ((fun x:a=>  > (<?m x (<(?tlStr{b} str)))) (?f z (?hdStr{b} str)) )
 
 // With syntactic sugar!
 /*def scanStr'{Stable a,b} f:#(a->b->a)  = 
-    rec m: # ( a -> Str(b)->Str(a))
+    nfix m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (
                 let head = ?f z (?hdStr{b} str) in 
@@ -99,7 +99,7 @@ def angleDelayStr{Stable a} # xs:Str(a) =
     xs'
     
 def sort=
-    rec loop :#(Str(Nat)->Str(Nat)->Str(Nat))=> 
+    nfix loop :#(Str(Nat)->Str(Nat)->Str(Nat))=> 
         fun xs:Str(Nat) ys:Str(Nat) => 
             let x:::xs' = xs in 
             let y:::ys' = ys in 
@@ -114,13 +114,13 @@ def sort=
 //test sort 
 /*
 def even = 
-    let even' = rec loop:#(Nat->Str(Nat) ) => 
+    let even' = nfix loop:#(Nat->Str(Nat) ) => 
         fun n:Nat => 
             n:::>(<?loop (n+2))
     in #(?even' 0)
 
 def odd = 
-    let odd' = rec loop:#(Nat->Str(Nat) ) => 
+    let odd' = nfix loop:#(Nat->Str(Nat) ) => 
         fun n:Nat => 
             n:::>(<?loop (n+2))
     in #(?odd' 1)

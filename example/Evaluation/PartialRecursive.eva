@@ -35,7 +35,7 @@ import Modality.Stream
 def minimization2 
     f:#(Nat->Nat->Nat->Nat) = 
         fun x1:Nat x2:Nat =>
-            let repeat = (rec loop:#(Nat-> Str(Unit+Nat)) =>
+            let repeat = (nfix loop:#(Nat-> Str(Unit+Nat)) =>
                         fun i:Nat => 
                             let b = ?isZero (?f i x1 x2) in
                             let successCase = ?constantStr{Unit+Nat} (inr i:Unit+Nat) in

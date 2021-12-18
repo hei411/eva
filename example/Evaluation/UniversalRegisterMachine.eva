@@ -91,7 +91,7 @@ def getInstruction # n:Nat program:Nat =
     ?analyzeInstruction topInstr
 
 def machineLoop program:Nat = 
-    rec loop: # ( Nat -> Stack-> MS.Str(Result)) => 
+    nfix loop: # ( Nat -> Stack-> MS.Str(Result)) => 
         fun instructionLine:Nat args:Stack => 
             let instruction = ?getInstruction instructionLine program in 
             match instruction with 

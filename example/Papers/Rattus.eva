@@ -9,22 +9,22 @@ import Modality.Stream
     ?(mapStr{Nat,Nat} #(fun n:Nat =>suc n)) <xs' */
 
 def constInt x:Nat = 
-    rec loop:#Str(Nat) =>
+    nfix loop:#Str(Nat) =>
         x:::?loop
 
 //Can't implement as a is not stable type
 //Specifying that a is stable will work though, see const
 /*def leakyConst{a} x:a =
-    rec loop:#Str(a) =>
+    nfix loop:#Str(a) =>
         x:::?loop*/
 
 //Can't implement due to recursion guarded by delay, preventing non-productivity
 /*def loop = 
-    rec loop':#Str(Nat) =>
+    nfix loop':#Str(Nat) =>
         ?loop'*/
 
 def inc =
-    rec loop:#(Str(Nat) -> Str(Nat) ) =>
+    nfix loop:#(Str(Nat) -> Str(Nat) ) =>
         fun xs:Str(Nat) => 
             let x:::xs' = xs in 
             suc x::: >(<?loop <xs')
@@ -40,16 +40,16 @@ def map{a,b} = mapStr{a,b}
 def inc' = map{Nat,Nat} #(fun n:Nat => suc n)
 
 def constBox{a} x:#a =
-    rec loop:#Str(a) => 
+    nfix loop:#Str(a) => 
         ?x:::?loop
 
 def const{Stable a} x:a =
-    rec loop:#Str(a) =>
+    nfix loop:#Str(a) =>
         x:::?loop
 
 //Can't implement as f is not stable
 /*def leakyMap{a,b} f:(a->b) = 
-    rec loop:#(Str(a)->Str(b)) =>
+    nfix loop:#(Str(a)->Str(b)) =>
         fun xs:Str(a) =>    
             let x:::xs' = xs in 
             f x:::>(<?loop <xs')*/
@@ -57,13 +57,13 @@ def const{Stable a} x:a =
 //To implement stutter, due to Lively RaTT's restrictive rules
 //We can either implement it with a buffer, or two mutually recursive functions
 def stutter =
-    rec loop:#(Nat->Str(Nat)) => 
+    nfix loop:#(Nat->Str(Nat)) => 
         fun n:Nat => 
             n::: >(?delayStr{Nat} n (<?loop (suc n)))
 
 def stutter' = 
     let helper = 
-        rec loop:#((Nat->Str(Nat)) *
+        nfix loop:#((Nat->Str(Nat)) *
                 (Nat->Str(Nat))) =>
             let one n:Nat= 
                 n:::>(snd <?loop n) in
@@ -85,7 +85,7 @@ def scan{a,Stable b} = scanStr{b,a}
 type Event(a) = Str(Maybe(a)) 
 
 def switch{a} = 
-    rec loop:#(Str(a)->Event(a)->Str(a))=>
+    nfix loop:#(Str(a)->Event(a)->Str(a))=>
         fun xs:Str(a) ys:Event(a) =>
             let x:::xs' = xs in 
             let y:::ys'=ys in 
@@ -97,7 +97,7 @@ def switch{a} =
 
 def switchTrans{a,b} # f:Str(a)->Str(b) es:Event(Str(a)->Str(b)) xs:Str(a)= 
     let switchTrans'=
-        ?(rec loop:#(Str(b)->Event(Str(a)->Str(b))->Str(a)->Str(b))=>
+        ?(nfix loop:#(Str(b)->Event(Str(a)->Str(b))->Str(a)->Str(b))=>
             fun ys:Str(b) fs:Event(Str(a)->Str(b)) xs:Str(a) =>
                 let y:::ys' = ys in
                 let f:::fs' = fs in 
@@ -119,13 +119,13 @@ def delayApp{a,b} = angleDelayApp{a,b}
 //Section 3.2 and 3.3 (A simple reactive program and Arrowized FRP) ommitted 
 
 def from = 
-    rec loop: #(Nat -> Str(Nat) )=>
+    nfix loop: #(Nat -> Str(Nat) )=>
         fun n:Nat => 
             n::: >(<?loop (suc n))
 
 def sum = 
     let run = 
-        rec loop :#(Nat -> Str(Nat) -> Str(Nat) )=>
+        nfix loop :#(Nat -> Str(Nat) -> Str(Nat) )=>
             fun acc:Nat xs:Str(Nat) => 
                 let x:::xs' = xs in 
                 let acc' = acc+ x in 
@@ -137,18 +137,18 @@ def sum =
 //leakySum2 must be implemented in this way due to restricton of box and unbox rule. Ask Hei Li for details
 def leakySums2 = 
     let add =
-        rec loop:#(Str(Nat)->Str(Nat)->Str(Nat))=>
+        nfix loop:#(Str(Nat)->Str(Nat)->Str(Nat))=>
             fun xs:Str(Nat) ys:Str(Nat) => 
                 let x:::xs' = xs in 
                 let y:::ys' = ys in 
                 x+y:::>(<?loop <xs' <ys')
     in 
     let const = 
-        rec loop:#(Nat->Str(Nat))=>
+        nfix loop:#(Nat->Str(Nat))=>
             fun n:Nat => 
                 n:::>(<?loop n)
     in
-    rec loop:#(Str(Nat)->Str(Nat) ) =>
+    nfix loop:#(Str(Nat)->Str(Nat) ) =>
         fun xs:Str(Nat) => 
             let x:::xs' = xs in 
             x::: > (?add (?const x) <xs')
@@ -156,7 +156,7 @@ def leakySums2 =
 //Implementing altermap requires two recursive functions
 def alterMap{a,b} f:#(a->b) g:#(a->b) =
     let helper = 
-        rec loop:#((Str(a)->Str(b))*
+        nfix loop:#((Str(a)->Str(b))*
                    (Str(a)->Str(b))) =>
             let one = 
                 fun xs:Str(a) => 

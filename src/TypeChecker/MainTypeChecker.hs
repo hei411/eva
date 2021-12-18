@@ -38,7 +38,7 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpNow be bt -> nowRule file functionName definedFunctions context varStack be bt
   BExpWait be be' -> waitRule file functionName definedFunctions context varStack be be'
   BExpUrec be s be' str cs s' be2 -> urecRule file functionName definedFunctions context varStack be s be' str cs s' be2
-  BExpRec s bt be -> recRule file functionName definedFunctions context varStack s bt be
+  BExpNfix s bt be -> nfixRule file functionName definedFunctions context varStack s bt be
   BExpOut be -> outRule file functionName definedFunctions context varStack be
   BExpInto be bt -> intoRule file functionName definedFunctions context varStack be bt
   BExpLet s be be' -> letRule file functionName definedFunctions context varStack s be be'
@@ -432,20 +432,20 @@ urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar
                     )
           _ -> typeCheckerErrorMsg file functionName ("urecRule not applied to an until type exp" ++ printCExp 0 eExp)
 
-recRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
-recRule file functionName definedFunctions context varStack var ascription e = case context of
+nfixRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
+nfixRule file functionName definedFunctions context varStack var ascription e = case context of
   TokenlessContext x0 ->
     case ascription of
       BTypeBox a ->
         do
           let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext ((var, BTypeBox (BTypeAngle a), toInteger (length varStack)) : x0) []) (var : varStack) e
           if generalBTypeCompare eType a
-            then (CExpRec eExp, ascription)
-            else typeCheckerErrorMsg file functionName ("recRule type ascription does not match target type for exp " ++ printCExp 0 eExp)
-      _ -> typeCheckerErrorMsg file functionName ("recRule type ascription is not box type for " ++ show e)
-  StableContext x0 x1 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. StableContext for " ++ show e)
-  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. AngleContext for " ++ show e)
-  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. AtContext for " ++ show e)
+            then (CExpNfix eExp, ascription)
+            else typeCheckerErrorMsg file functionName ("nfixRule type ascription does not match target type for exp " ++ printCExp 0 eExp)
+      _ -> typeCheckerErrorMsg file functionName ("nfixRule type ascription is not box type for " ++ show e)
+  StableContext x0 x1 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. StableContext for " ++ show e)
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. AngleContext for " ++ show e)
+  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. AtContext for " ++ show e)
 
 outRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
 outRule file functionName definedFunctions context varStack e =

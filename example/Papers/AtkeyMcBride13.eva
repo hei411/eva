@@ -6,12 +6,12 @@ import Modality.Stream
 type Stream = Str(Nat) 
 
 def ones = 
-    rec loop:#Stream => 
+    nfix loop:#Stream => 
         1:::?loop
 
 //filter can't be implemented as expected
 /*def filter f:#(Nat->Bool) =
-    rec loop:#(Stream->Stream) =>
+    nfix loop:#(Stream->Stream) =>
         fun xs:Stream => 
             let x:::xs' = xs in 
             if ?f x 
@@ -19,7 +19,7 @@ def ones =
             else >(<?loop <xs')*/
 
 def mergef f:#(Nat->Nat-> > Stream -> Stream) = 
-    rec loop:#(Stream->Stream->Stream) => 
+    nfix loop:#(Stream->Stream->Stream) => 
         fun xs:Stream ys:Stream => 
             let x:::xs' = xs in 
             let y:::ys' = ys in 
@@ -39,7 +39,7 @@ def take n:Nat  =
 
 //debugging take
 /*def constInt x:Nat = 
-    rec loop:#Str(Nat) =>
+    nfix loop:#Str(Nat) =>
         x:::?loop
 
 def test #= ?(take 8)   ?(constInt 4)*/
@@ -55,7 +55,7 @@ def partialLater{a} #x:>Ev(a) =
     into temp:Ev(a)
 
 def collatz = 
-    rec loop:#(Nat -> Partial(Unit) ) => 
+    nfix loop:#(Nat -> Partial(Unit) ) => 
         fun n:Nat => 
             if n==1 then 
             ?partialNow{Unit} () 
@@ -67,7 +67,7 @@ def collatz =
 
 //Just for fun 
 /*def collatz' = 
-    rec loop:#(Nat -> Stream) => 
+    nfix loop:#(Nat -> Stream) => 
         fun n:Nat => 
             if n%2==0 
                 then n:::>(<?loop (n/2))

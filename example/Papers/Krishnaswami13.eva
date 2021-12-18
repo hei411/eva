@@ -7,13 +7,13 @@ import Modality.Stream
 
 //bad const basic
 /*def basic_bad_const {a} =
-    rec loop: #(Str(a)->Str(Str(a))) => 
+    nfix loop: #(Str(a)->Str(Str(a))) => 
         fun ns:Str(a) => 
             ns::: >(<?loop ns)*/
 
 //bad const with buffer
 def bad_const {Stable a}= 
-    rec loop: #(Str(a)->Str(Str(a))) => 
+    nfix loop: #(Str(a)->Str(Str(a))) => 
         fun ns:Str(a) => 
             let hd= ?hdStr{a} ns in 
             let delayed = ?delayStr{a} hd ns in 
@@ -22,7 +22,7 @@ def bad_const {Stable a}=
 /*
 //For debugging bad const
 def takeStr = 
-    rec loop: #(Nat -> Str(Str(Nat)) -> Str(Nat)) => 
+    nfix loop: #(Nat -> Str(Str(Nat)) -> Str(Nat)) => 
         fun n:Nat s:Str(Str(Nat))=>
             ?if{Str(Nat)} (?isZero n)
                 (?hdStr{Str(Nat)} s) 
@@ -35,7 +35,7 @@ def main # s :Str(Nat) =
 def const = constantStr{Nat}
 
 def sum_acc = 
-    rec loop: # (Str(Nat) -> Nat -> Str(Nat)) => 
+    nfix loop: # (Str(Nat) -> Nat -> Str(Nat)) => 
         fun ns:Str(Nat) acc:Nat => 
             let hd:::tl = ns in 
             let acc'=acc+hd in 
@@ -44,7 +44,7 @@ def sum_acc =
 def sum # ns:Str(Nat) = ?sum_acc ns 0
 
 def tails {a} = 
-    rec loop: #(Str(a)-> Str(Str(a))) => 
+    nfix loop: #(Str(a)-> Str(Str(a))) => 
         fun xs:Str(a) => 
             let hd:::tl =xs in 
             xs::: >(<?loop <tl)
@@ -52,7 +52,7 @@ def tails {a} =
 def map{a,b} = mapStr{a,b}
 
 def unfold{x,a} h:#(x-> (a* >x)) =
-    rec loop: #(x->Str(a)) =>
+    nfix loop: #(x->Str(a)) =>
         fun arg:x => 
             let result = ?h arg in 
             let hd = fst result in 
@@ -60,7 +60,7 @@ def unfold{x,a} h:#(x-> (a* >x)) =
             hd::: >(<?loop <rest)
 
 def swap{a} = 
-    rec loop:#(Nat->Str(a)->Str(a)->Str(a)) => 
+    nfix loop:#(Nat->Str(a)->Str(a)->Str(a)) => 
         fun n:Nat xs:Str(a) ys:Str(a) => 
             primrec n with 
                 |0 => ys 
@@ -70,7 +70,7 @@ def swap{a} =
                     x::: >(<?loop pred <xs' <ys')
 
 def switch{a} = 
-    rec loop:#(Str(a)->Ev(Str(a)) -> Str(a) )=> 
+    nfix loop:#(Str(a)->Ev(Str(a)) -> Str(a) )=> 
         fun xs:Str(a) e:Ev(Str(a)) => 
             let x:::xs' = xs in 
             let e' = out e in
@@ -82,7 +82,7 @@ def switch{a} =
 def return {a} # x:a = into (inl x:a+>Ev(a)): Ev(a)
 
 def bind{a,b} h:#(a->Ev(b)) = 
-    rec loop:#(Ev(a)->Ev(b))=>
+    nfix loop:#(Ev(a)->Ev(b))=>
         fun e:Ev(a) => 
             let e' = out e in 
             match e' with 
@@ -95,7 +95,7 @@ def bind{a,b} h:#(a->Ev(b)) =
 type R (i,o,a) = Fix alpha --> alpha * (a + (i->(o* alpha) ))
 
 def par{i,o,a}  = 
-    rec loop:#( (R(i,o,a)*R(i,o,a)) -> R(i,o,a) )=>
+    nfix loop:#( (R(i,o,a)*R(i,o,a)) -> R(i,o,a) )=>
         fun p:R(i,o,a) *R(i,o,a) => 
             let p1 = fst p in 
             let p2 = snd p in 

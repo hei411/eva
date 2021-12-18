@@ -162,21 +162,21 @@ lambdaParser = do
   exp <- expParser
   return (addLambda l exp)
 
-recParser :: Parser AExp
-recParser = do
-  string "rec"
+nfixParser :: Parser AExp
+nfixParser = do
+  string "nfix"
   notFollowedBy alphaNum
   spaces
   (v, t) <- annoVarParser
   string "=>"
   spaces
   exp <- expParser
-  return (AExpRec v t exp)
+  return (AExpNfix v t exp)
 
 bindExpParser :: Parser AExp
 bindExpParser =
   try lambdaParser
-    <|> recParser
+    <|> nfixParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
 
 infixExpParser :: Parser AExp

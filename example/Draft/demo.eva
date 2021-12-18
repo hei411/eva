@@ -9,7 +9,7 @@ def tl = MS.tlStr{Nat}
 def cons = MS.conStr{Nat}
 
 def fibHelper = 
-    rec repeat: # (Nat->Nat-> Stream) =>
+    nfix repeat: # (Nat->Nat-> Stream) =>
         fun x:Nat y:Nat =>
             let sum =  x + y in 
             let rest = > (<?repeat y sum) in 
@@ -20,7 +20,7 @@ def main # = ?fibHelper 0 1
 def delayStream = MS.delayStr {Nat}
 
 def addStream = 
-    rec repeat:# (Stream->Stream->Stream) => 
+    nfix repeat:# (Stream->Stream->Stream) => 
         fun one:Stream two:Stream =>
             let onehd=?hd one in 
             let twohd=?hd two in 
@@ -29,7 +29,7 @@ def addStream =
             ?cons (onehd + twohd) >(<?repeat <onetl <twotl)
 
 def fibHelperLeaky = 
-    rec repeat: #Stream => 
+    nfix repeat: #Stream => 
         let delayedOnce = ?repeat in
         let delayedTwice = > (?delayStream 0 <?repeat) in
         ?cons 1 >(?addStream <delayedOnce <delayedTwice) 

@@ -33,7 +33,7 @@ peanoConverterAExp e = do
     AExpNow ae at -> AExpNow (peanoConverterAExp ae) at
     AExpWait ae ae' -> AExpWait (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpUrec ae s ae' str cs s' ae2 -> AExpUrec (peanoConverterAExp ae) s (peanoConverterAExp ae') str cs s' (peanoConverterAExp ae2)
-    AExpRec s at ae -> AExpRec s at (peanoConverterAExp ae)
+    AExpNfix s at ae -> AExpNfix s at (peanoConverterAExp ae)
     AExpOut ae -> AExpOut (peanoConverterAExp ae)
     AExpInto ae at -> AExpInto (peanoConverterAExp ae) at
     AExpLet s ae ae' -> AExpLet s (peanoConverterAExp ae) (peanoConverterAExp ae')

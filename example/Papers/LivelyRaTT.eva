@@ -6,7 +6,7 @@ import Modality.Stream
 def map{a,b} = mapStr{a,b}
 
 def loopEvent{a} = 
-    rec loop:#(Ev(a)) => 
+    nfix loop:#(Ev(a)) => 
         let temp = inr ?loop : a +>Ev(a) in 
         into temp:Ev(a)
 
@@ -27,7 +27,7 @@ def waitEv{aType} # e:>Ev(aType) =
     into temp:Ev(aType)
 
 def bindEv{aType,bType} f:#(aType->Ev(bType)) = 
-    rec loop:#(Ev(aType) -> Ev(bType) ) => 
+    nfix loop:#(Ev(aType) -> Ev(bType) ) => 
         fun ev:Ev(aType) =>
             let ev' = out ev in 
             match ev' with 
@@ -141,7 +141,7 @@ type Resp = String *Nat
 type TestServer =Server(Req,Resp)
 
 def rServer = 
-    rec loop:#(Nat -> TestServer) => 
+    nfix loop:#(Nat -> TestServer) => 
         fun m:Nat =>
             let rServerFst = >(<?loop m) in 
             let rServerSnd p:(Req) = (
@@ -162,7 +162,7 @@ def proj2{aType,bType} # p:>(aType*bType) =
     >(snd < p)
 //Section 3.2 Fair Streams
 def altStrMut{a,b} = 
-    rec loop:#((Str(a)->Str(b)->Str(a+b)) *
+    nfix loop:#((Str(a)->Str(b)->Str(a+b)) *
                (Str(a)->Str(b)->Str(a+b)) ) =>
         let one = (
                 fun xs:Str(a) ys:Str(b) => 
@@ -201,7 +201,7 @@ def switch' {a,b} # x:b y: >Fair(b,a) =
     now(x,y) :Fair'(a,b)
 
 def altFairMut{a,b} = 
-    rec loop:#((Str(a)->Str(b) -> Fair(a,b))*
+    nfix loop:#((Str(a)->Str(b) -> Fair(a,b))*
                 (Str(a)->Str(b)->Fair'(b,a))) => 
         let one = (
                 fun xs:Str(a) ys:Str(b) => 
@@ -223,16 +223,16 @@ def altFair'{b,a} #= snd ?altFairMut{a,b}
 
 //for debugging fair streams
 def zeros = 
-    rec loop: #Str(Nat)=> 
+    nfix loop: #Str(Nat)=> 
         0:::?loop
 def trues = 
-    rec loop: #Str(Bool)=> 
+    nfix loop: #Str(Bool)=> 
         true:::?loop
 
 //def test #= ?altFair{Bool,Nat} ?trues ?zeros 
 
 def runFairMut{a,b} = 
-    rec loop:#((Fair(a,b)->Str(a+b))*
+    nfix loop:#((Fair(a,b)->Str(a+b))*
               (Fair'(b,a)->Str(a+b))) => 
         let one = (
                 fun xs:Fair(a,b) => 
@@ -261,7 +261,7 @@ def runFair{a,b} #= fst ?runFairMut{a,b}
 //def test' #= ?runFair{Bool,Nat} ?test
 
 def schMut{Limit a,Limit b} =
-    rec loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
+    nfix loop:#((Nat->Str(a)->Str(b)->Fair(a,b))*
                 (Nat->Str(a)->Str(b)->Fair'(b,a)))=>
         let sch = (
                 let until num:TempNat = 

@@ -4,7 +4,7 @@ type MaybeNat = Unit + Nat
 
 def from2 =
     let helper = 
-        rec loop:#(Nat ->Str(MaybeNat))=>
+        nfix loop:#(Nat ->Str(MaybeNat))=>
             fun n:Nat =>
                 let hd = inr n:MaybeNat in 
                 hd:::>(<?loop (suc n))
@@ -12,7 +12,7 @@ def from2 =
     #(?helper 2)
 
 def filter = 
-    rec loop:#(Nat->Str(MaybeNat) -> Str(MaybeNat) ) => 
+    nfix loop:#(Nat->Str(MaybeNat) -> Str(MaybeNat) ) => 
         fun n:Nat xs:Str(MaybeNat) => 
             let x:::xs' = xs in 
             let tl = >(<?loop n <xs') in 
@@ -25,7 +25,7 @@ def filter =
 
 def sieve = 
     let helper = 
-        rec loop:#(Str(MaybeNat)->Str(MaybeNat))=>
+        nfix loop:#(Str(MaybeNat)->Str(MaybeNat))=>
             fun xs:Str(MaybeNat) => 
                 let x:::xs' =xs in 
                 match x with 
