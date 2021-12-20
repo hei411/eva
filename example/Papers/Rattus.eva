@@ -173,7 +173,7 @@ def leakySums2 =
             let x:::xs' = xs in 
             x::: > (?add (?const x) <xs')
 
-/*cannot type check. Proposal: generalize the unbox rule?
+/*cannot type check due to addConstant x. Proposal: generalize the unbox rule?
 def leakySum2' =
     let addConstant n:Nat # x:Nat = x+ n in 
     nfix loop :#(Str(Nat)->Str(Nat))=> 
