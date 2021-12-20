@@ -133,7 +133,27 @@ def sum =
     in
     # (?run 0)
 
-//buffer and leakySums1 not implementable as no lists datatype as primitive
+def buffer{Stable a} = 
+    let helper = nfix loop: #(List(a)->Str(a) ->Str(List(a))) => 
+                    fun l:List(a) xs:Str(a) => 
+                        let x:::xs' = xs in 
+                        let l' = l++[x] in 
+                        l':::>(<?loop l' <xs')
+    in 
+    #(?helper []:List(a))
+
+def leakySums1 = 
+    nfix loop : #(Str(List(Nat))->Str(Nat ))=>
+            fun ls:Str(List(Nat)) => 
+                let l:::ls'=ls in 
+                let n = 
+                    primrec l with 
+                        |[]=> 0
+                        |l::ls', rest => l+rest 
+                in 
+                n:::>(<?loop <ls')
+    
+    
 //leakySum2 must be implemented in this way due to restricton of box and unbox rule. Ask Hei Li for details
 def leakySums2 = 
     let add =
@@ -152,6 +172,16 @@ def leakySums2 =
         fun xs:Str(Nat) => 
             let x:::xs' = xs in 
             x::: > (?add (?const x) <xs')
+
+/*cannot type check. Proposal: generalize the unbox rule?
+def leakySum2' =
+    let addConstant n:Nat # x:Nat = x+ n in 
+    nfix loop :#(Str(Nat)->Str(Nat))=> 
+        fun xs:Str(Nat) => 
+            let x:::xs' = xs in 
+            x:::>(?(map{Nat,Nat} (addConstant x)) (<?loop <xs'))
+*/
+            
 
 //Implementing altermap requires two recursive functions
 def alterMap{a,b} f:#(a->b) g:#(a->b) =
