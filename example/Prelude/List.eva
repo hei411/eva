@@ -187,3 +187,29 @@ def insertionSort # xs:List(Nat) =
         |x::xs', rest => insert x rest
 
 //def main # = now (?insertionSort [1,2,3,0, 25,6,46]) : Unit Until List(Nat)
+
+def quickSortHelper # x:Nat l:List(Nat) = 
+    let f n:Nat = n `?leq` x in 
+    ?partition{Nat} f l
+
+    
+def quickSort # l:List(Nat) = 
+    let len = ?length{Nat} l in
+    let q n:Nat= (
+        primrec n with 
+            | 0 => fun l:List(Nat) => []:List(Nat) 
+            | suc x, y => 
+                fun l:List(Nat) =>
+                    primrec l with 
+                        | []=>[]:List(Nat) 
+                        | u::v,w => 
+                            let (small,large) = ?quickSortHelper u v in 
+                            let one = y small in 
+                            let two = u::y large in
+                            one++two  
+
+    ) in 
+    (q len) l
+    
+//def main # = now (?quickSort [1,2,3,0, 25,6,46]) : Unit Until List(Nat)
+
