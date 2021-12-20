@@ -155,7 +155,7 @@ def leakySums1 =
     
     
 //leakySum2 must be implemented in this way due to restricton of box and unbox rule. Ask Hei Li for details
-def leakySums2 = 
+def leakySums2' = 
     let add =
         nfix loop:#(Str(Nat)->Str(Nat)->Str(Nat))=>
             fun xs:Str(Nat) ys:Str(Nat) => 
@@ -174,7 +174,7 @@ def leakySums2 =
             x::: > (?add (?const x) <xs')
 
 /*cannot type check due to addConstant x. Proposal: generalize the unbox rule?
-def leakySum2' =
+def leakySum2 =
     let addConstant n:Nat # x:Nat = x+ n in 
     nfix loop :#(Str(Nat)->Str(Nat))=> 
         fun xs:Str(Nat) => 
