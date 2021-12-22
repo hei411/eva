@@ -173,14 +173,14 @@ def leakySums2' =
             let x:::xs' = xs in 
             x::: > (?add (?const x) <xs')
 
-/*cannot type check due to addConstant x. Proposal: generalize the unbox rule?
+//Proposal: generalize the unbox rule!
 def leakySum2 =
     let addConstant n:Nat # x:Nat = x+ n in 
     nfix loop :#(Str(Nat)->Str(Nat))=> 
         fun xs:Str(Nat) => 
             let x:::xs' = xs in 
             x:::>(?(map{Nat,Nat} (addConstant x)) (<?loop <xs'))
-*/
+
             
 
 //Implementing altermap requires two recursive functions

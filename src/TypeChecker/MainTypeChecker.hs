@@ -358,23 +358,27 @@ boxRule file functionName definedFunctions context varStack e = case context of
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-tokenless context, i.e.  AtContext for " ++ show e)
 
 unboxRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
+--This rule is generalized!
 unboxRule file functionName definedFunctions context varStack e = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName ("unboxRule applied to a tokenless context for " ++ show e)
   StableContext x0 x1 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext x1 ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("unboxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
   AngleContext x0 x1 x2 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext (x2 ++ x1) ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
   AtContext x0 x1 x2 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext (x2 ++ x1) ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
@@ -403,20 +407,21 @@ waitRule file functionName definedFunctions context varStack e1 e2 =
       _ -> typeCheckerErrorMsg file functionName ("waitRule's second argument is not an at-delayed Until type: " ++ printCExp 0 e2Exp)
 
 urecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+--This rule is generalized!
 urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar1 waitVar2 nextVar e2 = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName ("urecRule applied to a tokenless context for " ++ show (e))
-  StableContext x0 x1 -> urecRuleHelper x0
-  AngleContext x0 x1 x2 -> urecRuleHelper x0
-  AtContext x0 x1 x2 -> urecRuleHelper x0
+  StableContext x0 x1 -> urecRuleHelper x0 (stablizeContext x1)
+  AngleContext x0 x1 x2 -> urecRuleHelper x0 (stablizeContext (x2 ++ x1))
+  AtContext x0 x1 x2 -> urecRuleHelper x0 (stablizeContext (x2 ++ x1))
   where
-    urecRuleHelper firstContextList =
+    urecRuleHelper firstContextList secondContextList =
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
         case eType of
           BTypeUntil a b ->
             do
-              let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (StableContext firstContextList [(nowVar, b, toInteger (length varStack))]) (nowVar : varStack) e1
-              let extendedContext = StableContext firstContextList [(nextVar, BTypeAt e1Type, 2 + toInteger (length varStack)), (waitVar2, BTypeAt eType, 1 + toInteger (length varStack)), (waitVar1, a, toInteger (length varStack))]
+              let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (StableContext firstContextList ((nowVar, b, toInteger (length varStack)) : secondContextList)) (nowVar : varStack) e1
+              let extendedContext = StableContext firstContextList ([(nextVar, BTypeAt e1Type, 2 + toInteger (length varStack)), (waitVar2, BTypeAt eType, 1 + toInteger (length varStack)), (waitVar1, a, toInteger (length varStack))] ++ secondContextList)
               let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (nextVar : waitVar2 : waitVar1 : varStack) e2
               if generalBTypeCompare e2Type e1Type
                 then (CExpUrec eExp e1Exp e2Exp, e1Type)
