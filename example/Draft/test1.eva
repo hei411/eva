@@ -5,6 +5,8 @@ def find = hiddenfunction
 //type Test= Testr
 import Prelude.Nat
 import Modality.Stream
+def x=0
+def x=1
 def main = 
     let helper = nfix loop :#(List(Nat) -> Str(Nat) -> Str(List(Nat)) ) => 
         fun l:List(Nat) xs:Str(Nat) => 

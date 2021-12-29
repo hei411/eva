@@ -1,0 +1,75 @@
+import Yampa.BasicDefinitions
+import Modality.Stream
+
+def identity{a} # xs:Str(a)= xs
+
+def constant{a,b} default:#b # xs:Str(a)=
+    ?(nfix loop:#Str(b)=>
+        ?default:::?loop)
+
+def initialization{a,b} default:#b sf:SF(a,b) #= 
+    fun xs:Str(a)=>
+        let ys = ?sf xs in 
+        let y:::ys' = ys in 
+        ?default:::ys'
+
+def preInsert{a,Stable b} sample:#b sf:SF(a,b) = 
+    let delayOne = 
+        nfix loop:#(b->Str(b)->Str(b))=>
+            fun d:b xs:Str(b) => 
+                let x:::xs'=xs in
+                d:::>(<?loop x <xs')
+    in 
+    #(
+        fun xs:Str(a)=>
+            let ys=?sf xs in 
+            ?delayOne ?sample ys
+    )
+
+def inputInitialization{a,b} default:#a sf:SF(a,b) = 
+    #(
+        fun xs:Str(a)=>
+            let x:::xs' = xs in
+            let xs'' = ?default:::xs' in 
+            ?sf xs''
+    )
+
+def transformInitialOutput{a,b} f:#(b->b) sf:SF(a,b) # xs:Str(a)= 
+    let ys= ?sf xs in 
+    let y:::ys' = ys in 
+    ?f y :::ys'
+
+def transformInitialInput{a,b} f:#(a->a) sf:SF(a,b) # xs:Str(a)= 
+    let x:::xs'=xs in 
+    let xs''=?f x:::xs' in 
+    ?sf xs''
+
+def initially{a} x:#a # xs:Str(a)=
+    ?(nfix loop:#Str(a)=>
+        ?x:::?loop)
+
+
+def sscan{a,Stable b} f:#(b->a->b) first:#b sf:SF(a,b) = 
+    let helper = 
+        nfix loop:#(b->Str(a)->Str(b))=>
+            fun  v:b xs:Str(a)=> 
+                let x:::xs'=xs in 
+                let elem = ?f v x in 
+                elem:::>(<?loop elem <xs' )
+    in 
+    #(?helper ?first)
+
+
+def sscanPrim{a,Stable b,Stable c} f:#(c->a->Event( (c*b))) firstc:#c firstb:#b sf:SF(a,b) = 
+    let helper = 
+        nfix loop:#(c->b->Str(a)->Str(b))=>
+            fun v:c w:b xs:Str(a)=> 
+                let x:::xs'=xs in 
+                let elem = ?f v x in 
+                match elem with 
+                    |inl _ => w:::>(<?loop v w <xs')
+                    |inr elemResult=> 
+                        let (one,two)=elemResult in 
+                        two:::>(<?loop one two <xs')
+    in 
+    #(?helper ?firstc ?firstb)
