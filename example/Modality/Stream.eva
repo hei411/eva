@@ -126,3 +126,10 @@ def odd =
     in #(?odd' 1)
 
 def main# = ?sort ?odd ?even*/
+
+def consListStr{a} = 
+    nfix helper:#(Str(a) -> Str(List(a)) ->Str(List(a)))=>
+        fun xs:Str(a) ys:Str(List(a)) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            x::y :::>(<?helper <xs' <ys')

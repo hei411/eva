@@ -1,0 +1,97 @@
+import Modality.Stream 
+import Yampa.BasicDefinitions
+import Prelude.Maybe
+
+def hold{Stable a} = 
+    nfix loop:#(a->Str(Event(a)) -> Str(a))=>
+        fun default:a xs:Str(Event(a)) => 
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => default:::>(<?loop default <xs')
+                | inr xResult => xResult:::>(<?loop xResult <xs')
+
+def dhold{Stable a} = 
+    nfix loop:#(a->Str(Event(a)) -> Str(a))=>
+        fun default:a xs:Str(Event(a)) => 
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => default:::>(<?loop default <xs')
+                | inr xResult => default:::>(<?loop xResult <xs')
+
+
+def trackAndHold{Stable a} = hold{a}
+
+def accum{Stable a} = 
+    nfix loop:#(a->Str(Event(a->a)) -> Str(Event(a)))=> 
+        fun acc:a xs:Str(Event(a->a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?nothing{a} ::: >(<?loop acc <xs')
+                |inr f =>
+                    let hd = f acc in  
+                    ?just{a} (hd):::>(<?loop hd <xs')
+
+def accumHold{Stable a} = 
+    nfix loop:#(a->Str(Event(a->a)) -> Str(Event(a)))=> 
+        fun acc:a xs:Str(Event(a->a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?just{a} acc ::: >(<?loop acc <xs')
+                |inr f =>
+                    let hd = f acc in  
+                    ?just{a} (hd):::>(<?loop hd <xs')
+
+def dAccumHold{Stable a} = 
+    nfix loop:#(a->Str(Event(a->a)) -> Str(Event(a)))=> 
+        fun acc:a xs:Str(Event(a->a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?just{a} acc ::: >(<?loop acc <xs')
+                |inr f =>
+                    let hd = f acc in  
+                    ?just{a} acc:::>(<?loop hd <xs')
+
+def accumBy{a,Stable b} f:#(b->a->b) = 
+    nfix loop:#(b->Str(Event(a)) -> Str(Event(b)))=> 
+        fun acc:b xs:Str(Event(a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?nothing{b} ::: >(<?loop acc <xs')
+                |inr xResult =>
+                    let hd = ?f acc xResult in  
+                    ?just{b} (hd):::>(<?loop hd <xs')
+
+def accumHoldBy{a,Stable b} f:#(b->a->b) = 
+    nfix loop:#(b->Str(Event(a)) -> Str(Event(b)))=> 
+        fun acc:b xs:Str(Event(a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?just{b} acc::: >(<?loop acc <xs')
+                |inr xResult =>
+                    let hd = ?f acc xResult in  
+                    ?just{b} (hd):::>(<?loop hd <xs')
+
+def dAccumHoldBy{a,Stable b} f:#(b->a->b) = 
+    nfix loop:#(b->Str(Event(a)) -> Str(Event(b)))=> 
+        fun acc:b xs:Str(Event(a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?just{b} acc::: >(<?loop acc <xs')
+                |inr xResult =>
+                    let hd = ?f acc xResult in  
+                    ?just{b} acc:::>(<?loop hd <xs')
+
+def accumFilter{a,b, Stable c} f:#(c->a->(c*Maybe(b))) = 
+    nfix loop:#(c->Str(Event(a)) -> Str(Event(b)))=> 
+        fun acc:c xs:Str(Event(a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?nothing{b} ::: >(<?loop acc <xs')
+                |inr xResult =>
+                    let hd = ?f acc xResult in  
+                    let (one,two) = hd in 
+                    match two with 
+                        |inl _ => 
+                            ?nothing{b} ::: >(<?loop one <xs')
+                        |inr bResult => 
+                            ?just{b} bResult :::>(<?loop one <xs')
