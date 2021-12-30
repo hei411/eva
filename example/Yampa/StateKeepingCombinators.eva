@@ -1,0 +1,69 @@
+import Yampa.BasicDefinitions
+import Prelude.Maybe
+import Modality.Stream
+
+//loopPre not implementable due to functions
+/*def {a,b,Stable c} loopPre acc:c f:SF((a*c),(b*c)) = 
+    let helper = 
+        nfix loop :#(c->Str(a)->Str(b))=> 
+            fun acc:c xs:Str(a)=>
+*/
+
+def integral = 
+    let helper = 
+        nfix loop:#(Nat ->Str(Nat) ->Str(Nat))=>
+            fun n:Nat xs:Str(Nat) => 
+                let x:::xs' = xs in 
+                let hd= n+x in 
+                hd:::>(<?loop hd <xs')
+    in
+    #(?helper 0)
+
+def imIntegral start:Nat = 
+    let helper = 
+        nfix loop:#(Nat ->Str(Nat) ->Str(Nat))=>
+            fun n:Nat xs:Str(Nat) => 
+                let x:::xs' = xs in 
+                let hd= n+x in 
+                hd:::>(<?loop hd <xs')
+    in
+    #(?helper start)
+
+def impulseIntegral  = 
+    let helper = 
+        nfix loop:#(Nat ->Str(Nat*Event(Nat)) ->Str(Nat))=>
+            fun n:Nat xs:Str(Nat*Event(Nat)) => 
+                let x:::xs' = xs in 
+                let (one,two)=x in 
+                match two with 
+                    |inl _ => 
+                        let hd = one + n in 
+                        hd:::>(<?loop hd <xs' )
+                    |inr result => 
+                        let hd= one + n + result in 
+                        hd:::>(<?loop hd <xs')
+    in
+    #(?helper 0)
+
+def count{a} = 
+    let helper =nfix loop:#(Nat->Str(Event(a)) -> Str(Event(Nat)))=> 
+        fun n:Nat xs:Str(Event(a)) => 
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => ?nothing{Nat} :::>(<?loop n <xs' )
+                |inr _ => ?just{Nat}(n+1) :::>(<?loop (n+1) <xs')
+    in 
+    #(?helper 0)
+
+//derivative not implemented as not useful
+
+//iterFrom simplified=> from DTime
+def iterFrom{Stable a,Stable b} f:#(a->a->b->b) prevI:a prevO:b = 
+    let helper = 
+        nfix loop:#(a->b->Str(a)->Str(b)) => 
+            fun lastx:a lasty:b xs:Str(a) => 
+                let x:::xs' = xs in  
+                let hd = ?f x lastx lasty in 
+                hd :::>(<?loop x hd <xs')
+    in 
+    #(?helper prevI prevO)
