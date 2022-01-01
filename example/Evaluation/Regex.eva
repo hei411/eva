@@ -137,6 +137,37 @@ def interpretRF initial:#RF =
     in 
     #(?helper ?initial)
 
-//for testing 
+
 def model =  concatRF (starRF matcht) matchf 
-def main = interpretRF model
+
+
+//for interactive testing 
+//def main = interpretRF model
+
+//for non-interactive testing
+import Prelude.List as PL
+def string = [true,true,false,false]
+def convert  l:List(Bool) = 
+    primrec l with 
+        | [] => # now true :Bool Until Bool 
+        | x::xs, rest => 
+            # ( if ?PL.length{Bool} xs ==0 
+                then  now x:Bool Until Bool 
+                else 
+                     wait x (@?rest)
+                     )
+
+def check  # l:Bool Until Bool = 
+    urec l with 
+        |now x => 
+            fun rf:RF => 
+                let (resultrf,nextrf) = (out rf) x in 
+                now resultrf : Unit Until Bool 
+        | wait x y, rest => 
+            fun rf :RF => 
+                let (resultrf,nextrf) = (out rf) x in 
+                wait () @(<rest <nextrf)
+
+def main # = 
+    let l = ?(convert (true::string)) in 
+    ?check l ?model
