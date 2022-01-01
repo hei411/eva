@@ -1,0 +1,142 @@
+import Modality.Stream 
+
+//RF stands for Regex Function
+type RF = NFix x--> Bool->(Bool*x)
+
+
+
+
+def null= 
+    nfix loop:#(RF) => 
+        let toFold = 
+            fun b:Bool => 
+                (false, ?loop)
+        in 
+        into toFold: RF
+
+def epsilon #= 
+    let toFold = 
+        fun b:Bool => 
+            (true, >?null)
+    in 
+    into toFold: RF
+
+def matcht = 
+    let tl #= 
+        let toFold = 
+            fun b:Bool => 
+                (b, >?null)
+        in 
+        into toFold: RF
+    in
+    # (
+        let toFold = 
+            fun b:Bool => 
+                (false, >?tl)
+        in 
+        into toFold: RF
+    )
+
+def matchf = 
+    let tl #= 
+        let toFold = 
+            fun b:Bool => 
+                (not b, >?null)
+        in 
+        into toFold: RF
+    in 
+    # (
+        let toFold = 
+            fun b:Bool => 
+                (false, >?tl)
+        in 
+        into toFold: RF
+    )
+
+def orRF a:#RF b:#RF= 
+    let helper = nfix loop:#(RF->RF->RF) => 
+        fun one:RF two:RF => 
+            let toFold = 
+                fun b:Bool => 
+                    let (resultOne,nextOne) = (out one) b in 
+                    let (resultTwo, nextTwo) = (out two) b in 
+                    (resultOne or resultTwo, >(<?loop <nextOne <nextTwo))
+            in 
+            into toFold: RF
+    in 
+    #(?helper ?a ?b)
+
+    
+def orRF' = 
+    nfix loop:#(RF->RF->RF) => 
+        fun one:RF two:RF => 
+            let toFold = 
+                fun b:Bool => 
+                    let (resultOne,nextOne) = (out one) b in 
+                    let (resultTwo, nextTwo) = (out two) b in 
+                    (resultOne or resultTwo, >(<?loop <nextOne <nextTwo))
+            in 
+            into toFold: RF
+    
+
+def concatRF one:#RF two:#RF=
+    let helper =
+        nfix loop:#(RF ->RF) => 
+            fun one' :RF => 
+                let toFold = 
+                    fun b:Bool => 
+                        let (resultOne,nextOne) = (out one') b in 
+                        let (resultTwo, nextTwo) = (out ?two) b in 
+                        if resultOne 
+                            then 
+                            // match first 
+                            let continue = >(<?loop <nextOne) in 
+                            (resultTwo, >(?orRF' <continue <nextTwo))
+                            else 
+                            (false, >(<?loop <nextOne))
+
+                in 
+                into toFold: RF
+    in
+    #(?helper ?one)
+
+
+
+
+
+def starRF initial:#RF= 
+    let helper = 
+        nfix loop:#(RF -> RF) => 
+            fun rf:RF => 
+                let toFold = 
+                    fun b:Bool => 
+                        let (resultrf,nextrf) = (out rf) b in 
+                        let (resultinitial, nextinitial) = (out ?initial) b in 
+                        if resultrf 
+                            then 
+                            //  continue matching current one 
+                                let startNew = >(<?loop <nextinitial) in 
+                                let continue = >(<?loop <nextrf) in 
+                                (true, >(?orRF' <startNew <continue))
+                            else 
+                            (false, >(<?loop <nextrf))
+                in 
+                into toFold: RF
+    in
+    #( 
+        ?helper ?epsilon
+    )
+
+def interpretRF initial:#RF = 
+    let helper = 
+        nfix loop:#( RF-> Str(Bool) ->Str(Bool))=> 
+            fun rf:RF xs:Str(Bool) => 
+                let x:::xs' = xs in 
+                let (resultrf,nextrf) = (out rf) x in 
+                resultrf:::>(<?loop <nextrf <xs')
+    in 
+    #(?helper ?initial)
+
+//for testing 
+def model =  concatRF (starRF matcht) matchf 
+def main = interpretRF model
