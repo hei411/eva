@@ -168,6 +168,53 @@ def check  # l:Bool Until Bool =
                 let (resultrf,nextrf) = (out rf) x in 
                 wait () @(<rest <nextrf)
 
-def main # = 
+//For urec testing 
+/*def main # = 
     let l = ?(convert (true::string)) in 
-    ?check l ?model
+    ?check l ?model*/
+
+type RFOneStep = List(Bool) -> Bool
+
+def nullOneStep l:List(Bool) = false 
+
+def emptyOneStep l :List (Bool) = l==[]:List(Bool) 
+
+def matchTrueOneStep l:List(Bool) = l==[true]
+
+def matchFalseOneStep l:List(Bool) = l==[false]
+
+def orOneStep f:RFOneStep g: RFOneStep l:List(Bool) = (f l) or (g l )
+
+def concatOneStep f:RFOneStep g:RFOneStep l :List (Bool ) = 
+    let helper rest :List(Bool) =
+        primrec rest with 
+            | [] => fun prev:List(Bool) => (f prev) and (g []:List(Bool) ) 
+            | x::xs, other => 
+                fun prev:List(Bool) => 
+                    let prev' = prev ++ [x] in 
+                    let b= (f prev') and (g xs) in 
+                    b or (other prev')
+    in 
+    (f []:List(Bool) and g l) or helper l []:List(Bool) 
+    
+def starOneStep f:RFOneStep l :List (Bool ) = 
+    let helper rest :List(Bool) = 
+        primrec rest with
+            | [] => fun prev:List(Bool) => f prev
+            | x::xs, other => 
+                fun prev:List(Bool) => 
+                    let prev' = prev ++ [x] in 
+                    let b= (f prev') and (other []:List(Bool)) in 
+                    let b'= (other prev') in
+                    b or b'
+    in 
+        l==[]:List(Bool) or helper l []:List(Bool)
+
+def interpretOneStep f:RFOneStep l:List(Bool) = f l 
+
+def modelOneStep = concatOneStep (starOneStep matchTrueOneStep) matchFalseOneStep
+
+def stringOneStep = [false]
+
+//testing one step regex
+def main = interpretOneStep modelOneStep stringOneStep
