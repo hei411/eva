@@ -11,7 +11,7 @@ homepage:       https://github.com/hei411/eva#readme
 bug-reports:    https://github.com/hei411/eva/issues
 author:         Hei Li
 maintainer:     Hei.Li@cl.cam.ac.uk
-copyright:      2021 Author name here
+copyright:      2021 Li Kwing Hei
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
