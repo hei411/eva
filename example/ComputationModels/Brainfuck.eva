@@ -1,0 +1,133 @@
+import Modality.Stream 
+import Prelude.List
+import Prelude.Maybe
+import Prelude.Nat
+
+type Char = Nat 
+def right=0 
+def left=1 
+def inc=2
+def dec=3
+def dot=4
+def comma=5 
+def open=6
+def close=7
+
+type OutputType = (Unit+Nat)+Unit 
+def runningOutput # = inl (inl ():Unit+Nat ):OutputType 
+def printOutput # n:Nat = inl (inr n:Unit+Nat ):OutputType 
+def terminateSymbol # = inr ():OutputType 
+
+def program = [comma,right,comma,left, open,dec,right, inc, left, close, right, dot]
+
+def read # tape:List(Nat) addr:Nat = 
+    let l = ?length{Nat} tape in 
+    let result = ?get{Nat} tape addr in 
+    match result with 
+        | inl _ => 0
+        | inr x => x
+
+def update# tape:List(Nat) = 
+    primrec tape with 
+        | [] =>fun addr:Nat num:Nat => []:List(Nat)
+        | x::xs, rest => fun addr:Nat num:Nat => 
+            if addr == 0 then num::xs 
+            else x:: rest (addr-1) num 
+
+def addZero # tape:List(Nat) toAdd:Nat = 
+    primrec toAdd with 
+        | 0 => tape 
+        |suc x, rest => 0::rest
+
+def write # tape:List(Nat) addr:Nat num:Nat = 
+    let l = ?length{Nat} tape in 
+    if addr `?lessthan` l
+        then ?update tape addr num 
+        else 
+            let toAdd = addr +1- (l) in
+           let tape' = (?addZero (?reverse{Nat} tape) toAdd) in 
+           ?reverse{Nat} (?update tape' 0 num )
+
+def findClose # prog:List(Char) addr:Nat = 
+    let helper p:List(Char) =
+        primrec p with 
+            |[] => fun count:Nat index:Nat => 0 
+            |x::xs,rest => fun count:Nat index:Nat => 
+                if index `?lessthan` addr 
+                    then rest count (index+1)
+                    else 
+                        if x==close and count ==1 
+                        then index 
+                        else if x==close then rest (count-1) (index+1)
+                        else if x==open then rest (count+1) (index+1) 
+                        else rest (count) (index+1) 
+
+    in helper prog 0 0
+
+
+
+def findOpen # prog:List(Char) addr:Nat = 
+    let helper p:List(Char) =
+        primrec p with 
+            |[] => fun count:Nat index:Nat => 0 
+            |x::xs,rest => fun count:Nat index:Nat => 
+                if addr `?lessthan` index 
+                    then rest count (index-1)
+                    else 
+                        if x==open and count ==1 
+                        then index 
+                        else if x==open then rest (count-1) (index-1)
+                        else if x==close then rest (count+1) (index-1) 
+                        else rest (count) (index-1) 
+
+    in helper (?reverse{Char} prog) 0 (?length{Char} prog -1)
+
+
+
+def interpreter prog:List(Char) = 
+    let helper = 
+        nfix loop:#(Nat -> Nat -> List(Nat) -> Str(Nat)-> Str(OutputType)) => 
+            fun instrAddr:Nat pointer:Nat tape:List(Nat) xs:Str(Nat)=> 
+                let instr = ?get{Char} prog instrAddr in
+                let x:::xs' = xs in
+                match instr with 
+                    | inl _ => 
+                        ?constantStr{OutputType} ?terminateSymbol
+                    | inr instrNum=> 
+                        if instrNum == right
+                            then ?runningOutput:::>(<?loop (instrAddr+1) (pointer+1) tape <xs')
+                        else if instrNum == left
+                            then  ?runningOutput :::>(<?loop (instrAddr+1) (pointer-1) tape <xs')
+                        else if instrNum == inc
+                            then 
+                                let n = ?read tape pointer in 
+                                let tape' = ?write tape pointer (n+1) in
+                                 ?runningOutput :::>(<?loop (instrAddr+1) (pointer) tape' <xs')
+                        else if instrNum == dec
+                            then 
+                                let n = ?read tape pointer in 
+                                let tape' = ?write tape pointer (n-1) in 
+                                ?runningOutput :::>(<?loop (instrAddr+1) (pointer) tape' <xs')
+                        else if instrNum == dot
+                            then 
+                                let n = ?read tape pointer in 
+                                ?printOutput n :::>(<?loop (instrAddr+1) (pointer) tape <xs')
+                        else if instrNum == comma
+                            then 
+                                let tape' = ?write tape pointer x in 
+                                 ?runningOutput :::>(<?loop (instrAddr+1) (pointer) tape' <xs')
+                        else if instrNum == open
+                            then 
+                                let n = ?read tape pointer in 
+                                if n ==0 
+                                    then ?runningOutput:::>(<?loop ((?findClose program instrAddr)+1 ) (pointer) tape <xs')
+                                    else ?runningOutput:::>(<?loop (instrAddr+1) (pointer) tape <xs')
+                        else 
+                            let n = ?read tape pointer in 
+                                if n !=0 
+                                    then ?runningOutput:::>(<?loop ((?findOpen program instrAddr)+1) (pointer) tape <xs')
+                                    else ?runningOutput:::>(<?loop (instrAddr+1) (pointer) tape <xs')
+
+    in #(fun xs:Str(Nat) => ?helper 0 0 []:List(Nat) xs)
+
+def main = interpreter program
