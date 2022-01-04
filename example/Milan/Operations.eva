@@ -4,7 +4,7 @@ import Prelude.List
 import Prelude.Nat
 import Modality.Stream
 
-def groupBy{t,CStable k} xs:#Stream(t) f:#(t->k) #  key:k= 
+def groupBy{t,Comparable k} xs:#Stream(t) f:#(t->k) #  key:k= 
     let helper = 
         ?nfix loop:#(Stream(t) -> Stream(t))=> 
             fun xs:Stream(t) => 
@@ -18,7 +18,7 @@ def groupBy{t,CStable k} xs:#Stream(t) f:#(t->k) #  key:k=
     in 
     helper ?xs
 
-def timeWindow{t,CStable k} xs:#Stream(t) f:#(t->List(k)) #  key:k= 
+def timeWindow{t,Comparable k} xs:#Stream(t) f:#(t->List(k)) #  key:k= 
     let helper = 
         ?nfix loop:#(Stream(t) -> Stream(t))=> 
             fun xs:Stream(t) => 
@@ -90,7 +90,7 @@ def mapStream{t,o} xs:#Stream(t) f:#(t->o)=
     #(?helper ?xs)
 
 
-def mapGroupedStream{t,CStable k,o}
+def mapGroupedStream{t,Comparable k,o}
     xs:#GroupedStream(t,k)
     f:#((k*Stream(t))->Stream(o)) 
     #
@@ -99,7 +99,7 @@ def mapGroupedStream{t,CStable k,o}
 
 def mapJoinedStream{t,u,o} = mapStream{t*u,o}
 
-def mapWindowedStream{t,CStable w,o} = mapGroupedStream{t,w,o}
+def mapWindowedStream{t,Comparable w,o} = mapGroupedStream{t,w,o}
 
 def filterStream{t} xs:#Stream(t) f:#(t->Bool) = 
     let helper = 

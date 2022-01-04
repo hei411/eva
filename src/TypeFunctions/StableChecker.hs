@@ -9,9 +9,8 @@ isStable bType = case bType of
     Limit -> False
     Stable -> True
     None -> False
-    Both -> True
-    CStable -> True
-    CBoth -> True
+    Comparable -> True
+    LimitStable -> True
   BTypeNameParam n -> error "Should not happen! Found a typename parameter index when checking whether overall type is stable"
   BTypeUnit -> True
   BTypeNat -> True

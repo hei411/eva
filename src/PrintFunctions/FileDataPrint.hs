@@ -41,10 +41,9 @@ functionsPrint functions = case functions of
         ( case tp of
             Limit -> "Limit "
             Stable -> "Stable "
-            Both -> "Limit Stable "
+            Comparable -> "Comparable "
             None -> ""
-            CStable -> "CStable "
-            CBoth -> "Limit CStable "
+            LimitStable -> "Limit Stable "
         )
           ++ "p"
           ++ show (n)

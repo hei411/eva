@@ -9,10 +9,9 @@ type TypenameList = [(String, BType, Integer)]
 data TypeProperty
   = Limit
   | Stable
-  | CStable
+  | Comparable
   | None
-  | Both
-  | CBoth
+  | LimitStable
   deriving (Show, Eq)
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]

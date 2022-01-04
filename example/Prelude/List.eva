@@ -119,12 +119,12 @@ def productList # xs:List(Nat) =
         |[]=> 1
         |x::xs', rest=>x*rest
 
-def elem{CStable a} # y:a xs:List(a) = 
+def elem{Comparable a} # y:a xs:List(a) = 
     primrec xs with 
         |[]=> false
         |x::xs', rest => rest or (x==y)
 
-def notElem{CStable a} # y:a xs:List(a) = 
+def notElem{Comparable a} # y:a xs:List(a) = 
     not (?elem{a} y xs)
 
 def find{a} # f:(a->Bool) xs:List(a) = 

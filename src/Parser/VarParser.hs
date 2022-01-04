@@ -82,7 +82,7 @@ checkUpperVar str = case str of
   "Stable" -> fail "Stable cannot be type variable name."
   "Limit" -> fail "Limit cannot be type variable name."
   "Bool" -> fail "Bool cannot be type variable name."
-  "CStable" -> fail "CStable cannot be type variable name."
+  "Comparable" -> fail "Comparable cannot be type variable name."
   "List" -> fail "List cannot be type variable name."
   _ -> return (str)
 
