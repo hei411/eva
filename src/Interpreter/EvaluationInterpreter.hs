@@ -29,7 +29,7 @@ evaluationInterpreter exp store = case exp of
   CExpNow ce -> nowEval ce store
   CExpWait ce ce' -> waitEval ce ce' store
   CExpUrec ce ce' ce2 -> urecEval ce ce' ce2 store
-  CExpRec ce -> (CExpRec ce, store)
+  CExpNfix ce -> (CExpNfix ce, store)
   CExpOut ce -> outEval ce store
   CExpInto ce -> intoEval ce store
   CExpLocation n -> (CExpLocation n, store)
@@ -49,6 +49,10 @@ evaluationInterpreter exp store = case exp of
   CExpDivide ce ce' -> divideEval ce ce' store
   CExpMod ce ce' -> modEval ce ce' store
   CExpPower ce ce' -> powerEval ce ce' store
+  CExpList ceList -> listEval ceList store
+  CExpListAppend ce ce' -> listAppendEval ce ce' store
+  CExpListCons ce ce' -> listConsEval ce ce' store
+  CExpListRec ce ce' ce2 -> listRecEval ce ce' ce2 store
 
 applicationEval :: CExp -> CExp -> Store -> (CExp, Store)
 applicationEval e1 e2 s = do
@@ -143,12 +147,14 @@ advEval e s = case s of
   NullStore -> error "Should not happen! adv applied to a nullstore"
   TicklessStore x0 -> error "Should not happen! adv applied to a tickless store"
   TickStore sN sL -> do
-    let (e', TicklessStore expList) = evaluationInterpreter e (TicklessStore sN)
-    case e' of
-      CExpLocation n -> do
-        let e'' = elemStore expList n
-        evaluationInterpreter e'' (TickStore expList sL)
-      _ -> error "Should not happen! adv expression doesnt produce a location"
+    case evaluationInterpreter e (TicklessStore sN) of
+      (e', TicklessStore expList) ->
+        case e' of
+          CExpLocation n -> do
+            let e'' = elemStore expList n
+            evaluationInterpreter e'' (TickStore expList sL)
+          _ -> error "Should not happen! adv expression doesnt produce a location"
+      _ -> error "Should not happen! tickless store produced after passing a tickless store into evaluationInterpreter"
 
 unboxEval :: CExp -> Store -> (CExp, Store)
 unboxEval e s = do
@@ -159,7 +165,7 @@ unboxEval e s = do
       case e' of
         CExpBox body ->
           evaluationInterpreter body s
-        CExpRec body -> do
+        CExpNfix body -> do
           let arg = CExpBox (CExpDelay (CExpUnbox e'))
           let e'' = substituteCExp arg 0 body
           evaluationInterpreter e'' s
@@ -190,7 +196,7 @@ urecEval e e1 e2 s = do
       let e2_two = substituteCExp v2 1 e2_one
       let e2_three = substituteCExp v1 2 e2_two
       evaluationInterpreter e2_three s''
-    _ -> error "Should not happen! urec applied to a until expression"
+    _ -> error "Should not happen! urec applied to a non- until expression"
 
 outEval :: CExp -> Store -> (CExp, Store)
 outEval e s = do
@@ -361,6 +367,56 @@ integerToPeano :: Integer -> CExp
 integerToPeano n =
   if n == 0 then CExpZero else CExpSuc (integerToPeano (n -1))
 
+listEval :: [CExp] -> Store -> (CExp, Store)
+listEval ceList s = do
+  let (ceList', s') = helper ceList s
+  (CExpList ceList', s')
+  where
+    helper :: [CExp] -> Store -> ([CExp], Store)
+    helper xs store =
+      case xs of
+        [] -> ([], store)
+        x : xs' -> do
+          let (x', store') = evaluationInterpreter x store
+          let (xs'', store'') = helper xs' store'
+          (x' : xs'', store'')
+
+listAppendEval :: CExp -> CExp -> Store -> (CExp, Store)
+listAppendEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case (e1', e2') of
+    (CExpList lis1, CExpList lis2) ->
+      (CExpList (lis1 ++ lis2), s'')
+    (CExpList lis1, _) -> error "Should not happen. listAppendEval applied to a non-list second expression"
+    _ -> error "Should not happen. listAppendEval applied to a non-list first expression"
+
+listConsEval :: CExp -> CExp -> Store -> (CExp, Store)
+listConsEval e1 e2 s = do
+  let (e1', s') = evaluationInterpreter e1 s
+  let (e2', s'') = evaluationInterpreter e2 s'
+  case e2' of
+    CExpList lis2 ->
+      (CExpList (e1' : lis2), s'')
+    _ -> error "Should not happen. listConsEval applied to a non-list second expression"
+
+listRecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
+listRecEval e e1 e2 s =
+  do
+    let (e', s') = evaluationInterpreter e s
+    case e' of
+      CExpList eList ->
+        case eList of
+          [] -> evaluationInterpreter e1 s'
+          x : xs -> do
+            let nextExp = CExpListRec (CExpList xs) e1 e2
+            let (nextValue, s'') = evaluationInterpreter nextExp s'
+            let e2' = substituteCExp nextValue 0 e2
+            let e2'' = substituteCExp (CExpList xs) 1 e2'
+            let finalExp = substituteCExp x 2 e2''
+            evaluationInterpreter finalExp s''
+      _ -> error "Should not happen! listRecEval applied to a until expression"
+
 {-
 import Datatype
 import Interpreter.ExpFunctions
@@ -393,7 +449,7 @@ evaluationInterpreter exp s =
       AExpNow ae at -> aExpNowEval ae at s
       AExpWait ae ae' -> aExpWaitEval ae ae' s
       AExpUrec ae str ae' cs s' str' ae2 -> aExpUrecEval ae str ae' cs s' str' ae2 s
-      AExpFix str at ae -> error ("Should not happen! isValue did not detect fix as value")
+      AExpNFix str at ae -> error ("Should not happen! isValue did not detect fix as value")
       AExpOut ae -> aExpOutEval ae s
       AExpInto ae at -> aExpIntoEval ae at s
       AExpLocation n -> error ("Should not happen! isValue did not detect location as value")
@@ -515,7 +571,7 @@ aExpUnboxEval t s =
           NullStore ->
             case result of
               AExpBox t' -> evaluationInterpreter t' s
-              AExpFix x tascrip t' ->
+              AExpNFix x tascrip t' ->
                 do
                   let subExp = AExpBox (AExpArrow (AExpUnbox result))
                   evaluationInterpreter (substituteExp t' x (subExp)) s

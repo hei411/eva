@@ -4,6 +4,7 @@ import Data.List
 import Datatype
 import ExpTypeConverters.TypeNameResolveUtils
 
+-- used in defining a type synonym
 typeSynonymConverter :: FilePath -> String -> [String] -> TypenameList -> [String] -> AType -> BType
 typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStack aType = case aType of
   ATypeVar s -> resolveTypeVarType file typeSynonymName typeVariables varStack s
@@ -16,9 +17,10 @@ typeSynonymConverter file typeSynonymName typeVariables definedTypenames varStac
   ATypeBox at -> BTypeBox (typeSynonymConverterCur varStack at)
   ATypeAngle at -> BTypeAngle (typeSynonymConverterCur varStack at)
   ATypeAt at -> BTypeAt (typeSynonymConverterCur varStack at)
-  ATypeFix s at -> BTypeFix (typeSynonymConverterCur (s : varStack) at)
+  ATypeNFix s at -> BTypeNFix (typeSynonymConverterCur (s : varStack) at)
   ATypeUntil at at' -> BTypeUntil (typeSynonymConverterCur varStack at) (typeSynonymConverterCur varStack at')
   ATypeBool -> BTypeBool
+  ATypeList at -> BTypeList (typeSynonymConverterCur varStack at)
   where
     typeSynonymConverterCur = typeSynonymConverter file typeSynonymName typeVariables definedTypenames
 
@@ -31,6 +33,6 @@ resolveTypeVarType file typeSynonymName typeVariables varStack str =
         do
           let typeVariablesIndex = elemIndex str typeVariables
           case typeVariablesIndex of
-            Nothing -> error (file ++ ": " ++ "Cannot resolve the typevariable \"" ++ str ++ "\" with type synonym parameters or Fix variables in \"" ++ typeSynonymName ++ "\"")
+            Nothing -> error (file ++ ": " ++ "Cannot resolve the typevariable \"" ++ str ++ "\" with type synonym parameters or NFix variables in \"" ++ typeSynonymName ++ "\"")
             Just n -> BTypeNameParam (toInteger n)
       Just n -> BTypeIndex (toInteger n)

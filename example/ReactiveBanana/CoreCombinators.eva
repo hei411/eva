@@ -1,0 +1,112 @@
+import Modality.Stream 
+import ReactiveBanana.Definitions
+import Prelude.Maybe 
+
+def never{a} = 
+    nfix loop:#Event(a) => 
+        ?nothing{a}:::?loop
+
+def unionWith{a} f:#(a->a->a)= 
+    nfix loop:#(Event(a)->Event(a)->Event(a))=>
+        fun xs:Event(a) ys:Event(a) =>
+            let x:::xs' = xs in 
+            let y:::ys' = ys in
+            match x with 
+                | inl _ => y:::>(<?loop <xs' <ys')
+                | inr xResult => 
+                    match y with 
+                        | inl _ => x:::>(<?loop <xs' <ys')
+                        | inr yResult => ?just{a}(?f xResult yResult):::>(<?loop <xs' <ys')
+
+
+def filterE{a} f:#(a->Bool) = 
+    nfix loop:#(Event(a)->Event(a))=>
+        fun xs:Event(a) => 
+            let x:::xs' = xs in 
+            let tl = >(<?loop <xs') in 
+            match x with 
+                |inl _ => x::: tl
+                |inr xResult => 
+                    if ?f xResult 
+                        then x:::tl 
+                        else ?nothing{a} :::tl
+
+def apply{a,b} =
+    nfix loop:#(Behavior(a->b) -> Event(a) -> Event(b))=>
+        fun fs:Behavior(a->b) xs:Event(a) => 
+            let f:::fs' = fs in 
+            let x:::xs' = xs in 
+            let tl = >(<?loop <fs' <xs') in 
+            match x with 
+                |inl _ => ?nothing{b}:::tl 
+                |inr xResult => 
+                    let hd = f xResult in 
+                    ?just{b} hd:::tl
+
+type Moment(a) = Nat->a 
+
+//The moment part of accumE is removed 
+
+def accumE{Stable a} = 
+    nfix loop:#(a->Event(a->a)->Event(a))=>
+        fun prev:a fs:Event(a->a) => 
+            let f:::fs' = fs in 
+            match f with 
+                | inl _ => ?nothing{a} ::: >(<?loop prev <fs')
+                | inr fResult => 
+                    let hd = fResult prev in 
+                    ?just{a} hd :::>(<?loop hd <fs')
+
+//The moment part of stepper is removed 
+
+def stepper{Stable a} = 
+    nfix loop:#(a->Event(a->a)->Behavior(a))=>
+        fun prev:a fs:Event(a->a) => 
+            let f:::fs' = fs in 
+            match f with 
+                | inl _ => prev ::: >(<?loop prev <fs')
+                | inr fResult => 
+                    let hd = fResult prev in 
+                    hd :::>(<?loop hd <fs')
+
+//valueB and valueBLater not implementable as it might be non-causal 
+
+//observeE rewritten to throw in a natural number representing time steps
+def observeE{a} = 
+    let helper =
+        nfix loop:#(Nat->Event(Moment(a))->Event(a))=>
+            fun t:Nat xs:Event(Moment(a)) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        ?nothing{a} :::>(<?loop (t+1) <xs')
+                    |inr f=>
+                        ?just{a} (f t):::>(<?loop (t+1) <xs')
+    in 
+    #(?helper 0)
+
+//switchE and switchB slightly rewritten 
+def switchE{a} = 
+    nfix loop:#(Event(a) -> Event(Event(a) ) -> Event(a))=>
+        fun xs:Event(a) ys:Event(Event(a)) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            match y with 
+                | inl _ => 
+                    x:::>(<?loop <xs' <ys')
+                | inr newEvent => 
+                    let z:::zs' = newEvent in 
+                    z:::>(<?loop <zs' <ys')
+
+def switchB{a} = 
+    nfix loop:#(Behavior(a) -> Event(Behavior(a) ) -> Behavior(a))=>
+        fun xs:Behavior(a) ys:Event(Behavior(a)) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            match y with 
+                | inl _ => 
+                    x:::>(<?loop <xs' <ys')
+                | inr behav => 
+                    let z:::zs' = behav in 
+                    z:::>(<?loop <zs' <ys')
+

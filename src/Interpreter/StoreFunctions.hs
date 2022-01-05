@@ -37,11 +37,15 @@ transformInputStore s input l =
   case s of
     TicklessStore lis -> do
       let (s', l') = addStoreElem (TickStore lis []) CExpUnit
-      let TickStore a b = s'
-      let CExpLocation n = l
-      let a' = modifyStoreElem a n (CExpInto (CExpProduct input l'))
-      let newStore = TickStore a' b
-      (newStore, l')
+      case s' of
+        TickStore a b ->
+          case l of
+            CExpLocation n -> do
+              let a' = modifyStoreElem a n (CExpInto (CExpProduct input l'))
+              let newStore = TickStore a' b
+              (newStore, l')
+            _ -> error "Should not happen, did not pass a location for the l argument for transformInputStore"
+        _ -> error "Should not happen, addstore elem changed tickstore into another kind of store"
     _ -> error "store passed to transform input store is not tickless"
 
 {-

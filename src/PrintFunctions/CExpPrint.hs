@@ -7,10 +7,10 @@ printCExp n cExp =
   do
     let currentLevel = cExpLevel cExp
     case cExp of
-      CExpIndex i -> "\'" ++ show (n -1 - i)
+      CExpIndex i -> "\'v" ++ show (n -1 - i)
       CExpUnit -> "()"
       CExpLambda ce ->
-        "fun " ++ "\'" ++ show n ++ " => "
+        "fun " ++ "\'v" ++ show n ++ " => "
           ++ printCExp (n + 1) ce
       CExpApplication ce ce' ->
         ( if cExpLevel ce <= cExpLevel cExp
@@ -65,7 +65,7 @@ printCExp n cExp =
                  else printCExp n ce
              )
           ++ " with | inl "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -73,7 +73,7 @@ printCExp n cExp =
                  else printCExp (n + 1) ce'
              )
           ++ " | inl "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -111,13 +111,13 @@ printCExp n cExp =
                  else printCExp n ce'
              )
           ++ " | suc "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ ", "
-          ++ "\'"
+          ++ "\'v"
           ++ show (n + 1)
           ++ " => "
-          ++ ( if cExpLevel ce' <= cExpLevel cExp
+          ++ ( if cExpLevel ce2 <= cExpLevel cExp
                  then "(" ++ printCExp (n + 2) ce2 ++ ")"
                  else printCExp (n + 2) ce2
              )
@@ -169,7 +169,7 @@ printCExp n cExp =
                  else printCExp n ce
              )
           ++ " with | now "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
           ++ " => "
           ++ ( if cExpLevel ce' <= cExpLevel cExp
@@ -177,20 +177,20 @@ printCExp n cExp =
                  else printCExp (n + 1) ce'
              )
           ++ " | wait "
-          ++ "\'"
+          ++ "\'v"
           ++ show n
-          ++ " \'"
+          ++ " \'v"
           ++ show (n + 1)
           ++ ", "
-          ++ "\'"
+          ++ "\'v"
           ++ show (n + 2)
           ++ " => "
-          ++ ( if cExpLevel ce' <= cExpLevel cExp
+          ++ ( if cExpLevel ce2 <= cExpLevel cExp
                  then "(" ++ printCExp (n + 3) ce2 ++ ")"
                  else printCExp (n + 3) ce2
              )
-      CExpRec ce ->
-        "rec " ++ "\'" ++ show n ++ " => "
+      CExpNfix ce ->
+        "nfix " ++ "\'v" ++ show n ++ " => "
           ++ printCExp (n + 1) ce
       CExpOut ce ->
         "out "
@@ -326,46 +326,104 @@ printCExp n cExp =
                  then "(" ++ printCExp n ce' ++ ")"
                  else printCExp n ce'
              )
+      CExpList ces -> "[" ++ cExpListToString n ces ++ "]"
+      CExpListAppend ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "++"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpListCons ce ce' ->
+        ( if cExpLevel ce <= cExpLevel cExp
+            then "(" ++ printCExp n ce ++ ")"
+            else printCExp n ce
+        )
+          ++ "::"
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+      CExpListRec ce ce' ce2 ->
+        "primrec "
+          ++ ( if cExpLevel ce <= cExpLevel cExp
+                 then "(" ++ printCExp n ce ++ ")"
+                 else printCExp n ce
+             )
+          ++ " with | [] => "
+          ++ ( if cExpLevel ce' <= cExpLevel cExp
+                 then "(" ++ printCExp n ce' ++ ")"
+                 else printCExp n ce'
+             )
+          ++ " | "
+          ++ "\'v"
+          ++ show n
+          ++ "::"
+          ++ "\'v"
+          ++ show (n + 1)
+          ++ ", "
+          ++ "\'v"
+          ++ show (n + 2)
+          ++ " => "
+          ++ ( if cExpLevel ce2 <= cExpLevel cExp
+                 then "(" ++ printCExp (n + 3) ce2 ++ ")"
+                 else printCExp (n + 2) ce2
+             )
 
+--Probably all wrong
 cExpLevel :: CExp -> Integer
 cExpLevel cExp = case cExp of
-  CExpIndex n -> 3
-  CExpUnit -> 3
-  CExpLambda ce -> -3
-  CExpApplication ce ce' -> 1
-  CExpProduct ce ce' -> 2
-  CExpFst ce -> 2
-  CExpSnd ce -> 2
-  CExpInl ce -> 2
-  CExpInr ce -> 2
-  CExpMatch ce ce' ce2 -> 2
-  CExpZero -> 3
-  CExpSuc ce -> 2
-  CExpPrimrec ce ce' ce2 -> 2
-  CExpAdv ce -> 2
-  CExpDelay ce -> 2
-  CExpBox ce -> 2
-  CExpUnbox ce -> 2
-  CExpNow ce -> 2
-  CExpWait ce ce' -> 2
-  CExpUrec ce ce' ce2 -> 2
-  CExpRec ce -> -3
-  CExpOut ce -> 2
-  CExpInto ce -> 2
-  CExpLocation n -> 3
-  CExpTrue -> 3
-  CExpFalse -> 3
-  CExpIf ce ce' ce2 -> 1
-  CExpAnd ce ce' -> 1
+  CExpIndex n -> 11
+  CExpUnit -> 11
+  CExpLambda ce -> 0
+  CExpApplication ce ce' -> 0
+  CExpProduct ce ce' -> 11
+  CExpFst ce -> 10
+  CExpSnd ce -> 10
+  CExpInl ce -> 9
+  CExpInr ce -> 9
+  CExpMatch ce ce' ce2 -> 0
+  CExpZero -> 11
+  CExpSuc ce -> 10
+  CExpPrimrec ce ce' ce2 -> 0
+  CExpAdv ce -> 10
+  CExpDelay ce -> 10
+  CExpBox ce -> 10
+  CExpUnbox ce -> 10
+  CExpNow ce -> 10
+  CExpWait ce ce' -> 9
+  CExpUrec ce ce' ce2 -> 0
+  CExpNfix ce -> 0
+  CExpOut ce -> 10
+  CExpInto ce -> 10
+  CExpLocation n -> 11
+  CExpTrue -> 11
+  CExpFalse -> 11
+  CExpIf ce ce' ce2 -> 0
+  CExpAnd ce ce' -> 2
   CExpOr ce ce' -> 1
-  CExpNot ce -> 2
-  CExpEquals ce ce' -> 1
-  CExpNotEquals ce ce' -> 1
-  CExpInteger n -> 3
-  CExpIncrement ce -> 2
-  CExpAdd ce ce' -> -2
-  CExpMinus ce ce' -> -2
-  CExpMultiply ce ce' -> -1
-  CExpDivide ce ce' -> -1
-  CExpMod ce ce' -> -1
-  CExpPower ce ce' -> 0
+  CExpNot ce -> 3
+  CExpEquals ce ce' -> 4
+  CExpNotEquals ce ce' -> 4
+  CExpInteger n -> 11
+  CExpIncrement ce -> 10
+  CExpAdd ce ce' -> 6
+  CExpMinus ce ce' -> 6
+  CExpMultiply ce ce' -> 7
+  CExpDivide ce ce' -> 7
+  CExpMod ce ce' -> 7
+  CExpPower ce ce' -> 8
+  CExpList ces -> 11
+  CExpListAppend ce ce' -> 5
+  CExpListCons ce ce' -> 5
+  CExpListRec ce ce' ce2 -> 0
+
+cExpListToString :: Integer -> [CExp] -> String
+cExpListToString n xs =
+  case xs of
+    [] -> ""
+    x1 : x2 : xs' -> printCExp n x1 ++ ", " ++ cExpListToString n (x2 : xs')
+    x : [] -> printCExp n x

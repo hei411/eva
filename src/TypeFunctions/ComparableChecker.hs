@@ -9,9 +9,8 @@ isComparable bType = case bType of
     Limit -> False
     Stable -> False
     None -> False
-    Both -> False
-    CStable -> True
-    CBoth -> True
+    Comparable -> True
+    LimitStable -> False
   BTypeNameParam n -> error "Should not happen! Found a typename parameter index when checking whether overall type is comparable"
   BTypeUnit -> True
   BTypeNat -> True
@@ -21,6 +20,7 @@ isComparable bType = case bType of
   BTypeBox bt -> False
   BTypeAngle bt -> False
   BTypeAt bt -> False
-  BTypeFix bt -> False
+  BTypeNFix bt -> False
   BTypeUntil bt bt' -> False
   BTypeBool -> True
+  BTypeList bt -> (isComparable bt)

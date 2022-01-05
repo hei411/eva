@@ -24,11 +24,12 @@ safeInterpreterHelper cExp s stepNum nowNum =
 
 streamStep :: CExp -> Store -> (CExp, Store, CExp)
 streamStep cExp s =
-  do
-    let TicklessStore elemList = s
-    let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
-    case cExp' of
-      CExpInto (CExpProduct hd tl) -> case s' of
-        TickStore x0 x1 -> (CExpAdv tl, TicklessStore x1, hd)
-        _ -> error "stream step semantics doesnt produce a tickstore"
-      _ -> error "stream Step semantics doesnt step into another stream"
+  case s of
+    TicklessStore elemList -> do
+      let (cExp', s') = evaluationInterpreter cExp (TickStore elemList [])
+      case cExp' of
+        CExpInto (CExpProduct hd tl) -> case s' of
+          TickStore x0 x1 -> (CExpAdv tl, TicklessStore x1, hd)
+          _ -> error "stream step semantics doesnt produce a tickstore"
+        _ -> error "stream Step semantics doesnt step into another stream"
+    _ -> error "Should not happen! non tickless store passed to streamStep"

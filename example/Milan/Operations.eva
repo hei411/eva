@@ -1,0 +1,168 @@
+import Milan.Definitions
+import Prelude.Maybe
+import Prelude.List
+import Prelude.Nat
+import Modality.Stream
+
+def groupBy{t,Comparable k} xs:#Stream(t) f:#(t->k) #  key:k= 
+    let helper = 
+        ?nfix loop:#(Stream(t) -> Stream(t))=> 
+            fun xs:Stream(t) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => x:::>(<?loop <xs')
+                    |inr xResult => 
+                        if key== ?f xResult 
+                            then x:::>(<?loop <xs')
+                            else ?nothing{t}:::>(<?loop <xs')
+    in 
+    helper ?xs
+
+def timeWindow{t,Comparable k} xs:#Stream(t) f:#(t->List(k)) #  key:k= 
+    let helper = 
+        ?nfix loop:#(Stream(t) -> Stream(t))=> 
+            fun xs:Stream(t) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => x:::>(<?loop <xs')
+                    |inr xResult => 
+                        if ?elem{k} key (?f xResult) 
+                            then x:::>(<?loop <xs')
+                            else ?nothing{t}:::>(<?loop <xs')
+    in 
+    helper ?xs
+
+//for left join, if left record could not be matched, then we discard it
+def leftJoin{t,Stable u} xs:#Stream(t) ys:#Stream(u) f:#((t*u)->Bool) =
+    let find # x:t l:List(u) =
+        primrec l with 
+            |[]=> ?nothing{u}
+            |y::ys, rest => 
+                if ?f (x,y)
+                    then ?just{u} y 
+                    else rest 
+    in
+    let helper = 
+        nfix loop : #(Stream(t) ->Stream(u) -> List(u) -> JoinedStream(t,u))=> 
+            fun xs:Stream(t) ys:Stream(u) l:List(u) => 
+                let x:::xs' = xs in 
+                let y:::ys'=ys in 
+                match x with 
+                    | inl _ => 
+                        match y with 
+                            |inl _ => 
+                                ?nothing{t*u}:::>(<?loop <xs' <ys' l)
+                            |inr yResult => 
+                                ?nothing{t*u} :::>(<?loop <xs' <ys' (yResult::l))
+                    | inr xResult => 
+                        match y with 
+                            |inl _ => 
+                                let ans = ?find xResult l in 
+                                match ans with 
+                                    |inl _ => 
+                                        ?nothing{t*u} :::>(<?loop <xs' <ys' l)
+                                    |inr found => 
+                                        ?just {t*u} (xResult, found)  :::>(<?loop <xs' <ys' l)
+                            |inr yResult => 
+                                let l' = yResult::l in 
+                                let ans = ?find xResult l' in 
+                                match ans with 
+                                    |inl _ => 
+                                        ?nothing{t*u} :::>(<?loop <xs' <ys' l')
+                                    |inr found => 
+                                        ?just {t*u} (xResult, found)  :::>(<?loop <xs' <ys' l')
+    in 
+    #(?helper ?xs ?ys)
+
+//semantics of fulljoin is unclear
+
+def mapStream{t,o} xs:#Stream(t) f:#(t->o)= 
+    let helper = 
+        nfix loop:#(Stream(t) -> Stream(o))=> 
+            fun xs:Stream(t) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        ?nothing{o} ::: >(<?loop <xs')
+                    |inr xResult => 
+                        ?just{o} (?f xResult):::>(<?loop <xs' )
+    in 
+    #(?helper ?xs)
+
+
+def mapGroupedStream{t,Comparable k,o}
+    xs:#GroupedStream(t,k)
+    f:#((k*Stream(t))->Stream(o)) 
+    #
+    key:k = 
+        ?f (key,?xs key)
+
+def mapJoinedStream{t,u,o} = mapStream{t*u,o}
+
+def mapWindowedStream{t,Comparable w,o} = mapGroupedStream{t,w,o}
+
+def filterStream{t} xs:#Stream(t) f:#(t->Bool) = 
+    let helper = 
+        nfix loop:#(Stream(t) ->Stream(t))=> 
+            fun xs:Stream(t) => 
+                let x:::xs' = xs in 
+                match x with   
+                    |inl _ => 
+                        ?nothing{t} :::>(<?loop <xs')
+                    |inr xResult => 
+                        if ?f xResult 
+                            then x:::>(<?loop <xs')
+                            else ?nothing{t} :::>(<?loop <xs')
+    in 
+    #(?helper ?xs)
+
+
+def maxBy{Stable t} xs:#Stream(t) f:#(t->Nat) = 
+    let helper = 
+        nfix loop:#(Maybe(t) -> Stream(t) ->Stream(t))=> 
+            fun last:Maybe(t) xs:Stream(t) => 
+                let x:::xs' = xs in 
+                match x with   
+                    |inl _ => 
+                        last:::>(<?loop last <xs')
+                    |inr xResult => 
+                        match last with 
+                            |inl _ => 
+                                x :::>(<?loop x <xs')
+                            |inr last' => 
+                                if ?f xResult `?lessthan` ?f last'
+                                    then last:::>(<?loop last <xs')
+                                    else x :::>(<?loop x <xs')
+    in 
+    #(?helper (?hdStr{Maybe(t)} ?xs ) ?xs)
+
+
+def sumBy{t,Stable o} xs:#Stream(t) f:#(t->Nat) g:#((Nat*t)->o) = 
+    let helper = 
+        nfix loop:#(Stream(t) -> Nat ->Maybe(o)->Stream(o))=> 
+            fun xs:Stream(t) acc:Nat last:Maybe(o) => 
+                let x:::xs' = xs in 
+                match x with 
+                    | inl _ => 
+                        last:::>(<?loop <xs' acc last)
+                    |inr xResult => 
+                        let acc' = ?f xResult + acc in 
+                        let output= ?g (acc', xResult ) in 
+                        ?just{o} output :::>(<?loop <xs' acc' (?just{o}output))
+    in 
+    #(?helper ?xs 0 (?nothing{o}))
+
+
+def scanStream{t,Stable s,o} xs:#(Stream(t)) initial:s f:#((s*t)->(s*Maybe(o)))=
+    let helper = 
+        nfix loop:#(Stream(t) ->s -> Stream(o))=> 
+            fun xs:Stream(t) state:s => 
+                let x:::xs' = xs in 
+                match x with 
+                    | inl _ => 
+                        ?nothing{o} :::>(<?loop <xs' state)
+                    |inr xResult => 
+                        let (state', output) = ?f (state,xResult) in 
+                        output:::>(<?loop <xs' state')
+    in 
+    #(?helper ?xs initial)

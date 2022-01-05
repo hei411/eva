@@ -1,4 +1,4 @@
-def atToAngle [a] # x:@a = ><x
-def angleToAt [Limit a] # x: >a = @<x
-def atDelayApp[a, b] # f: @(a->b) x :@a = @ ((<f) (<x))
-def angleDelayApp[a, b] # f: >(a->b) x :>a = > ((<f) (<x))
+def atToAngle {a} # x:@a = ><x
+def angleToAt {Limit a} # x: >a = @<x
+def atDelayApp{a, b} # f: @(a->b) x :@a = @ ((<f) (<x))
+def angleDelayApp{a, b} # f: >(a->b) x :>a = > ((<f) (<x))

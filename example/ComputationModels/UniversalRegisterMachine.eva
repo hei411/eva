@@ -91,12 +91,12 @@ def getInstruction # n:Nat program:Nat =
     ?analyzeInstruction topInstr
 
 def machineLoop program:Nat = 
-    rec loop: # ( Nat -> Stack-> MS.Str(Result)) => 
+    nfix loop: # ( Nat -> Stack-> MS.Str(Result)) => 
         fun instructionLine:Nat args:Stack => 
             let instruction = ?getInstruction instructionLine program in 
             match instruction with 
                 |inl _ => //halting instruction
-                        ?MS.constantStr[Result] (inr (?topStack args):Result)
+                        ?MS.constantStr{Result} (inr (?topStack args):Result)
                 |inr other => 
                     match other with 
                         |inl addInstr =>
@@ -105,7 +105,7 @@ def machineLoop program:Nat =
                             let stackPairs = ?splitStack argIndex args in 
                             let toAddElem = ?topStack (snd stackPairs) in 
                             let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (suc toAddElem) (?tailStack (snd stackPairs))) in 
-                            hiaton :: >(<?loop nextInstr newargs)
+                            hiaton ::: >(<?loop nextInstr newargs)
                         |inr subInstr =>
                             //substract instruction 
                             let argIndex = fst subInstr in 
@@ -115,16 +115,16 @@ def machineLoop program:Nat =
                             let b = ?isZero toSubElem in
                             if b 
                              then   (//the element to be subtracted is zero
-                                hiaton :: >(<?loop nextInstr2 args)
+                                hiaton ::: >(<?loop nextInstr2 args)
                                 )
 
                               else  (//the element can be subtracted
                                 let newargs = ?combineStacks argIndex (fst stackPairs) (?addToStack (?pred toSubElem) (?tailStack (snd stackPairs))) in 
-                                hiaton :: >(<?loop nextInstr1 newargs)
+                                hiaton ::: >(<?loop nextInstr1 newargs)
                                 )
 
 def machineEntry program:Nat args:Stack # = 
     ?(machineLoop program) 0 (?addToStack 0 args)
 
-//def main #= ?MS.constantStr[Instruction] (?getInstruction 0 64)
+//def main #= ?MS.constantStr{Instruction} (?getInstruction 0 64)
 //def main = machineEntry 64 23

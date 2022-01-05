@@ -1,0 +1,33 @@
+import Yampa.BasicDefinitions
+import Modality.Stream 
+import Prelude.Maybe
+
+//not identical, but similar
+def pre{Stable a} = angleDelayStr{a}
+
+def iPre{Stable a} x:a #= ?delayStr{a} x
+
+def delay{Stable a} n:Nat fill:a = 
+    let helper = nfix loop:#(Nat -> Str(a) ->Str(a))=>
+        fun n:Nat  xs:Str(a) => 
+            if n==0 then 
+                xs 
+            else 
+                let xs'=?angleDelayStr{a} xs in 
+                fill:::>(<?loop (n-1) <xs')
+    in 
+    #(?helper n)
+
+def pause{a,Stable b} fill:b pf:SF(a,Bool) f:SF(a,b) # xs:Str(a) =
+    let bs= ?pf xs in 
+    let ys = ?f xs in 
+    let helper = ?(
+        nfix loop:#(Str(Bool) -> Str(b) ->Str(b))=> 
+            fun xs:Str(Bool) ys:Str(b) => 
+                let x:::xs' = xs in 
+                let y:::ys' = ys in 
+                if x then fill:::>(<?loop <xs' <ys')
+                else y:::>(<?loop <xs' <ys')
+    ) in 
+    helper bs ys
+

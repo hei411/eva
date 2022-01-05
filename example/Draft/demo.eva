@@ -4,12 +4,12 @@ type Stream = MS.Str(Nat)
 
 import Prelude.Nat
 
-def hd = MS.hdStr[Nat]
-def tl = MS.tlStr[Nat]
-def cons = MS.conStr[Nat]
+def hd = MS.hdStr{Nat}
+def tl = MS.tlStr{Nat}
+def cons = MS.conStr{Nat}
 
 def fibHelper = 
-    rec repeat: # (Nat->Nat-> Stream) =>
+    nfix repeat: # (Nat->Nat-> Stream) =>
         fun x:Nat y:Nat =>
             let sum =  x + y in 
             let rest = > (<?repeat y sum) in 
@@ -17,10 +17,10 @@ def fibHelper =
 
 
 def main # = ?fibHelper 0 1
-def delayStream = MS.delayStr [Nat]
+def delayStream = MS.delayStr {Nat}
 
 def addStream = 
-    rec repeat:# (Stream->Stream->Stream) => 
+    nfix repeat:# (Stream->Stream->Stream) => 
         fun one:Stream two:Stream =>
             let onehd=?hd one in 
             let twohd=?hd two in 
@@ -29,7 +29,7 @@ def addStream =
             ?cons (onehd + twohd) >(<?repeat <onetl <twotl)
 
 def fibHelperLeaky = 
-    rec repeat: #Stream => 
+    nfix repeat: #Stream => 
         let delayedOnce = ?repeat in
         let delayedTwice = > (?delayStream 0 <?repeat) in
         ?cons 1 >(?addStream <delayedOnce <delayedTwice) 
@@ -37,7 +37,7 @@ def fibHelperLeaky =
 //def main = MS.natStr//fibHelperLeaky
 
 //Streams
-//type Stream = Fix a --> Nat*a
+//type Stream = NFix a --> Nat*a
 //def tl  (s: Stream) = snd (out s)
 
 //Box
@@ -46,7 +46,7 @@ def fibHelperLeaky =
 
 
 //> and @
-//def atToAngle[a] # x:@a  = > < x
-//def angleToAt[ a] # x:>a = @<x
+//def atToAngle{a} # x:@a  = > < x
+//def angleToAt{ a} # x:>a = @<x
 
 //def main # x:Stream = wait () (@now 0:Unit Until Nat)

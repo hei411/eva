@@ -1,0 +1,204 @@
+import Modality.Stream 
+import Prelude.Maybe 
+import ReactiveBanana.Definitions
+import ReactiveBanana.CoreCombinators
+
+def applyCombinator{a,b} = 
+    nfix loop :#(Behavior(a->b) -> Event(a) ->Event(b))=> 
+        fun fs:Behavior(a->b) xs:Event(a) => 
+            let f:::fs' = fs in 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _ => 
+                    ?nothing{b} :::>(<?loop <fs' <xs')
+                | inr xResult => 
+                    ?just{b} (f xResult):::>(<?loop <fs' <xs')
+
+def tagCombinator{a,b} = 
+    nfix loop :#(Behavior(b) -> Event(a) ->Event(b))=> 
+        fun xs:Behavior(b) ys:Event(a) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            match y with 
+                | inl _ => 
+                    ?nothing{b} :::>(<?loop <xs' <ys')
+                | inr _ => 
+                    ?just{b} (x):::>(<?loop <xs' <ys')
+
+def filterJust{a} = 
+    nfix loop:#(Event(Maybe(a))->Event(a))=> 
+        fun xs:Event(Maybe(a)) => 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _ => 
+                    ?nothing{a} :::>(<?loop <xs')
+                | inr payload => 
+                    match payload with 
+                        |inl _ => 
+                            ?nothing{a} :::>(<?loop <xs')
+                        |inr xResult => 
+                            ?just{a} xResult  :::>(<?loop <xs')
+
+def filterApply{a} = 
+    nfix loop:#(Behavior(a->Bool) -> Event(a) -> Event(a))=> 
+        fun fs:Behavior(a->Bool) xs:Event(a) => 
+            let f:::fs' = fs in 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _=> 
+                    ?nothing{a} :::>(<?loop <fs' <xs')
+                | inr xResult => 
+                    if f xResult 
+                        then 
+                            ?just{a} xResult :::>(<?loop <fs' <xs')
+                        else 
+                            ?nothing{a} :::>(<?loop <fs' <xs')
+
+def whenE{a} =
+    nfix loop:#(Behavior(Bool) -> Event(a) -> Event(a))=> 
+        fun bs:Behavior(Bool) xs:Event(a) => 
+            let b:::bs' = bs in 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _=> 
+                    ?nothing{a} :::>(<?loop <bs' <xs')
+                | inr xResult => 
+                    if b
+                        then 
+                            ?just{a} xResult :::>(<?loop <bs' <xs')
+                        else 
+                            ?nothing{a} :::>(<?loop <bs' <xs')
+
+def split{a,b} = 
+    let helper1 = nfix loop:#(Event(a+b) -> Event(a))=> 
+        fun xs:Event(a+b) => 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _ => 
+                    ?nothing{a} :::>(<?loop <xs')
+                | inr payload => 
+                    match payload with 
+                        |inl aResult => 
+                            ?just{a} aResult :::>(<?loop <xs')
+                        |inr _ => 
+                            ?nothing {a} :::>(<?loop <xs')
+    in 
+    let helper2 = nfix loop:#(Event(a+b) -> Event(b))=> 
+        fun xs:Event(a+b) => 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _ => 
+                    ?nothing{b} :::>(<?loop <xs')
+                | inr payload => 
+                    match payload with 
+                        |inl _ => 
+                            ?nothing{b} :::>(<?loop <xs')
+                        |inr bResult => 
+                            ?just{b} bResult :::>(<?loop <xs')
+    in 
+    #(fun xs:Event(a+b) => 
+        (?helper1 xs, ?helper2 xs)   
+    )
+
+def unions{a} # lis:List(Event(a->a)) = 
+    let helper = ?(
+        nfix loop:#(Event(a->a)->Event(a->a) -> Event(a->a) )=> 
+            fun xs:Event(a->a) ys:Event(a->a)=>
+                let x:::xs' = xs in 
+                let y:::ys' = ys in 
+                let tl = >(<?loop <xs' <ys') in
+                match x with 
+                    |inl _ => 
+                        y:::tl 
+                    |inr xResult => 
+                        match y with 
+                            |inl _ => 
+                                ?just{a->a} xResult :::tl 
+                            |inr f => 
+                                ?just{a->a} (fun k:a=> xResult (f k)):::tl
+    )
+    in
+    primrec lis with 
+        | [] => 
+            ?never{a->a} 
+        | xs::tl , rest => helper xs rest
+
+//accumB slightly rewritten to remove moment
+def accumB{Stable a} =
+    nfix loop:#(a->Event(a->a) -> Behavior(a))=> 
+        fun acc:a xs:Event(a->a) => 
+            let x:::xs' = xs in 
+            match x with 
+                | inl _ => 
+                    acc:::>(<?loop acc <xs')
+                |inr f=> 
+                    let acc' = f acc in 
+                    acc' :::>(<?loop acc' <xs')
+
+def mapAccum{Stable a,b} = 
+    let helper1 = 
+        nfix loop:#(a->Event(a->(b*a))->Event(b)) => 
+            fun acc:a  xs:Event(a->(b*a)) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        ?nothing{b} :::>(<?loop acc <xs')
+                    |inr f => 
+                        let y = f acc in 
+                        let (one,two) = y in 
+                        ?just{b} one:::>(<?loop two <xs')
+    in 
+    let helper2 = 
+        nfix loop:#(a->Event(a->(b*a))->Behavior(a)) => 
+            fun acc:a  xs:Event(a->(b*a)) => 
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        acc :::>(<?loop acc <xs')
+                    |inr f => 
+                        let y = f acc in 
+                        let (one,two) = y in 
+                        two:::>(<?loop two <xs')
+    in 
+    #( fun acc:a xs:Event(a->(b*a)) => 
+        (?helper1 acc xs,?helper2 acc xs)
+    )
+
+type These(a,b) = (a+b)+(a*b)
+
+def merge{a,b} =
+    nfix loop:#(Event(a)->Event(b)->Event(These(a,b)))=> 
+        fun xs:Event(a) ys:Event(b) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            let tl = >(<?loop <xs' <ys') in
+            match x with 
+                |inl _ =>
+                    match y with 
+                        |inl _ => 
+                            ?nothing{These(a,b)}:::tl 
+                        |inr yResult => 
+                            ?just{These(a,b)} (inl (inr yResult:a+b):These(a,b)):::tl
+                |inr xResult => 
+                    match y with 
+                        |inl _ => ?just{These(a,b)} (inl (inl xResult:a+b):These(a,b)):::tl
+                        |inr yResult => ?just{These(a,b)} (inr (xResult,yResult):These(a,b)):::tl
+
+
+def mergeWith{a,b,c} f:#(a->c) g:#(b->c) h:#(a->b->c) = 
+    nfix loop:#(Event(a)->Event(b)->Event(c))=> 
+        fun xs:Event(a) ys:Event(b) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            let tl = >(<?loop <xs' <ys') in
+            match x with 
+                |inl _ =>
+                    match y with 
+                        |inl _ => 
+                            ?nothing{c}:::tl 
+                        |inr yResult => 
+                            ?just{c} (?g yResult):::tl
+                |inr xResult => 
+                    match y with 
+                        |inl _ => ?just{c} (?f xResult):::tl
+                        |inr yResult => ?just{c} (?h xResult yResult):::tl

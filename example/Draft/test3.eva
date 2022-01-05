@@ -1,2 +1,5 @@
 def repeat =3
 type Testr=Bool
+
+import Modality.Stream
+def main # xs:Str(Bool) =xs

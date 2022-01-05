@@ -1,92 +1,135 @@
 import Modality.Primitives
 
-type Str(a) = Fix b --> a*b
-type Ev(a) = Fix b--> a+b
+type Str(a) = NFix b --> a*b
+type Ev(a) = NFix b--> a+b
 
-def hdStr [a] # stream:Str(a)  = 
-    let x::_ = stream in x
+def hdStr {a} # stream:Str(a)  = 
+    let x:::_ = stream in x
     //fst (out stream)
 
-def tlStr [a] # stream:Str(a) = 
-    let _::x = stream in x
+def tlStr {a} # stream:Str(a) = 
+    let _:::x = stream in x
     //snd (out stream)
 
-def conStr [a] # (head: a) tail: >Str(a) = 
-    head::tail
+def conStr {a} # (head: a) tail: >Str(a) = 
+    head:::tail
     //into (head, tail) : Str(a)
 
-def mapStr [a, b] f:#(a->b)= 
-    rec m : # (Str(a) -> Str(b)) 
+def mapStr {a, b} f:#(a->b)= 
+    nfix m : # (Str(a) -> Str(b)) 
         => fun  str:Str(a) 
-            => (?f (?hdStr[a] str)) :: ( > (<?m (<(?tlStr[a] str))))
+            => (?f (?hdStr{a} str)) ::: ( > (<?m (<(?tlStr{a} str))))
 
-def zipStr [a,b] = 
-    rec m: # (Str(a)->Str(b) -> Str(a*b)) 
+def zipStr {a,b} = 
+    nfix m: # (Str(a)->Str(b) -> Str(a*b)) 
         => fun x:Str(a) y:Str(b) 
-            => (?hdStr[a] x, ?hdStr[b] y) :: (> (<?m <(?tlStr[a] x) <(?tlStr[b] y) ) )
+            => (?hdStr{a} x, ?hdStr{b} y) ::: (> (<?m <(?tlStr{a} x) <(?tlStr{b} y) ) )
 
-def fstStr[a,b] = 
-    rec m: #(Str(a*b)->Str(a))
+def fstStr{a,b} = 
+    nfix m: #(Str(a*b)->Str(a))
         => fun x:Str(a*b) 
-            =>  (fst (?hdStr[a*b] x)) :: (> (<?m <(?tlStr[a*b] x)))
+            =>  (fst (?hdStr{a*b} x)) ::: (> (<?m <(?tlStr{a*b} x)))
             
-def sndStr[a,b] = 
-    rec m: #(Str(a*b)->Str(b))
+def sndStr{a,b} = 
+    nfix m: #(Str(a*b)->Str(b))
         => fun x:Str(a*b) 
-            => (snd (?hdStr[a*b] x)) :: (> (<?m <(?tlStr[a*b] x)))
+            => (snd (?hdStr{a*b} x)) ::: (> (<?m <(?tlStr{a*b} x)))
 
-def constantStr [Stable a] = 
-    rec m : # (a-> Str(a)) 
+def constantStr {Stable a} = 
+    nfix m : # (a-> Str(a)) 
         => fun x: a 
-            =>  x :: >(<?m x)
+            =>  x ::: >(<?m x)
 
 def natStr = 
-    let repeat = (rec m: #(Nat->Str(Nat)) => 
+    let repeat = (nfix m: #(Nat->Str(Nat)) => 
                     fun start:Nat =>
                         let rest = > (<?m (suc start)) in
-                         start:: rest) 
+                         start::: rest) 
     in 
         # (?repeat 0)
 
-def delayStr [Stable a] = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+def delayStr {Stable a} = 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
-            =>  x  ::((fun b:a => > (<?m  b <(?tlStr[a] str)) ) (?hdStr[a] str) )
+            =>  x  :::((fun b:a => > (<?m  b <(?tlStr{a} str)) ) (?hdStr{a} str) )
 
 /*
-def wrongDelayStr [Stable a] = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+def wrongDelayStr {Stable a} = 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
-            => ?conStr[a] x  > (<?m  (?hdStr[a] str)  <(?tlStr[a] str)) 
+            => ?conStr{a} x  > (<?m  (?hdStr{a} str)  <(?tlStr{a} str)) 
 */
 
 // With syntactic sugar!
-/*def delayStr2 [Stable a] = 
-    rec m: # (a -> Str (a) -> Str(a)) 
+/*def delayStr2 {Stable a} = 
+    nfix m: # (a -> Str (a) -> Str(a)) 
         => fun x:a str:Str(a)
             => (
-                let head = ?hdStr[a] str in 
-                let tail = > ( <?m head <(?tlStr[a] str) ) in 
-                ?conStr[a] x tail 
+                let head = ?hdStr{a} str in 
+                let tail = > ( <?m head <(?tlStr{a} str) ) in 
+                ?conStr{a} x tail 
                 )
 */
 
 
 
 
-def scanStr[Stable a,b] f:#(a->b->a)  = 
-    rec m: # ( a -> Str(b)->Str(a))
+def scanStr{Stable a,b} f:#(a->b->a)  = 
+    nfix m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
-            => (?f z (?hdStr[b] str))::
-              ((fun x:a=>  > (<?m x (<(?tlStr[b] str)))) (?f z (?hdStr[b] str)) )
+            => (?f z (?hdStr{b} str)):::
+              ((fun x:a=>  > (<?m x (<(?tlStr{b} str)))) (?f z (?hdStr{b} str)) )
 
 // With syntactic sugar!
-/*def scanStr'[Stable a,b] f:#(a->b->a)  = 
-    rec m: # ( a -> Str(b)->Str(a))
+/*def scanStr'{Stable a,b} f:#(a->b->a)  = 
+    nfix m: # ( a -> Str(b)->Str(a))
         => fun z:a str:Str(b) 
             => (
-                let head = ?f z (?hdStr[b] str) in 
-                let tail = > (<?m head (<(?tlStr[b] str))) in 
-                ?conStr[a] head tail
+                let head = ?f z (?hdStr{b} str) in 
+                let tail = > (<?m head (<(?tlStr{b} str))) in 
+                ?conStr{a} head tail
             ) 
 */
+
+import Prelude.Nat 
+
+def angleDelayStr{Stable a} # xs:Str(a) =
+    let x:::_ = xs in  
+    let _:::xs' = ?delayStr{a} x xs in 
+    xs'
+    
+def sort=
+    nfix loop :#(Str(Nat)->Str(Nat)->Str(Nat))=> 
+        fun xs:Str(Nat) ys:Str(Nat) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            if ?lessthan x y 
+                then 
+                    let temp = ?angleDelayStr{Nat} ys in
+                    x:::>(<?loop <xs' <temp)
+                else 
+                    let temp = ?angleDelayStr{Nat} xs in 
+                    y:::>(<?loop <temp <ys')
+
+//test sort 
+/*
+def even = 
+    let even' = nfix loop:#(Nat->Str(Nat) ) => 
+        fun n:Nat => 
+            n:::>(<?loop (n+2))
+    in #(?even' 0)
+
+def odd = 
+    let odd' = nfix loop:#(Nat->Str(Nat) ) => 
+        fun n:Nat => 
+            n:::>(<?loop (n+2))
+    in #(?odd' 1)
+
+def main# = ?sort ?odd ?even*/
+
+def consListStr{a} = 
+    nfix helper:#(Str(a) -> Str(List(a)) ->Str(List(a)))=>
+        fun xs:Str(a) ys:Str(List(a)) => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            x::y :::>(<?helper <xs' <ys')

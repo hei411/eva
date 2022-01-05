@@ -1,0 +1,7 @@
+import Modality.Stream
+import Prelude.Maybe
+
+type Stream(a) = Str(Maybe(a))
+type GroupedStream(t,k) = k-> Stream(t)
+type WindowedStream(t,w) = w->Stream(t) 
+type JoinedStream(a,b) = Stream(a*b)

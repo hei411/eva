@@ -1,0 +1,15 @@
+import Modality.Stream
+type SF(a,b) = #(Str(a)->Str(b))
+//the definition of event here is different from other files!
+//We use Ev to represent our typical def, and Event as the def for Yampa
+//Event is isomorphic to Maybe
+type Event(a) = (Unit+a)
+
+//Lifting 
+def arrPrim{a,b} f:#(a->b) = 
+    nfix loop:SF(a,b) => 
+        fun xs:Str(a) => 
+            let x:::xs'=xs in 
+            ?f x ::: >(<?loop <xs')
+
+def arrEPrim{a,b} = arrPrim{Event(a),b}

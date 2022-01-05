@@ -6,27 +6,27 @@ import Modality.Stream
 type Stream = Str(Nat) 
 
 def ones = 
-    rec loop:#Stream => 
-        1::?loop
+    nfix loop:#Stream => 
+        1:::?loop
 
 //filter can't be implemented as expected
 /*def filter f:#(Nat->Bool) =
-    rec loop:#(Stream->Stream) =>
+    nfix loop:#(Stream->Stream) =>
         fun xs:Stream => 
-            let x::xs' = xs in 
+            let x:::xs' = xs in 
             if ?f x 
-                then x::>(<?loop <xs')
+                then x:::>(<?loop <xs')
             else >(<?loop <xs')*/
 
 def mergef f:#(Nat->Nat-> > Stream -> Stream) = 
-    rec loop:#(Stream->Stream->Stream) => 
+    nfix loop:#(Stream->Stream->Stream) => 
         fun xs:Stream ys:Stream => 
-            let x::xs' = xs in 
-            let y::ys' = ys in 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
             ?f x y >(<?loop <xs' <ys')
 
 import Modality.UntilList 
-type NatList = List(Nat)
+type NatList = UList(Nat)
 
 //We use Until modality to encode finite lists
 def take n:Nat  = 
@@ -34,43 +34,43 @@ def take n:Nat  =
         |0 =># fun xs:Stream => now () :NatList 
         |suc _, rest => 
             # fun xs:Stream =>
-                let x::xs' = xs in 
+                let x:::xs' = xs in 
                 (wait x @(?rest <xs')) 
 
 //debugging take
 /*def constInt x:Nat = 
-    rec loop:#Str(Nat) =>
-        x::?loop
+    nfix loop:#Str(Nat) =>
+        x:::?loop
 
 def test #= ?(take 8)   ?(constInt 4)*/
 
 type Partial(a) =Ev(a)
 
-def partialNow[a] # x:a =
+def partialNow{a} # x:a =
     let temp = inl x: a+>Ev(a) in 
     into temp: Ev(a)
 
-def partialLater[a] #x:>Ev(a) =
+def partialLater{a} #x:>Ev(a) =
     let temp = inr x:a+>Ev(a) in 
     into temp:Ev(a)
 
 def collatz = 
-    rec loop:#(Nat -> Partial(Unit) ) => 
+    nfix loop:#(Nat -> Partial(Unit) ) => 
         fun n:Nat => 
             if n==1 then 
-            ?partialNow[Unit] () 
+            ?partialNow{Unit} () 
             else 
                 if n%2==0 
-                    then ?partialLater[Unit] >(<?loop (n/2))
-                    else ?partialLater[Unit] >(<?loop (3*n+1))
+                    then ?partialLater{Unit} >(<?loop (n/2))
+                    else ?partialLater{Unit} >(<?loop (3*n+1))
 
 
 //Just for fun 
 /*def collatz' = 
-    rec loop:#(Nat -> Stream) => 
+    nfix loop:#(Nat -> Stream) => 
         fun n:Nat => 
             if n%2==0 
-                then n::>(<?loop (n/2))
-                else n:: >(<?loop (3*n+1))
+                then n:::>(<?loop (n/2))
+                else n::: >(<?loop (3*n+1))
 
 def main # = ?collatz' 2349*/

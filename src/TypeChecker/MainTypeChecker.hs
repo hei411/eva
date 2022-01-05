@@ -38,7 +38,7 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpNow be bt -> nowRule file functionName definedFunctions context varStack be bt
   BExpWait be be' -> waitRule file functionName definedFunctions context varStack be be'
   BExpUrec be s be' str cs s' be2 -> urecRule file functionName definedFunctions context varStack be s be' str cs s' be2
-  BExpRec s bt be -> recRule file functionName definedFunctions context varStack s bt be
+  BExpNfix s bt be -> nfixRule file functionName definedFunctions context varStack s bt be
   BExpOut be -> outRule file functionName definedFunctions context varStack be
   BExpInto be bt -> intoRule file functionName definedFunctions context varStack be bt
   BExpLet s be be' -> letRule file functionName definedFunctions context varStack s be be'
@@ -58,8 +58,13 @@ mainTypeChecker file functionName definedFunctions context varStack bExp = case 
   BExpDivide be be' -> divideRule file functionName definedFunctions context varStack be be'
   BExpMod be be' -> modRule file functionName definedFunctions context varStack be be'
   BExpPower be be' -> powerRule file functionName definedFunctions context varStack be be'
-  BExpPrepend be be' -> prependRule file functionName definedFunctions context varStack be be'
+  BExpStreamCons be be' -> streamConsRule file functionName definedFunctions context varStack be be'
   BExpLetStream s s' be be' -> letStreamRule file functionName definedFunctions context varStack s s' be be'
+  BExpEmptyList bt -> emptyListRule file functionName definedFunctions context varStack bt
+  BExpNonEmptyList bes -> nonEmptyListRule file functionName definedFunctions context varStack bes
+  BExpListAppend be be' -> listAppendRule file functionName definedFunctions context varStack be be'
+  BExpListCons be be' -> listConsRule file functionName definedFunctions context varStack be be'
+  BExpListRec be be' s s' str be2 -> listRecRule file functionName definedFunctions context varStack be be' s s' str be2
 
 varRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> [BType] -> (CExp, BType)
 varRule file functionName definedFunctions context varStack varName typeArguments =
@@ -67,7 +72,7 @@ varRule file functionName definedFunctions context varStack varName typeArgument
     let indexVarStack = elemIndex varName varStack
     case indexVarStack of
       Nothing -> varRuleNotInVarStack file functionName definedFunctions context varName typeArguments
-      Just n -> varRuleInVarStack file functionName context (toInteger n) varName typeArguments
+      Just n -> varRuleInVarStack file functionName context (toInteger n) varName typeArguments (toInteger (length varStack) - (toInteger n) -1)
 
 varRuleNotInVarStack :: FilePath -> String -> TypeCheckedProgram -> Context -> String -> [BType] -> (CExp, BType)
 varRuleNotInVarStack file functionName definedFunctions context varName typeArguments =
@@ -108,42 +113,54 @@ varRuleNotInVarStack file functionName definedFunctions context varName typeArgu
           then Just (index, cExp, bType, tp)
           else findDefinedFunctions (index + 1) tl
 
-varRuleInVarStack :: FilePath -> String -> Context -> Integer -> String -> [BType] -> (CExp, BType)
-varRuleInVarStack file functionName context n varName typeArguments =
+varRuleInVarStack :: FilePath -> String -> Context -> Integer -> String -> [BType] -> Integer -> (CExp, BType)
+varRuleInVarStack file functionName context n varName typeArguments targetn' =
   if length typeArguments > 0
     then typeCheckerErrorMsg file functionName ("Wrong number of parametric parameters provided for " ++ varName)
     else case context of
       TokenlessContext x0 -> do
-        let foundType = elemContext x0 varName
-        case foundType of
+        let foundTypePosition = elemContext x0 varName
+        case foundTypePosition of
           Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the tokenless context despite found in stack.")
-          Just bt -> (CExpIndex n, bt)
+          Just (bt, n') -> if n' == targetn' then (CExpIndex n, bt) else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
       StableContext x0 x1 -> do
-        let foundType = elemContext x1 varName
-        case foundType of
+        let foundTypePosition = elemContext x1 varName
+        case foundTypePosition of
           Nothing ->
             do
-              let foundType2 = elemContext x0 varName
-              case foundType2 of
+              let foundTypePosition2 = elemContext x0 varName
+              case foundTypePosition2 of
                 Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the stable context despite found in stack.")
-                Just bt ->
-                  if isStable bt
-                    then (CExpIndex n, bt)
-                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-          Just bt -> (CExpIndex n, bt)
+                Just (bt, n') ->
+                  if n' == targetn'
+                    then
+                      if isStable bt
+                        then (CExpIndex n, bt)
+                        else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+                    else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
+          Just (bt, n') ->
+            if n' == targetn'
+              then (CExpIndex n, bt)
+              else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
       AngleContext x0 x1 x2 -> do
-        let foundType = elemContext x2 varName
-        case foundType of
+        let foundTypePosition = elemContext x2 varName
+        case foundTypePosition of
           Nothing ->
             do
-              let foundType2 = elemContext (x1 ++ x0) varName
-              case foundType2 of
+              let foundTypePosition2 = elemContext (x1 ++ x0) varName
+              case foundTypePosition2 of
                 Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the angle context despite found in stack.")
-                Just bt ->
-                  if isStable bt
-                    then (CExpIndex n, bt)
-                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-          Just bt -> (CExpIndex n, bt)
+                Just (bt, n') ->
+                  if n' == targetn'
+                    then
+                      if isStable bt
+                        then (CExpIndex n, bt)
+                        else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+                    else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
+          Just (bt, n') ->
+            if n' == targetn'
+              then (CExpIndex n, bt)
+              else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
       AtContext x0 x1 x2 -> do
         let foundType = elemContext x2 varName
         case foundType of
@@ -152,11 +169,14 @@ varRuleInVarStack file functionName context n varName typeArguments =
               let foundType2 = elemContext (x1 ++ x0) varName
               case foundType2 of
                 Nothing -> typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed in the at context despite found in stack.")
-                Just bt ->
-                  if isStable bt
-                    then (CExpIndex n, bt)
-                    else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
-          Just bt -> (CExpIndex n, bt)
+                Just (bt, n') ->
+                  if n' == targetn'
+                    then
+                      if isStable bt
+                        then (CExpIndex n, bt)
+                        else typeCheckerErrorMsg file functionName (varName ++ " cannot be accessed as it is not stable")
+                    else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
+          Just (bt, n') -> if n' == targetn' then (CExpIndex n, bt) else typeCheckerErrorMsg file functionName ("Program not accepted as the var " ++ varName ++ " is referring to a different thing than intended. Please change variable name.")
 
 lambdaRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
 lambdaRule file functionName definedFunctions context varStack varName varType body = case context of
@@ -164,7 +184,7 @@ lambdaRule file functionName definedFunctions context varStack varName varType b
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("Non-tick free context (AtContext) in lambdaRule with arg" ++ varName)
   _ ->
     do
-      let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (varName, varType)) (varName : varStack) body
+      let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (varName, varType, toInteger (length varStack))) (varName : varStack) body
       (CExpLambda cBody, BTypeFunction varType bodyType)
 
 applicationRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
@@ -235,8 +255,8 @@ matchRule file functionName definedFunctions context varStack e inlVar e1 inrVar
     case eType of
       BTypeSum a b ->
         do
-          let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (addContextElem context (inlVar, a)) (inlVar : varStack) e1
-          let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions (addContextElem context (inrVar, b)) (inrVar : varStack) e2
+          let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (addContextElem context (inlVar, a, toInteger (length varStack))) (inlVar : varStack) e1
+          let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions (addContextElem context (inrVar, b, toInteger (length varStack))) (inrVar : varStack) e2
           if generalBTypeCompare e1Type e2Type
             then (CExpMatch eExp e1Exp e2Exp, e1Type)
             else
@@ -267,7 +287,7 @@ primrecRule file functionName definedFunctions context varStack e e1 var1 var2 e
       BTypeNat ->
         do
           let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
-          let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions (addContextElem (addContextElem context (var1, BTypeNat)) (var2, e1Type)) (var2 : var1 : varStack) e2
+          let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions (addContextElem (addContextElem context (var1, BTypeNat, toInteger (length varStack))) (var2, e1Type, 1 + toInteger (length varStack))) (var2 : var1 : varStack) e2
           if generalBTypeCompare e1Type e2Type
             then (CExpPrimrec eExp e1Exp e2Exp, e1Type)
             else
@@ -338,23 +358,27 @@ boxRule file functionName definedFunctions context varStack e = case context of
   AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-tokenless context, i.e.  AtContext for " ++ show e)
 
 unboxRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
+--This rule is generalized!
 unboxRule file functionName definedFunctions context varStack e = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName ("unboxRule applied to a tokenless context for " ++ show e)
   StableContext x0 x1 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext x1 ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("unboxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
   AngleContext x0 x1 x2 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext (x2 ++ x1) ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
   AtContext x0 x1 x2 ->
     do
-      let (eExp, eType) = mainTypeChecker file functionName definedFunctions (TokenlessContext x0) varStack e
+      let context' = (TokenlessContext (stablizeContext (x2 ++ x1) ++ x0))
+      let (eExp, eType) = mainTypeChecker file functionName definedFunctions context' varStack e
       case eType of
         BTypeBox a -> (CExpUnbox eExp, a)
         _ -> typeCheckerErrorMsg file functionName ("boxRule applied to a non-boxed type for exp " ++ printCExp 0 eExp ++ " of type " ++ printBType 0 eType)
@@ -383,20 +407,21 @@ waitRule file functionName definedFunctions context varStack e1 e2 =
       _ -> typeCheckerErrorMsg file functionName ("waitRule's second argument is not an at-delayed Until type: " ++ printCExp 0 e2Exp)
 
 urecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> String -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+--This rule is generalized!
 urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar1 waitVar2 nextVar e2 = case context of
   TokenlessContext x0 -> typeCheckerErrorMsg file functionName ("urecRule applied to a tokenless context for " ++ show (e))
-  StableContext x0 x1 -> urecRuleHelper x0
-  AngleContext x0 x1 x2 -> urecRuleHelper x0
-  AtContext x0 x1 x2 -> urecRuleHelper x0
+  StableContext x0 x1 -> urecRuleHelper x0 (stablizeContext x1)
+  AngleContext x0 x1 x2 -> urecRuleHelper x0 (stablizeContext (x2 ++ x1))
+  AtContext x0 x1 x2 -> urecRuleHelper x0 (stablizeContext (x2 ++ x1))
   where
-    urecRuleHelper firstContextList =
+    urecRuleHelper firstContextList secondContextList =
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
         case eType of
           BTypeUntil a b ->
             do
-              let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (StableContext firstContextList [(nowVar, b)]) (nowVar : varStack) e1
-              let extendedContext = StableContext firstContextList [(nextVar, BTypeAt e1Type), (waitVar2, BTypeAt eType), (waitVar1, a)]
+              let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions (StableContext firstContextList ((nowVar, b, toInteger (length varStack)) : secondContextList)) (nowVar : varStack) e1
+              let extendedContext = StableContext firstContextList ([(nextVar, BTypeAt e1Type, 2 + toInteger (length varStack)), (waitVar2, BTypeAt eType, 1 + toInteger (length varStack)), (waitVar1, a, toInteger (length varStack))] ++ secondContextList)
               let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (nextVar : waitVar2 : waitVar1 : varStack) e2
               if generalBTypeCompare e2Type e1Type
                 then (CExpUrec eExp e1Exp e2Exp, e1Type)
@@ -412,41 +437,41 @@ urecRule file functionName definedFunctions context varStack e nowVar e1 waitVar
                     )
           _ -> typeCheckerErrorMsg file functionName ("urecRule not applied to an until type exp" ++ printCExp 0 eExp)
 
-recRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
-recRule file functionName definedFunctions context varStack var ascription e = case context of
+nfixRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BType -> BExp -> (CExp, BType)
+nfixRule file functionName definedFunctions context varStack var ascription e = case context of
   TokenlessContext x0 ->
     case ascription of
       BTypeBox a ->
         do
-          let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext ((var, BTypeBox (BTypeAngle a)) : x0) []) (var : varStack) e
+          let (eExp, eType) = mainTypeChecker file functionName definedFunctions (StableContext ((var, BTypeBox (BTypeAngle a), toInteger (length varStack)) : x0) []) (var : varStack) e
           if generalBTypeCompare eType a
-            then (CExpRec eExp, ascription)
-            else typeCheckerErrorMsg file functionName ("recRule type ascription does not match target type for exp " ++ printCExp 0 eExp)
-      _ -> typeCheckerErrorMsg file functionName ("recRule type ascription is not box type for " ++ show e)
-  StableContext x0 x1 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. StableContext for " ++ show e)
-  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. AngleContext for " ++ show e)
-  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("recRule not applied in a tokenlessContext, i.e. AtContext for " ++ show e)
+            then (CExpNfix eExp, ascription)
+            else typeCheckerErrorMsg file functionName ("nfixRule type ascription does not match target type for exp " ++ printCExp 0 eExp)
+      _ -> typeCheckerErrorMsg file functionName ("nfixRule type ascription is not box type for " ++ show e)
+  StableContext x0 x1 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. StableContext for " ++ show e)
+  AngleContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. AngleContext for " ++ show e)
+  AtContext x0 x1 x2 -> typeCheckerErrorMsg file functionName ("nfixRule not applied in a tokenlessContext, i.e. AtContext for " ++ show e)
 
 outRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> (CExp, BType)
 outRule file functionName definedFunctions context varStack e =
   do
     let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
     case eType of
-      BTypeFix t ->
+      BTypeNFix t ->
         (CExpOut eExp, unfoldBType eType)
-      _ -> typeCheckerErrorMsg file functionName ("outRule not applied to an Fix type for exp " ++ printCExp 0 eExp)
+      _ -> typeCheckerErrorMsg file functionName ("outRule not applied to an NFix type for exp " ++ printCExp 0 eExp)
 
 intoRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BType -> (CExp, BType)
 intoRule file functionName definedFunctions context varStack e ascription =
   case ascription of
-    BTypeFix t ->
+    BTypeNFix t ->
       do
         let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
-        let unfoldFixType = unfoldBType ascription
-        if generalBTypeCompare unfoldFixType eType
+        let unfoldNFixType = unfoldBType ascription
+        if generalBTypeCompare unfoldNFixType eType
           then (CExpInto eExp, ascription)
           else typeCheckerErrorMsg file functionName ("intoRule ascription doesnt match inner expression type for exp " ++ printCExp 0 eExp)
-    _ -> typeCheckerErrorMsg file functionName ("intoRule ascription is not Fix type for " ++ show e)
+    _ -> typeCheckerErrorMsg file functionName ("intoRule ascription is not NFix type for " ++ show e)
 
 letRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> BExp -> BExp -> (CExp, BType)
 letRule file functionName definedFunctions context varStack str e body =
@@ -455,7 +480,7 @@ letRule file functionName definedFunctions context varStack str e body =
   -- immediately applied?
   do
     let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
-    let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (str, eType)) (str : varStack) body
+    let (cBody, bodyType) = mainTypeChecker file functionName definedFunctions (addContextElem context (str, eType, toInteger (length varStack))) (str : varStack) body
     seq eType (CExpApplication (CExpLambda cBody) eExp, bodyType)
 
 {-seq used here for forcing type checking the arguments
@@ -630,25 +655,95 @@ powerRule file functionName definedFunctions context varStack e1 e2 = do
         else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat second exp: " ++ printCExp 0 e2Exp)
     else typeCheckerErrorMsg file functionName ("powerRule applied to a non-Nat first exp: " ++ printCExp 0 e1Exp)
 
-prependRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
-prependRule file functionName definedFunctions context varStack e1 e2 = do
+streamConsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+streamConsRule file functionName definedFunctions context varStack e1 e2 = do
   let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
   let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
-  let targetE2Type = BTypeAngle (BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
+  let targetE2Type = BTypeAngle (BTypeNFix (BTypeProduct e1Type (BTypeIndex 0)))
   if generalBTypeCompare targetE2Type e2Type
-    then (CExpInto (CExpProduct e1Exp e2Exp), BTypeFix (BTypeProduct e1Type (BTypeIndex 0)))
-    else typeCheckerErrorMsg file functionName ("prependRule applied to non-compatible expresions of type: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+    then (CExpInto (CExpProduct e1Exp e2Exp), BTypeNFix (BTypeProduct e1Type (BTypeIndex 0)))
+    else typeCheckerErrorMsg file functionName ("streamConsRule applied to non-compatible expresions of type: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
 
 letStreamRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> String -> String -> BExp -> BExp -> (CExp, BType)
 letStreamRule file functionName definedFunctions context varStack var1 var2 e1 e2 = do
   let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
   case e1Type of
-    BTypeFix (BTypeProduct _ (BTypeIndex 0)) -> do
+    BTypeNFix (BTypeProduct _ (BTypeIndex 0)) -> do
       let var1Exp = BExpFst (BExpOut (BExpVar "_Stream" []))
       let var2Exp = BExpSnd (BExpOut (BExpVar "_Stream" []))
       let newExp = BExpLet "_Stream" e1 (BExpLet var1 var1Exp (BExpLet var2 var2Exp e2))
       mainTypeChecker file functionName definedFunctions context varStack newExp
     _ -> typeCheckerErrorMsg file functionName ("letStreamRule applied to non-stream expresions of exp: " ++ printCExp 0 e1Exp ++ " and type: " ++ printBType 0 e1Type)
+
+emptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BType -> (CExp, BType)
+emptyListRule file functionName definedFunctions context varStack t =
+  case t of
+    BTypeList t' ->
+      (CExpList [], t)
+    _ -> typeCheckerErrorMsg file functionName ("emptyListRule applied to nil list of non list type ascription: " ++ printBType 0 t)
+
+nonEmptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> [BExp] -> (CExp, BType)
+nonEmptyListRule file functionName definedFunctions context varStack bes = do
+  let expTypePairList = map (mainTypeChecker file functionName definedFunctions context varStack) bes
+  let expTypePairList' = (map fst expTypePairList, map snd expTypePairList)
+  case expTypePairList' of
+    (expList, typeList) ->
+      if sameType typeList
+        then (CExpList expList, BTypeList (head typeList))
+        else typeCheckerErrorMsg file functionName ("nonEmptyListRule applied to expresions of different types: " ++ printCExp 0 (CExpList expList))
+  where
+    sameType xs =
+      case xs of
+        [] -> True
+        x : x' : xs' -> if generalBTypeCompare x x' then sameType (x' : xs') else False
+        x : [] -> True
+
+listAppendRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+listAppendRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  case (e1Type, e2Type) of
+    (BTypeList t1, BTypeList t2) ->
+      if generalBTypeCompare t1 t2
+        then (CExpListAppend e1Exp e2Exp, e1Type)
+        else typeCheckerErrorMsg file functionName ("listAppendRule applied to list expresions of different types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+    (BTypeList t1, _) -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
+    _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to first argument of non list type: " ++ printCExp 0 e1Exp ++ " of type " ++ printBType 0 e1Type)
+
+listConsRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> (CExp, BType)
+listConsRule file functionName definedFunctions context varStack e1 e2 = do
+  let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+  let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions context varStack e2
+  case e2Type of
+    BTypeList t2 ->
+      if generalBTypeCompare e1Type t2
+        then (CExpListCons e1Exp e2Exp, e2Type)
+        else typeCheckerErrorMsg file functionName ("listConsRule applied to expresions of incompatible types: " ++ printBType 0 e1Type ++ " and " ++ printBType 0 e2Type)
+    _ -> typeCheckerErrorMsg file functionName ("listAppendRule applied to second argument of non list type: " ++ printCExp 0 e2Exp ++ " of type " ++ printBType 0 e2Type)
+
+listRecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> String -> String -> String -> BExp -> (CExp, BType)
+listRecRule file functionName definedFunctions context varStack e e1 v1 v2 v3 e2 = do
+  let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
+  case eType of
+    BTypeList t ->
+      do
+        let (e1Exp, e1Type) = mainTypeChecker file functionName definedFunctions context varStack e1
+        let extendedContext = addContextElem (addContextElem (addContextElem context (v1, t, toInteger (length varStack))) (v2, BTypeList t, 1 + toInteger (length varStack))) (v3, e1Type, 2 + toInteger (length varStack))
+        --StableContext firstContextList [(v3, e1Type, 2 + toInteger (length varStack)), (v2, BTypeList t, 1 + toInteger (length varStack)), (v1, t, toInteger (length varStack))]
+        let (e2Exp, e2Type) = mainTypeChecker file functionName definedFunctions extendedContext (v3 : v2 : v1 : varStack) e2
+        if generalBTypeCompare e2Type e1Type
+          then (CExpListRec eExp e1Exp e2Exp, e1Type)
+          else
+            typeCheckerErrorMsg
+              file
+              functionName
+              ( "listRecRule branches' types do not match for exp " ++ printCExp 0 eExp
+                  ++ "\n t1 = "
+                  ++ printBType 0 e1Type
+                  ++ "\n t2 = "
+                  ++ printBType 0 e2Type
+              )
+    _ -> typeCheckerErrorMsg file functionName ("listRecRule not applied to an list type exp" ++ printCExp 0 eExp)
 
 typeCheckerErrorMsg :: FilePath -> String -> [Char] -> (CExp, BType)
 typeCheckerErrorMsg file functionName msg =

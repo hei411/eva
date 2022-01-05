@@ -33,7 +33,7 @@ peanoConverterAExp e = do
     AExpNow ae at -> AExpNow (peanoConverterAExp ae) at
     AExpWait ae ae' -> AExpWait (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpUrec ae s ae' str cs s' ae2 -> AExpUrec (peanoConverterAExp ae) s (peanoConverterAExp ae') str cs s' (peanoConverterAExp ae2)
-    AExpRec s at ae -> AExpRec s at (peanoConverterAExp ae)
+    AExpNfix s at ae -> AExpNfix s at (peanoConverterAExp ae)
     AExpOut ae -> AExpOut (peanoConverterAExp ae)
     AExpInto ae at -> AExpInto (peanoConverterAExp ae) at
     AExpLet s ae ae' -> AExpLet s (peanoConverterAExp ae) (peanoConverterAExp ae')
@@ -55,8 +55,13 @@ peanoConverterAExp e = do
     AExpDivide ae ae' -> AExpDivide (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpMod ae ae' -> AExpMod (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpPower ae ae' -> AExpPower (peanoConverterAExp ae) (peanoConverterAExp ae')
-    AExpPrepend ae ae' -> AExpPrepend (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpStreamCons ae ae' -> AExpStreamCons (peanoConverterAExp ae) (peanoConverterAExp ae')
     AExpLetStream s s' ae ae' -> AExpLetStream s s' (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpEmptyList at -> AExpEmptyList at
+    AExpNonEmptyList aeList -> AExpNonEmptyList (map peanoConverterAExp aeList)
+    AExpListAppend ae ae' -> AExpListAppend (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpListCons ae ae' -> AExpListCons (peanoConverterAExp ae) (peanoConverterAExp ae')
+    AExpListRec ae ae' s s' str ae2 -> AExpListRec (peanoConverterAExp ae) (peanoConverterAExp ae') s s' str (peanoConverterAExp ae2)
   where
     helper :: Integer -> AExp
     helper n =

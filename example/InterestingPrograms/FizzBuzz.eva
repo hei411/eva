@@ -8,16 +8,16 @@ def fbNat # n:Nat= inr (inr n :(Unit+Nat))  :FBType
 
 def fbRun = 
     let helper =
-        rec loop:#(Nat -> Str(FBType))=>
+        nfix loop:#(Nat -> Str(FBType))=>
             fun n:Nat =>
                 let rest = >(<?loop (suc n)) in  
                 if n%15 ==0 then 
-                    ?fizzbuzz::rest 
+                    ?fizzbuzz:::rest 
                 else if n%3 ==0 then 
-                    ?fizz::rest 
+                    ?fizz:::rest 
                 else if n%5==0 then 
-                    ?buzz::rest 
-                else ?fbNat n::rest 
+                    ?buzz:::rest 
+                else ?fbNat n:::rest 
     in 
     # (?helper 1)
 

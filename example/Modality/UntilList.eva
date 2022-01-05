@@ -1,6 +1,21 @@
-type List(a) = a Until Unit
+type UList(a) = a Until Unit
 
 def countdown n:Nat = 
     primrec n with 
-        | 0 => # now () : List(Nat)
-        | suc x, rest => # wait n @(?rest)  
+        | 0 => # now () : UList(Nat)
+        | suc x, rest => # wait (suc x) @(?rest)  
+
+
+//countdown for n: placement of # token after n is very difficult!
+def delayUntil # x:UList(Nat) =
+    urec x with 
+        |now _ => fun n:Nat => wait n @(now () :UList(Nat))
+        |wait v _ , rest => fun n:Nat => wait n @(<rest v)  
+
+import Modality.Stream
+def countdown' # n:Nat= 
+    primrec n with 
+        | 0 => now ():UList(Nat) 
+        | suc x, rest => ?delayUntil rest (suc x)
+
+def main # = ?(countdown 4)

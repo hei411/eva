@@ -24,7 +24,7 @@ substituteCExp arg level cExp = case cExp of
   CExpNow ce -> CExpNow (substituteCExpHelper ce)
   CExpWait ce ce' -> CExpWait (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpUrec ce ce' ce2 -> CExpUrec (substituteCExpHelper ce) (substituteCExp arg (level + 1) ce') (substituteCExp arg (level + 3) ce2)
-  CExpRec ce -> CExpRec (substituteCExp arg (level + 1) ce)
+  CExpNfix ce -> CExpNfix (substituteCExp arg (level + 1) ce)
   CExpOut ce -> CExpOut (substituteCExpHelper ce)
   CExpInto ce -> CExpInto (substituteCExpHelper ce)
   CExpLocation n -> CExpLocation n
@@ -44,5 +44,9 @@ substituteCExp arg level cExp = case cExp of
   CExpDivide ce ce' -> CExpDivide (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpMod ce ce' -> CExpMod (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpPower ce ce' -> CExpPower (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpList ceList -> CExpList (map substituteCExpHelper ceList)
+  CExpListAppend ce ce' -> CExpListAppend (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpListCons ce ce' -> CExpListCons (substituteCExpHelper ce) (substituteCExpHelper ce')
+  CExpListRec ce ce' ce2 -> CExpListRec (substituteCExpHelper ce) (substituteCExpHelper ce') (substituteCExp arg (level + 3) ce2)
   where
     substituteCExpHelper = substituteCExp arg level

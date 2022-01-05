@@ -1,0 +1,10 @@
+import Modality.Stream 
+import Prelude.Maybe
+
+//Event here is slightly different definition than others
+//It is isomorphic to Nat->Maybe(a)
+//but to preserve causality, we model it as Str(Maybe(a))
+
+type Event(a) = Str(Maybe(a))
+
+type Behavior(a)=Str(a)

@@ -37,7 +37,7 @@ checkVar str =
     --"unbox" -> fail "unbox cannot be variable name."
     "now" -> fail "now cannot be variable name."
     "urec" -> fail "urec cannot be variable name."
-    "rec" -> fail "rec cannot be variable name."
+    "nfix" -> fail "nfix cannot be variable name."
     "into" -> fail "into cannot be variable name."
     "out" -> fail "out cannot be variable name."
     "import" -> fail "import cannot be variable name."
@@ -75,14 +75,15 @@ upperVarParser =
 
 checkUpperVar :: String -> Parser String
 checkUpperVar str = case str of
-  "Fix" -> fail "Fix cannot be type variable name."
+  "NFix" -> fail "NFix cannot be type variable name."
   "Until" -> fail "Until cannot be type variable name."
   "Nat" -> fail "Nat cannot be type variable name."
   "Unit" -> fail "Unit cannot be type variable name."
   "Stable" -> fail "Stable cannot be type variable name."
   "Limit" -> fail "Limit cannot be type variable name."
   "Bool" -> fail "Bool cannot be type variable name."
-  "CStable" -> fail "CStable cannot be type variable name."
+  "Comparable" -> fail "Comparable cannot be type variable name."
+  "List" -> fail "List cannot be type variable name."
   _ -> return (str)
 
 potentialDotVarParser :: Parser String

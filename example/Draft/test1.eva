@@ -1,6 +1,17 @@
 import Draft.test2
 import Draft.test3
 def find = hiddenfunction
-def main  =repeat
-
+//def wrong n:#Nat # n:#Bool = ?n
 //type Test= Testr
+import Prelude.Nat
+import Modality.Stream
+def x=0
+def x=1
+def main = 
+    let helper = nfix loop :#(List(Nat) -> Str(Nat) -> Str(List(Nat)) ) => 
+        fun l:List(Nat) xs:Str(Nat) => 
+            let x:::xs' = xs in 
+            let l'= l++ [x] in 
+            l' ::: >(<?loop l' <xs')
+    in 
+    #(?helper []:List(Nat))

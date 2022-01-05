@@ -1,0 +1,307 @@
+import Yampa.BasicDefinitions
+import Modality.Stream
+import Prelude.Maybe 
+
+def never{a,b} # xs:Str(a) =
+    ?(
+        nfix loop:#(Str(Event(b)))=>
+            ?nothing{b}:::?loop
+    )
+
+def nowEvent{a,b} # y:b xs:Str(a)=
+    let x:::xs'= xs in 
+    ?just{b} y ::: >(?never{a,b} <xs')
+
+def after{a,b} n:Nat e:#b=
+    let helper = 
+        nfix loop:#(Nat->Str(a)->Str(Event(b)))=>
+            fun n':Nat xs:Str(a)=>
+                if n' == 0 
+                    then ?nowEvent{a,b} ?e xs
+                    else    
+                        let _:::xs'=xs in 
+                        ?nothing{b}:::>(<?loop (n'-1) <xs')
+    in 
+    #(?helper n)
+
+def repeatedly{a,b} n:Nat e:#b=
+    let helper = 
+        nfix loop:#(Nat->Str(a)->Str(Event(b)))=>
+            fun n':Nat xs:Str(a)=>
+                let _:::xs'=xs in 
+                if n' == 0 
+                    then ?just{b} ?e:::>(<?loop n <xs')
+                    else    
+                        ?nothing{b}:::>(<?loop (n'-1) <xs')
+    in 
+    #(?helper n)
+
+def afterEachHelper{a,b} one:SF(a,Event(b)) two:SF(a,Event(b))=
+    let helper = nfix loop :#(Str(Event(b))->Str(Event(b))->Str(Event(b)))=>
+        fun xs:Str(Event(b)) ys:Str(Event(b))=>
+            let x:::xs'= xs in 
+            let y:::ys'=ys in 
+            match x with 
+                |inl _ => y:::>(<?loop <xs' <ys')
+                |inr _ => x:::>(<?loop <xs' <ys' )
+    in 
+    #(fun xs:Str(a)=>
+        let i=?one xs in 
+        let j=?two xs in 
+        ?helper i j
+    )
+
+def afterEach{a,b} l:List((Nat*#b)) = 
+    primrec l with 
+        |[] => never{a,b}
+        |hd::tl, rest => 
+            let (one,two) = hd in 
+            let s = repeatedly{a,b} one two in 
+            afterEachHelper{a,b} s rest 
+
+
+def afterEachCatHelper{a,b} one:SF(a,Event(b)) two:SF(a,Event(List(b)))=
+    let helper = nfix loop :#(Str(Event(b))->Str(Event(List(b)))->Str(Event(List(b))))=>
+        fun xs:Str(Event(b)) ys:Str(Event(List(b)))=>
+            let x:::xs'= xs in 
+            let y:::ys'=ys in 
+            match x with 
+                |inl _ => y:::>(<?loop <xs' <ys')
+                |inr xEvent => 
+                    match y with 
+                        |inl _ => ?just{List(b)} [xEvent] :::>(<?loop <xs' <ys')
+                        |inr l=> ?just{List(b)}(xEvent::l):::>(<?loop <xs' <ys')
+    in 
+    #(fun xs:Str(a)=>
+        let i=?one xs in 
+        let j=?two xs in 
+        ?helper i j
+    )
+
+def afterEachCat{a,b} l:List((Nat*#b)) = 
+    primrec l with 
+        |[] => never{a,List(b)}
+        |hd::tl, rest => 
+            let (one,two) = hd in 
+            let s = repeatedly{a,b} one two in 
+            afterEachCatHelper{a,b} s rest 
+
+def delayEvent{Stable a} n:Nat = 
+    let helper =
+        nfix loop:#(Nat -> Str(Event(a))->Str(Event(a)))=>
+            fun n':Nat xs:Str(Event(a)) => 
+                primrec n' with 
+                    |0=> xs 
+                    |suc n'' , rest => ?nothing{a}:::?angleDelayStr{Event(a)} rest
+    in 
+    #(?helper n)
+
+//delayEventCat not implemented
+
+def edge = 
+    let helper = 
+        nfix loop:#(Bool->Str(Bool)->Str(Event(Unit)))=>
+            fun b:Bool xs:Str(Bool) => 
+                let x:::xs'=xs in 
+                if (not b) and x 
+                    then ?just{Unit} ():::>(<?loop true <xs')
+                    else ?nothing{Unit} ::: >(<?loop x <xs')
+    in 
+    #(?helper true)
+
+def iEdge input:Bool = 
+    let helper = 
+        nfix loop:#(Bool->Str(Bool)->Str(Event(Unit)))=>
+            fun b:Bool xs:Str(Bool) => 
+                let x:::xs'=xs in 
+                if (not b) and x 
+                    then ?just{Unit} ():::>(<?loop true <xs')
+                    else ?nothing{Unit} ::: >(<?loop x <xs')
+    in 
+    #(?helper input)
+
+def edgeTag{a} tag:#a = 
+    let helper = 
+        nfix loop:#(Bool->Str(Bool)->Str(Event(a)))=>
+            fun b:Bool xs:Str(Bool) => 
+                let x:::xs'=xs in 
+                if (not b) and x 
+                    then ?just{a} ?tag:::>(<?loop true <xs')
+                    else ?nothing{a} ::: >(<?loop x <xs')
+    in 
+    #(?helper true)
+
+def edgeJust{Stable a} = 
+    let helper = 
+        nfix loop:#(Maybe(a)->Str(Maybe(a))->Str(Event(a)))=>
+            fun before:Maybe(a) xs:Str(Maybe(a)) => 
+                let x:::xs'=xs in 
+                match before with 
+                    |inl _ =>
+                        x:::>(<?loop x <xs')
+                    |inr _ => 
+                        ?nothing{a}:::>(<?loop x <xs')
+    in 
+    #(?helper ?nothing{a})
+
+
+def edgeBy{Stable a,b} f:#(a->a->Maybe(b)) initial:#a= 
+    let helper = 
+        nfix loop:#(a-> Str(a)->Str(Event(b)))=>
+            fun state:a xs:Str(a) => 
+                let x:::xs'=xs in 
+                ?f state x:::>(<?loop x <xs')
+    in 
+    #(?helper ?initial)
+
+def notYet{a} # xs:Str(Event(a))= 
+    let x:::xs' = xs in 
+    ?nothing{a}:::xs'
+
+def once{a} = 
+    nfix loop:#(Str(Event(a))->Str(Event(a)))=>
+        fun xs:Str(Event(a))=>
+            let x:::xs' = xs in 
+            match x with 
+                |inl _ => 
+                    x:::>(<?loop <xs')
+                |inr _ => x:::>(?never{Event(a),a} <xs')
+
+def takeEvents{a} n:Nat = 
+    let helper = 
+        nfix loop:#(Nat->Str(Event(a))->Str(Event(a)))=>
+            fun num:Nat xs:Str(Event(a))=>
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        x:::>(<?loop num <xs')
+                    |inr _ => 
+                        if n==0
+                            then ?never{Event(a),a} xs
+                            else x:::>(<?loop (num-1) <xs')
+    in 
+    #(?helper n)
+
+def dropEvents{a} n:Nat = 
+    let helper = 
+        nfix loop:#(Nat->Str(Event(a))->Str(Event(a)))=>
+            fun num:Nat xs:Str(Event(a))=>
+                let x:::xs' = xs in 
+                match x with 
+                    |inl _ => 
+                        x:::>(<?loop num <xs')
+                    |inr _ => 
+                        if n==0
+                            then xs
+                            else ?nothing{a}:::>(<?loop (num-1) <xs')
+    in 
+    #(?helper n)
+
+def maybeToEvent{a} x:Maybe(a) = x
+
+def noEvent{a} = nothing{a}
+
+def noEventFst{a,b,c} # p:(Event(a)*b)=
+    (?nothing{c},snd p)
+
+def noEventSnd{a,b,c} # p:(a*Event(b))=
+    (fst p, ?nothing{c})
+
+def event{a,b} = maybe{b,a}
+
+def isEvent{a} = isJust{a}
+
+def isNoEvent{a}# x:Event(a)= not (?isEvent{a} x)
+
+def tag{a,b} #x:Event(a) y:b = 
+    ?just{b} y
+
+def tagWith{a,b} # y:b x:Event(a) = ?tag{a,b} x y
+
+def attach{a,b} # x:Event(a) y:b = 
+    match x with 
+        |inl _ => ?nothing{a*b} 
+        |inr xResult => ?just{a*b} (xResult,y)
+
+def lMerge{a} # x:Event(a) y:Event(a) = 
+    match x with 
+        |inl _ => y 
+        |inr _ => x 
+
+def rMerge{a} # x:Event(a) y:Event(a) = 
+    match y with 
+        |inl _ => x
+        |inr _ => y
+
+//merge not implemented as error cannot be produced by simultaneous occurence
+
+def mergeBy{a} # f:a->a->a x:Event(a) y:Event(a) = 
+    match x with 
+        |inl _ => y
+        |inr xResult => 
+            match y with 
+                |inl _ => y 
+                |inr yResult => ?just{a} (f xResult yResult)
+
+def mapMerge{a,b,c} # f:a->c g:b->c h:a->b->c x:Event(a) y:Event(b) = 
+    match x with 
+        |inl _ => 
+            match y with 
+                |inl _ => ?nothing{c}
+                |inr yResult => ?just{c} (g  yResult)
+        |inr xResult => 
+            match y with 
+                |inl _ => ?just{c} (f xResult)
+                |inr yResult => ?just{c} (h xResult yResult)
+
+
+def mergeEvents{a} # l:List(Event(a)) = 
+    primrec l with 
+        |[]=> ?nothing{a}
+        |x::xs, rest => ?lMerge{a} x rest
+
+def catEvents{a} # l:List(Event(a)) = 
+    primrec l with 
+        |[]=> ?nothing{List(a)}
+        |x::xs, rest => 
+            match x with 
+                | inl _ => rest 
+                | inr xResult => 
+                    match rest with 
+                        |inl _ => inr [xResult] : Event(List(a)) 
+                        |inr l => inr (xResult::l):Event(List(a))
+
+def joinE{a,b} # x:Event(a) y:Event(b) = 
+    match x with 
+        | inl _ => ?nothing {a*b} 
+        |inr xResult => 
+            match y with 
+                | inl _ => ?nothing {a*b} 
+                | inr yResult => ?just {a*b} (xResult,yResult)
+
+def splitE{a,b} # x:Event(a*b) = 
+    match x with 
+        |inl _ => (?nothing{a},?nothing{b})
+        |inr p=> 
+            let (one,two) = p in
+            (?just{a} one, ?just{b} two)
+
+def filterE{a} # f:a->Bool x:Event(a) =
+    match x with 
+        |inl _ => x 
+        |inr xResult => 
+            if f xResult 
+                then x 
+                else ?nothing {a}
+
+def mapFilterE{a,b} # f:a->Maybe(b) x:Event(a) =
+    match x with 
+        |inl _ => ?nothing{b}
+        |inr xResult => 
+            f xResult
+
+
+def gate{a} # x:Event(a) b:Bool = 
+    if b 
+        then x 
+        else ?nothing{a}

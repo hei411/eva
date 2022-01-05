@@ -1,0 +1,215 @@
+import Prelude.Maybe 
+
+def append{a} # x:List(a) y:List(a) = x++y
+
+def head{a} # x:List(a) = 
+    primrec x with 
+        | [] => inl () :Maybe(a)
+        | x::_ , _ => inr x:Maybe (a)
+
+def last{a} # x:List(a) = 
+    primrec x with 
+        |[] => inl () :Maybe(a) 
+        |x::xs, rest => 
+            primrec xs with 
+                |[]=> inr x:Maybe(a) 
+                |_::_, _ => rest
+
+def tail{a} # xs:List(a) = 
+    primrec xs with 
+        |[] => ?nothing{List(a)}
+        |_::xs', _ => ?just{List(a)} xs'  
+
+def init{a} # xs:List(a) = 
+    let length ys:List(a)  = 
+        primrec ys with 
+            |[]=> 0 
+            |_::_, rest => 1+rest 
+    in
+    primrec xs with 
+        |[] => ?nothing{List(a)}
+        |_::_,_ =>
+            let temp = 
+                primrec xs with 
+                    |[]=> []:List(a)
+                    |x::xs', rest => 
+                        if length xs' == 0 
+                            then []:List(a)
+                            else x::rest 
+            in 
+            ?just{List(a)} temp 
+            
+def uncons{a} # xs:List(a) = 
+    primrec xs with 
+        |[] => ?nothing{a*List(a)}
+        |x::xs, _ => ?just{a*List(a)} (x,xs)
+
+def singleton{a} # x:a = [x]
+
+def null{a} # xs:List(a) =  
+    primrec xs with 
+        |[]=> true 
+        |_::_, _ => false 
+
+def length{a} # xs:List(a) = 
+    primrec xs with 
+        |[] => 0 
+        |_::_, rest => 1+rest 
+
+def map{a,b} # f:(a->b) xs:List(a) =
+    primrec xs with 
+        |[]=> []:List(b) 
+        |x::xs', rest => f x::rest
+
+def reverse{a} # xs:List(a) = 
+    primrec xs with 
+        |[]=> []:List(a) 
+        |x::xs', rest => rest ++ [x]
+
+def intersperse{a} # y:a xs:List(a) =
+    primrec xs with 
+        | []=> []:List(a) 
+        | x::xs', rest => 
+            primrec xs' with 
+                |[]=> [x] 
+                |_::_,_ => x::y::rest
+
+def intercalate{a} # xs:List(a) xss:List(List(a)) = 
+    let xss' = ?intersperse{List(a)} xs xss in 
+    primrec xss' with 
+        |[] => []:List(a) 
+        |one::two, rest => one++rest
+
+//transpose is skipped 
+def foldl{a,b} # f:(a->b->b) default:b xs:List(a) = 
+    let helper ys:List(a) =     
+        primrec ys with 
+            | [] => fun d:b=>d 
+            | y::ys', rest => fun d:b => rest (f y d)
+    in helper xs default
+
+def foldr{a,b} # f:(a->b->b) default:b xs:List(a) = 
+    let helper ys:List(a) =     
+        primrec ys with 
+            | [] => fun d:b=>d 
+            | y::ys', rest => fun d:b => f y (rest d)
+    in helper xs default
+
+def subsequences{a} # xs:List(a) = 
+    let nonEmptySubsequences ys:List(a) = 
+        primrec ys with 
+            |[]=> []:List(List(a)) 
+            |x::_, rest  => 
+                let f zs:List(a) r:List(List(a)) = 
+                    zs::(x::zs)::r
+                in
+                [x]:: ?foldr{List(a), List(List(a))} f []:List(List(a))  rest
+    in 
+    []:List(a) :: nonEmptySubsequences xs
+
+//def main # = now (?subsequences{Nat} [1,2,3]) : Unit Until List(List(Nat))
+
+def any{a} # f:(a->Bool) xs:List(a) = 
+    primrec xs with 
+        |[]=>false 
+        |x::xs', rest => rest or f x
+
+def productList # xs:List(Nat) = 
+    primrec xs with 
+        |[]=> 1
+        |x::xs', rest=>x*rest
+
+def elem{Comparable a} # y:a xs:List(a) = 
+    primrec xs with 
+        |[]=> false
+        |x::xs', rest => rest or (x==y)
+
+def notElem{Comparable a} # y:a xs:List(a) = 
+    not (?elem{a} y xs)
+
+def find{a} # f:(a->Bool) xs:List(a) = 
+    primrec xs with 
+        |[]=> ?nothing{a} 
+        |x::xs', rest => 
+            if f x 
+                then ?just{a} x
+                else rest
+
+def filter{a} # f:(a->Bool) xs:List(a) = 
+    primrec xs with 
+        |[]=> []:List(a) 
+        |x::xs',rest => 
+            if f x 
+                then x::rest 
+                else rest
+
+def partition{a} # f:(a->Bool) xs:List(a) = 
+    (?filter{a} f xs, ?filter{a} (fun k:a=> not (f k)) xs)
+
+def get{a} # xs:List(a)  = 
+    primrec xs with 
+        |[]=> fun n:Nat => ?nothing{a}
+        |x::xs', rest => 
+            fun n:Nat => if n==0 then ?just{a} x else rest (n-1) 
+    
+//def main # = now (?get{Nat} [1,2,3] 35) : Unit Until Maybe(Nat)
+
+def zip{a,b} # xs:List(a) =
+    primrec xs with 
+        |[]=> fun ys:List(b) => []:List(a*b)
+        |x::xs', rest => 
+            fun ys:List(b) => 
+                primrec ys with 
+                    |[]=> []:List(a*b) 
+                    |y::ys', rest' => (x,y) :: rest ys' 
+
+def unzip{a,b} # xs:List(a*b) = 
+    primrec xs with 
+        |[]=> ([]:List(a), []:List(b)) 
+        |x::xs', rest => 
+            let (rest1,rest2) = rest in 
+            let (one,two) = x in 
+            (one::rest1,two::rest2)
+
+import Prelude.Nat
+
+def insertionSort # xs:List(Nat) = 
+    let insert n:Nat ys:List(Nat) = 
+        primrec ys with 
+            |[]=> [n] 
+            |y::ys', rest => 
+                if y `?lessthan` n then 
+                    y::rest 
+                    else n::y::ys' 
+    in 
+    primrec xs with 
+        |[]=> []:List(Nat) 
+        |x::xs', rest => insert x rest
+
+//def main # = now (?insertionSort [1,2,3,0, 25,6,46]) : Unit Until List(Nat)
+
+def quickSortHelper # x:Nat l:List(Nat) = 
+    let f n:Nat = n `?leq` x in 
+    ?partition{Nat} f l
+
+    
+def quickSort # l:List(Nat) = 
+    let len = ?length{Nat} l in
+    let q n:Nat= (
+        primrec n with 
+            | 0 => fun l:List(Nat) => []:List(Nat) 
+            | suc x, y => 
+                fun l:List(Nat) =>
+                    primrec l with 
+                        | []=>[]:List(Nat) 
+                        | u::v,w => 
+                            let (small,large) = ?quickSortHelper u v in 
+                            let one = y small in 
+                            let two = u::y large in
+                            one++two  
+
+    ) in 
+    (q len) l
+    
+//def main # = now (?quickSort [1,2,3,0, 25,6,46]) : Unit Until List(Nat)
+

@@ -44,11 +44,11 @@ defStatementParser = do
 parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
   do
-    char '['
+    char '{'
     spaces
     l <- sepBy1 oneParameterParser (try commaParser)
     spaces
-    char ']'
+    char '}'
     return l
   where
     commaParser :: Parser ()
@@ -74,10 +74,10 @@ oneParameterParser =
       )
     <|> try
       ( do
-          string "CStable"
+          string "Comparable"
           skipMany1 space
           v <- varParser
-          return (CStable, v)
+          return (Comparable, v)
       )
     <|> try
       ( do
@@ -93,16 +93,7 @@ oneParameterParser =
           string "Stable"
           skipMany1 space
           v <- varParser
-          return (Both, v)
-      )
-    <|> try
-      ( do
-          string "Limit"
-          skipMany1 space
-          string "CStable"
-          skipMany1 space
-          v <- varParser
-          return (CBoth, v)
+          return (LimitStable, v)
       )
     <|> try
       ( do
@@ -111,16 +102,7 @@ oneParameterParser =
           string "Limit"
           skipMany1 space
           v <- varParser
-          return (Both, v)
-      )
-    <|> try
-      ( do
-          string "CStable"
-          skipMany1 space
-          string "Limit"
-          skipMany1 space
-          v <- varParser
-          return (CBoth, v)
+          return (LimitStable, v)
       )
 
 typeStatementParser :: Parser Statement

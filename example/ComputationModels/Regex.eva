@@ -1,0 +1,220 @@
+import Modality.Stream 
+
+//RF stands for Regex Function
+type RF = NFix x--> Bool->(Bool*x)
+
+
+
+
+def null= 
+    nfix loop:#(RF) => 
+        let toFold = 
+            fun b:Bool => 
+                (false, ?loop)
+        in 
+        into toFold: RF
+
+def epsilon #= 
+    let toFold = 
+        fun b:Bool => 
+            (true, >?null)
+    in 
+    into toFold: RF
+
+def matcht = 
+    let tl #= 
+        let toFold = 
+            fun b:Bool => 
+                (b, >?null)
+        in 
+        into toFold: RF
+    in
+    # (
+        let toFold = 
+            fun b:Bool => 
+                (false, >?tl)
+        in 
+        into toFold: RF
+    )
+
+def matchf = 
+    let tl #= 
+        let toFold = 
+            fun b:Bool => 
+                (not b, >?null)
+        in 
+        into toFold: RF
+    in 
+    # (
+        let toFold = 
+            fun b:Bool => 
+                (false, >?tl)
+        in 
+        into toFold: RF
+    )
+
+def orRF a:#RF b:#RF= 
+    let helper = nfix loop:#(RF->RF->RF) => 
+        fun one:RF two:RF => 
+            let toFold = 
+                fun b:Bool => 
+                    let (resultOne,nextOne) = (out one) b in 
+                    let (resultTwo, nextTwo) = (out two) b in 
+                    (resultOne or resultTwo, >(<?loop <nextOne <nextTwo))
+            in 
+            into toFold: RF
+    in 
+    #(?helper ?a ?b)
+
+    
+def orRF' = 
+    nfix loop:#(RF->RF->RF) => 
+        fun one:RF two:RF => 
+            let toFold = 
+                fun b:Bool => 
+                    let (resultOne,nextOne) = (out one) b in 
+                    let (resultTwo, nextTwo) = (out two) b in 
+                    (resultOne or resultTwo, >(<?loop <nextOne <nextTwo))
+            in 
+            into toFold: RF
+    
+
+def concatRF one:#RF two:#RF=
+    let helper =
+        nfix loop:#(RF ->RF) => 
+            fun one' :RF => 
+                let toFold = 
+                    fun b:Bool => 
+                        let (resultOne,nextOne) = (out one') b in 
+                        let (resultTwo, nextTwo) = (out ?two) b in 
+                        if resultOne 
+                            then 
+                            // match first 
+                            let continue = >(<?loop <nextOne) in 
+                            (resultTwo, >(?orRF' <continue <nextTwo))
+                            else 
+                            (false, >(<?loop <nextOne))
+
+                in 
+                into toFold: RF
+    in
+    #(?helper ?one)
+
+
+
+
+
+def starRF initial:#RF= 
+    let helper = 
+        nfix loop:#(RF -> RF) => 
+            fun rf:RF => 
+                let toFold = 
+                    fun b:Bool => 
+                        let (resultrf,nextrf) = (out rf) b in 
+                        let (resultinitial, nextinitial) = (out ?initial) b in 
+                        if resultrf 
+                            then 
+                            //  continue matching current one 
+                                let startNew = >(<?loop <nextinitial) in 
+                                let continue = >(<?loop <nextrf) in 
+                                (true, >(?orRF' <startNew <continue))
+                            else 
+                            (false, >(<?loop <nextrf))
+                in 
+                into toFold: RF
+    in
+    #( 
+        ?helper ?epsilon
+    )
+
+def interpretRF initial:#RF = 
+    let helper = 
+        nfix loop:#( RF-> Str(Bool) ->Str(Bool))=> 
+            fun rf:RF xs:Str(Bool) => 
+                let x:::xs' = xs in 
+                let (resultrf,nextrf) = (out rf) x in 
+                resultrf:::>(<?loop <nextrf <xs')
+    in 
+    #(?helper ?initial)
+
+
+def model =  concatRF (starRF matcht) matchf 
+
+
+//for interactive testing 
+//def main = interpretRF model
+
+//for non-interactive testing
+import Prelude.List as PL
+def string = [true,true,false,false]
+def convert  l:List(Bool) = 
+    primrec l with 
+        | [] => # now true :Bool Until Bool 
+        | x::xs, rest => 
+            # ( if ?PL.length{Bool} xs ==0 
+                then  now x:Bool Until Bool 
+                else 
+                     wait x (@?rest)
+                     )
+
+def check  # l:Bool Until Bool = 
+    urec l with 
+        |now x => 
+            fun rf:RF => 
+                let (resultrf,nextrf) = (out rf) x in 
+                now resultrf : Unit Until Bool 
+        | wait x y, rest => 
+            fun rf :RF => 
+                let (resultrf,nextrf) = (out rf) x in 
+                wait () @(<rest <nextrf)
+
+//For urec testing 
+/*def main # = 
+    let l = ?(convert (true::string)) in 
+    ?check l ?model*/
+
+type RFOneStep = List(Bool) -> Bool
+
+def nullOneStep l:List(Bool) = false 
+
+def emptyOneStep l :List (Bool) = l==[]:List(Bool) 
+
+def matchTrueOneStep l:List(Bool) = l==[true]
+
+def matchFalseOneStep l:List(Bool) = l==[false]
+
+def orOneStep f:RFOneStep g: RFOneStep l:List(Bool) = (f l) or (g l )
+
+def concatOneStep f:RFOneStep g:RFOneStep l :List (Bool ) = 
+    let helper rest :List(Bool) =
+        primrec rest with 
+            | [] => fun prev:List(Bool) => (f prev) and (g []:List(Bool) ) 
+            | x::xs, other => 
+                fun prev:List(Bool) => 
+                    let prev' = prev ++ [x] in 
+                    let b= (f prev') and (g xs) in 
+                    b or (other prev')
+    in 
+    (f []:List(Bool) and g l) or helper l []:List(Bool) 
+    
+def starOneStep f:RFOneStep l :List (Bool ) = 
+    let helper rest :List(Bool) = 
+        primrec rest with
+            | [] => fun prev:List(Bool) => f prev
+            | x::xs, other => 
+                fun prev:List(Bool) => 
+                    let prev' = prev ++ [x] in 
+                    let b= (f prev') and (other []:List(Bool)) in 
+                    let b'= (other prev') in
+                    b or b'
+    in 
+        l==[]:List(Bool) or helper l []:List(Bool)
+
+def interpretOneStep f:RFOneStep l:List(Bool) = f l 
+
+def modelOneStep = concatOneStep (starOneStep matchTrueOneStep) matchFalseOneStep
+
+def stringOneStep = [false]
+
+//testing one step regex
+def main = interpretOneStep modelOneStep stringOneStep

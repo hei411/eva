@@ -9,10 +9,9 @@ type TypenameList = [(String, BType, Integer)]
 data TypeProperty
   = Limit
   | Stable
-  | CStable
+  | Comparable
   | None
-  | Both
-  | CBoth
+  | LimitStable
   deriving (Show, Eq)
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
@@ -46,7 +45,7 @@ data AExp
   | AExpNow AExp AType
   | AExpWait AExp AExp
   | AExpUrec AExp String AExp String String String AExp
-  | AExpRec String AType AExp
+  | AExpNfix String AType AExp
   | AExpOut AExp
   | AExpInto AExp AType
   | AExpLet String AExp AExp
@@ -66,8 +65,13 @@ data AExp
   | AExpDivide AExp AExp 
   | AExpMod AExp AExp 
   | AExpPower AExp AExp 
-  | AExpPrepend AExp AExp 
+  | AExpStreamCons AExp AExp 
   | AExpLetStream String String AExp AExp
+  | AExpEmptyList AType 
+  | AExpNonEmptyList [AExp]
+  | AExpListAppend AExp AExp
+  | AExpListCons AExp AExp 
+  | AExpListRec AExp AExp String String String AExp
   deriving (Show, Eq)
 
 data AType
@@ -81,9 +85,10 @@ data AType
   | ATypeBox AType
   | ATypeAngle AType
   | ATypeAt AType
-  | ATypeFix String AType
+  | ATypeNFix String AType
   | ATypeUntil AType AType
   | ATypeBool
+  | ATypeList AType 
   deriving (Show, Eq)
 
 -- solve parametric, convert index if needed, then perform type synonym conversion (Need to be super careful with indices!)
@@ -99,9 +104,10 @@ data BType
   | BTypeBox BType
   | BTypeAngle BType
   | BTypeAt BType
-  | BTypeFix BType
+  | BTypeNFix BType
   | BTypeUntil BType BType
   | BTypeBool
+  | BTypeList BType
   deriving (Show, Eq)
 
 -- BExp are AExp except all type ascriptions are valid
@@ -127,7 +133,7 @@ data BExp
   | BExpNow BExp BType
   | BExpWait BExp BExp
   | BExpUrec BExp String BExp String String String BExp
-  | BExpRec String BType BExp
+  | BExpNfix String BType BExp
   | BExpOut BExp
   | BExpInto BExp BType
   | BExpLet String BExp BExp
@@ -147,8 +153,13 @@ data BExp
   | BExpDivide BExp BExp 
   | BExpMod BExp BExp 
   | BExpPower BExp BExp 
-  | BExpPrepend BExp BExp 
+  | BExpStreamCons BExp BExp 
   | BExpLetStream String String BExp BExp
+  | BExpEmptyList BType 
+  | BExpNonEmptyList [BExp]
+  | BExpListAppend BExp BExp
+  | BExpListCons BExp BExp 
+  | BExpListRec BExp BExp String String String BExp
   deriving (Show, Eq)
 
 -- CExp are for interpretation, i,e, no type ascriptions, function calls are substituted and db indices for expressions
@@ -173,7 +184,7 @@ data CExp
   | CExpNow CExp
   | CExpWait CExp CExp
   | CExpUrec CExp CExp CExp
-  | CExpRec CExp
+  | CExpNfix CExp
   | CExpOut CExp
   | CExpInto CExp
   | CExpLocation Integer
@@ -193,13 +204,18 @@ data CExp
   | CExpDivide CExp CExp 
   | CExpMod CExp CExp 
   | CExpPower CExp CExp 
+  | CExpList [CExp]
+  | CExpListAppend CExp CExp
+  | CExpListCons CExp CExp 
+  | CExpListRec CExp CExp CExp
   deriving (Show, Eq)
   -- | CExpAt CExp
   -- | CExpArrow CExp
   
 
 -- Type checking
-type ContextElem = (String, BType)
+--Integer stores how many elements are in the var stack before pushing it in
+type ContextElem = (String, BType, Integer)
 
 type ContextElemList = [ContextElem]
 

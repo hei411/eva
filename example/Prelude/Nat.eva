@@ -1,7 +1,7 @@
 def add # x:Nat y:Nat = 
     primrec x with 
         | 0 => y
-        | suc _, rest => suc rest 
+        | suc _ , rest => suc rest 
 
 
 def mult = 

@@ -1,0 +1,122 @@
+import Yampa.BasicDefinitions
+import Modality.Stream
+
+def switch{a,b,c} sf:SF(a,(b*Event(c))) f:#(c->(Str(a)->Str(b))) =
+    let helper = 
+        nfix loop:#( Str(b*Event(c)) -> Str(a) ->Str(b)) =>
+            fun ys:Str(b*Event(c)) xs:Str(a) => 
+                let y:::ys' = ys in 
+                let x:::xs' = xs in 
+                let (one,two) = y in 
+                match two with 
+                    |inl _ => 
+                        one:::>(<?loop <ys' <xs')
+                    |inr cResult => 
+                        let sf' = ?f cResult in 
+                        sf' xs 
+    in 
+    #(
+        fun xs:Str(a) => 
+            let ys = ?sf xs in 
+            ?helper ys xs
+    )
+
+//What does it mean to delay?
+// delay entire stream?
+// ignore first element?
+// start entire sf in the next time step (NOT IMPLEMENTABLE AS CANNOT TRANSPORT FUNCTION INTO NEXT TIME STEP)
+//Here I used second method
+def dSwitch{a,b,c} sf:SF(a,(b*Event(c))) f:#(c->(Str(a)->Str(b))) =
+    let helper = 
+        nfix loop:#( Str(b*Event(c)) -> Str(a) ->Str(b)) =>
+            fun ys:Str(b*Event(c)) xs:Str(a) => 
+                let y:::ys' = ys in 
+                let x:::xs' = xs in 
+                let (one,two) = y in 
+                match two with 
+                    |inl _ => 
+                        one:::>(<?loop <ys' <xs')
+                    |inr cResult => 
+                        let sf' = ?f cResult in 
+                        let y:::ys' = sf' xs in
+                        one:::ys'
+    in 
+    #(
+        fun xs:Str(a) => 
+            let ys = ?sf xs in 
+            ?helper ys xs
+    )
+
+
+def rSwitch{a,b} sf:SF(a,b) =
+    let helper = nfix loop:#(Str(b)->Str(a*Event(Str(a)->Str(b)))->Str(b))=>
+        fun ys:Str(b) xs:Str(a*Event(Str(a)->Str(b))) =>
+            let x:::xs' = xs in 
+            let y:::ys'=ys in 
+            let (one,two)=x in 
+            match two with 
+                |inl _ => 
+                    y:::>(<?loop <ys' <xs')
+                |inr sf' => 
+                    let newys = sf' (?fstStr{a,Event(Str(a)->Str(b))} xs) in 
+                    let y:::ys' = ys in 
+                    y:::>(<?loop <ys' <xs')
+
+    in 
+    #(
+        fun xs:Str(a*Event(Str(a)->Str(b))) => 
+            let ys = ?sf (?fstStr{a,Event(Str(a)->Str(b))}xs) in 
+            ?helper ys xs
+    )
+
+
+
+def drSwitch{a,b} sf:SF(a,b) =
+    let helper =nfix loop:#(Str(b)->Str(a*Event(Str(a)->Str(b)))->Str(b))=>
+        fun ys:Str(b) xs:Str(a*Event(Str(a)->Str(b))) =>
+            let x:::xs' = xs in 
+            let y:::ys'=ys in 
+            let (one,two)=x in 
+            match two with 
+                |inl _ => 
+                    y:::>(<?loop <ys' <xs')
+                |inr sf' => 
+                    let newys = sf' (?fstStr{a,Event(Str(a)->Str(b))} xs) in 
+                    let z:::zs' = newys in 
+                    y:::>(<?loop <zs' <xs')
+    in 
+    #(
+        fun xs:Str(a*Event(Str(a)->Str(b))) => 
+            let ys = ?sf (?fstStr{a,Event(Str(a)->Str(b))}xs) in 
+            ?helper ys xs
+    )
+
+type SF'(a,b) = Str(a)->Str(b)
+/*
+//kswitch not implementable as cannot transport functions :/
+
+def kSwitch{a,b,c} one :SF(a,b) two :SF((a*b),Event(c)) f:#(SF'(a,b) ->c->SF'(a,b)) = 
+    let helper = 
+        nfix loop :#(Str(b) -> Str(Event(c)) ->Str(a)->Str(b) )=> 
+            fun ys:Str(b) zs:Str(Event(c)) xs:Str(a) => 
+                let y:::ys' = ys in 
+                let z:::zs' = zs in 
+                let x:::xs' = xs in 
+                match z with 
+                    |inl _ =>
+                        y:::>(<?loop<ys' <zs' <xs')
+                    |inr zResult => 
+                        let sf' = ?f 
+*/
+
+def parB{a,Stable b} l:List(SF(a,b)) # xs:Str(a) =
+    primrec l with 
+        |[] => ?constantStr{List(b)} []:List(b) 
+        |y::ys', rest => 
+            let zs = ?y xs in 
+            ?consListStr{b} zs rest 
+
+
+//general pswitches not implementable due to limitation of functions
+
+

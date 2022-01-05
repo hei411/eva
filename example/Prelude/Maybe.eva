@@ -1,0 +1,48 @@
+type Maybe(a) = Unit + a
+
+def nothing{a}# = inl ():Maybe(a) 
+
+def just{a} # x:a = inr x:Maybe(a)
+
+def maybe{a,b} # default:b f:(a->b) x:Maybe(a) = 
+    match x with 
+        |inl _ => default 
+        |inr xResult => f xResult
+
+def isJust{a} # x:Maybe(a) = 
+    match x with 
+        |inl _ => false 
+        |inr _ => true 
+
+def isNothing{a} # x:Maybe(a) =
+    not ?isJust{a} x
+
+def fromMaybe{a} # default:a x:Maybe(a) = 
+    ?maybe{a,a} default (fun x:a=>x) x
+
+def listToMaybe{a} # l:List(a) = 
+    primrec l with 
+        |[] => inl(): Maybe(a) 
+        |x::xs , _ => inr x:Maybe(a)
+
+def maybeToList{a} # x:Maybe(a) = 
+    match x with 
+        |inl _ => []:List(a) 
+        |inr x=> [x]
+
+def catMaybes{a} # xs:List(Maybe(a)) = 
+    primrec xs with 
+        |[]=> []:List(a) 
+        |x::xs, rest => 
+            match x with 
+                |inl _ => rest 
+                |inr xResult => xResult :: rest
+
+def mapMaybe{a,b} # f:(a->Maybe(b)) xs:List(a) = 
+    primrec xs with 
+        |[]=> []:List(b) 
+        |x::xs' ,rest => 
+            let b = f x in 
+            match b with 
+                |inl _ => rest 
+                |inr bResult => bResult :: rest

@@ -1,10 +1,11 @@
 module Parser.ExpParser where
 
 import Datatype
+import Datatype (AExp (AExpEmptyList, AExpListAppend, AExpNonEmptyList))
 import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
-import Text.Parsec (space)
+import Text.Parsec (notFollowedBy, space)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec (notFollowedBy)
 import Text.ParserCombinators.Parsec.Combinator (notFollowedBy)
@@ -26,7 +27,7 @@ expParser =
     <|> try letProductExpParser
     <|> try ifExpParser
     <|> try bindExpParser
-    <|> orExpParser
+    <|> infixExpParser
     <|> fail "Cannot parse an expression"
 
 letExpParser :: Parser AExp
@@ -66,7 +67,7 @@ letStreamExpParser =
         spaces
         v1 <- choice [try varParser, try wildcardParser]
         spaces
-        string "::"
+        string ":::"
         spaces
         v2 <- choice [try varParser, try wildcardParser]
         spaces
@@ -161,32 +162,53 @@ lambdaParser = do
   exp <- expParser
   return (addLambda l exp)
 
-recParser :: Parser AExp
-recParser = do
-  string "rec"
+nfixParser :: Parser AExp
+nfixParser = do
+  string "nfix"
   notFollowedBy alphaNum
   spaces
   (v, t) <- annoVarParser
   string "=>"
   spaces
   exp <- expParser
-  return (AExpRec v t exp)
+  return (AExpNfix v t exp)
 
 bindExpParser :: Parser AExp
 bindExpParser =
   try lambdaParser
-    <|> recParser
+    <|> nfixParser
     <|> fail "Can't parse lambda abstraction or fix abstraction"
+
+infixExpParser :: Parser AExp
+infixExpParser =
+  try
+    ( chainl1 orExpParser operator
+    )
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string "`"
+            spaces
+            exp <- expParser
+            spaces
+            string "`"
+            spaces
+            return (\x y -> AExpApplication (AExpApplication exp x) y)
+        )
 
 orExpParser :: Parser AExp
 orExpParser =
-  ( do
-      e1 <- andExpParser
-      e2 <- optionMaybe helper
-      case e2 of
-        Nothing -> return e1
-        Just ae -> return (AExpOr e1 ae)
-  )
+  try
+    ( do
+        e1 <- andExpParser
+        e2 <- optionMaybe helper
+        case e2 of
+          Nothing -> return e1
+          Just ae -> return (AExpOr e1 ae)
+    )
   where
     helper :: Parser AExp
     helper =
@@ -202,13 +224,14 @@ orExpParser =
 
 andExpParser :: Parser AExp
 andExpParser =
-  ( do
-      e1 <- notExpParser
-      e2 <- optionMaybe helper
-      case e2 of
-        Nothing -> return e1
-        Just ae -> return (AExpAnd e1 ae)
-  )
+  try
+    ( do
+        e1 <- notExpParser
+        e2 <- optionMaybe helper
+        case e2 of
+          Nothing -> return e1
+          Just ae -> return (AExpAnd e1 ae)
+    )
   where
     helper :: Parser AExp
     helper =
@@ -238,7 +261,7 @@ compareExpParser :: Parser AExp
 compareExpParser =
   try
     ( do
-        e <- prependParser
+        e <- streamConsParser
         e1 <- optionMaybe helper1
         case e1 of
           Nothing ->
@@ -257,7 +280,7 @@ compareExpParser =
             spaces
             string "=="
             spaces
-            e2 <- prependParser
+            e2 <- streamConsParser
             return e2
         )
     helper2 :: Parser AExp
@@ -267,12 +290,26 @@ compareExpParser =
             spaces
             string "!="
             spaces
-            e2 <- prependParser
+            e2 <- streamConsParser
             return e2
         )
 
-prependParser :: Parser AExp
-prependParser = do
+streamConsParser :: Parser AExp
+streamConsParser = do
+  chainr1 listConsParser operator
+  where
+    operator :: Parser (AExp -> AExp -> AExp)
+    operator =
+      try
+        ( do
+            spaces
+            string ":::"
+            spaces
+            return AExpStreamCons
+        )
+
+listConsParser :: Parser AExp
+listConsParser = do
   chainr1 addMinusParser operator
   where
     operator :: Parser (AExp -> AExp -> AExp)
@@ -280,10 +317,18 @@ prependParser = do
       try
         ( do
             spaces
-            string "::"
+            string "++"
             spaces
-            return AExpPrepend
+            return AExpListAppend
         )
+        <|> try
+          ( do
+              spaces
+              string "::"
+              notFollowedBy (char ':')
+              spaces
+              return AExpListCons
+          )
 
 addMinusParser :: Parser AExp
 addMinusParser = do
@@ -295,6 +340,7 @@ addMinusParser = do
         ( do
             spaces
             string "+"
+            notFollowedBy (char '+')
             spaces
             return AExpAdd
         )
@@ -574,59 +620,115 @@ primrecParser =
         spaces
         string "with"
         spaces
-        char '|'
-        spaces
-        char '0'
-        spaces
-        string "=>"
-        spaces
-        exp1 <- expParser
-        spaces
-        char '|'
-        spaces
-        string "suc"
-        skipMany1 space
-        v1 <- choice [try varParser, try wildcardParser]
-        spaces
-        string ","
-        spaces
-        v2 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp2 <- expParser
-        return (AExpPrimrec exp exp1 v1 v2 exp2)
+        helper exp
     )
-    <|> do
-      string "primrec"
-      notFollowedBy alphaNum
-      spaces
-      exp <- expParser
-      spaces
-      string "with"
-      spaces
-      char '|'
-      spaces
-      string "suc"
-      skipMany1 space
-      v1 <- choice [try varParser, try wildcardParser]
-      spaces
-      string ","
-      spaces
-      v2 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp2 <- expParser
-      spaces
-      char '|'
-      spaces
-      char '0'
-      spaces
-      string "=>"
-      spaces
-      exp1 <- expParser
-      return (AExpPrimrec exp exp1 v1 v2 exp2)
+  where
+    helper :: AExp -> Parser AExp
+    helper exp =
+      try
+        ( do
+            char '|'
+            spaces
+            char '0'
+            spaces
+            string "=>"
+            spaces
+            exp1 <- expParser
+            spaces
+            char '|'
+            spaces
+            string "suc"
+            skipMany1 space
+            v1 <- choice [try varParser, try wildcardParser]
+            spaces
+            string ","
+            spaces
+            v2 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp2 <- expParser
+            return (AExpPrimrec exp exp1 v1 v2 exp2)
+        )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              string "suc"
+              skipMany1 space
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v2 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              spaces
+              char '|'
+              spaces
+              char '0'
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              return (AExpPrimrec exp exp1 v1 v2 exp2)
+          )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              string "[]"
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              spaces
+              char '|'
+              spaces
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "::"
+              spaces
+              v2 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v3 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              return (AExpListRec exp exp1 v1 v2 v3 exp2)
+          )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "::"
+              spaces
+              v2 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v3 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              spaces
+              char '|'
+              spaces
+              string "[]"
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              return (AExpListRec exp exp1 v1 v2 v3 exp2)
+          )
 
 angleParser :: Parser AExp
 angleParser = do
@@ -716,67 +818,71 @@ urecParser =
         spaces
         string "with"
         spaces
-        char '|'
-        spaces
-        string "now"
-        skipMany1 space
-        v1 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp1 <- expParser
-        spaces
-        char '|'
-        spaces
-        string "wait"
-        skipMany1 space
-        v2 <- choice [try varParser, try wildcardParser]
-        skipMany1 space
-        v3 <- choice [try varParser, try wildcardParser]
-        spaces
-        string ","
-        spaces
-        v4 <- choice [try varParser, try wildcardParser]
-        spaces
-        string "=>"
-        spaces
-        exp2 <- expParser
-        return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+        helper exp
     )
-    <|> do
-      string "urec"
-      notFollowedBy alphaNum
-      spaces
-      exp <- expParser
-      spaces
-      string "with"
-      spaces
-      char '|'
-      spaces
-      string "wait"
-      skipMany1 space
-      v2 <- choice [try varParser, try wildcardParser]
-      skipMany1 space
-      v3 <- choice [try varParser, try wildcardParser]
-      spaces
-      string ","
-      spaces
-      v4 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp2 <- expParser
-      spaces
-      char '|'
-      spaces
-      string "now"
-      skipMany1 space
-      v1 <- choice [try varParser, try wildcardParser]
-      spaces
-      string "=>"
-      spaces
-      exp1 <- expParser
-      return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+  where
+    helper :: AExp -> Parser AExp
+    helper exp =
+      try
+        ( do
+            char '|'
+            spaces
+            string "now"
+            skipMany1 space
+            v1 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp1 <- expParser
+            spaces
+            char '|'
+            spaces
+            string "wait"
+            notFollowedBy alphaNum
+            spaces
+            v2 <- choice [try varParser, try wildcardParser]
+            spaces
+            v3 <- choice [try varParser, try wildcardParser]
+            spaces
+            string ","
+            spaces
+            v4 <- choice [try varParser, try wildcardParser]
+            spaces
+            string "=>"
+            spaces
+            exp2 <- expParser
+            return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+        )
+        <|> try
+          ( do
+              char '|'
+              spaces
+              string "wait"
+              notFollowedBy alphaNum
+              spaces
+              v2 <- choice [try varParser, try wildcardParser]
+              spaces
+              v3 <- choice [try varParser, try wildcardParser]
+              spaces
+              string ","
+              spaces
+              v4 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp2 <- expParser
+              spaces
+              char '|'
+              spaces
+              string "now"
+              skipMany1 space
+              v1 <- choice [try varParser, try wildcardParser]
+              spaces
+              string "=>"
+              spaces
+              exp1 <- expParser
+              return (AExpUrec exp v1 exp1 v2 v3 v4 exp2)
+          )
 
 outParser :: Parser AExp
 outParser = do
@@ -826,11 +932,11 @@ expParameterParser :: Parser [AType]
 expParameterParser =
   do
     spaces
-    char '['
+    char '{'
     spaces
     l <- sepBy1 typeParser (try commaParser)
     spaces
-    char ']'
+    char '}'
     return l
   where
     commaParser :: Parser ()
@@ -859,6 +965,33 @@ falseParser = do
   notFollowedBy alphaNum
   return AExpFalse
 
+emptyListParser :: Parser AExp
+emptyListParser = do
+  string "["
+  spaces
+  string "]"
+  spaces
+  string ":"
+  spaces
+  t <- typeParser
+  return (AExpEmptyList t)
+
+nonEmptyListParser :: Parser AExp
+nonEmptyListParser = do
+  string "["
+  spaces
+  l <- sepBy1 expParser (try commaParser)
+  spaces
+  string "]"
+  return (AExpNonEmptyList l)
+  where
+    commaParser :: Parser ()
+    commaParser =
+      do
+        spaces
+        char ','
+        spaces
+
 oneExpParser :: Parser AExp
 oneExpParser =
   try parenthesisParser
@@ -884,7 +1017,9 @@ oneExpParser =
     <|> try expVarParser
     <|> try unitParser
     <|> try trueParser
-    <|> falseParser
+    <|> try falseParser
+    <|> try emptyListParser
+    <|> try nonEmptyListParser
     <|> fail "Can't parse OneExp"
 
 annoVarParser :: Parser (String, AType)
