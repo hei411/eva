@@ -1,0 +1,26 @@
+import Modality.Stream
+type Stream = Str(Bool)
+
+//Not entirely correct. Input is not dependent on other time-varying values
+//To account for those, need dependent type!
+def ff initial:#Bool input:#(Bool->Bool)=
+    let helper = 
+        nfix loop :#(Bool->Stream) =>
+            fun current:Bool => 
+                current::: >(<?loop (?input current))
+    in 
+    #(?helper ?initial)
+
+def current s:#Stream # =
+    let x:::_ = ?s in 
+    x
+
+def lift xs:#Stream ys:#Stream f:#(Bool->Bool->Bool) = 
+    let helper = 
+        nfix loop:#(Stream->Stream->Stream) => 
+            fun xs:Stream ys:Stream => 
+                let x:::xs' = xs in 
+                let y:::ys' = ys in 
+                ?f x y ::: >(<?loop <xs' <ys')
+    in 
+    #(?helper ?xs ?ys)
