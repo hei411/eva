@@ -5,22 +5,30 @@ import Interpreter.ILivelyInterpreter
 import Interpreter.InputFunctions
 import Interpreter.StoreFunctions
 import PrintFunctions.CExpPrint
+import System.CPUTime
+import Text.Printf
 
-iFairInterpreter :: CExp -> BType -> Bool -> IO ()
-iFairInterpreter cExp expectedBType isPeano =
+iFairInterpreter :: CExp -> BType -> Bool -> Bool -> IO ()
+iFairInterpreter cExp expectedBType isPeano isTime =
   do
     putStrLn "Running IFair interpreter (For stream types to fair types):"
     let (s, l0) = addStoreElem (TicklessStore []) CExpUnit
     let exp = CExpOut (CExpApplication (CExpUnbox cExp) (CExpAdv l0))
-    iFairInterpreterHelper exp s l0 1 1 expectedBType isPeano
+    iFairInterpreterHelper exp s l0 1 1 expectedBType isPeano isTime
 
-iFairInterpreterHelper :: CExp -> Store -> CExp -> Integer -> Integer -> BType -> Bool -> IO ()
-iFairInterpreterHelper cExp s location mode nowNum expectedBType isPeano = do
+iFairInterpreterHelper :: CExp -> Store -> CExp -> Integer -> Integer -> BType -> Bool -> Bool -> IO ()
+iFairInterpreterHelper cExp s location mode nowNum expectedBType isPeano isTime = do
   putStrLn ("Input expression for timestep " ++ show nowNum ++ ": ")
   (input) <- parseInputExp expectedBType isPeano
+  start <- getCPUTime
   let (cExp', s', l', mode', output) = iFairStep cExp s location mode input
-  putStrLn ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
-  iFairInterpreterHelper cExp' s' l' mode' (nowNum + 1) expectedBType isPeano
+  putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
+  end <- getCPUTime
+  let diff = (fromIntegral (end - start)) / (10 ^ 12)
+  if isTime
+    then printf "    (%0.3f sec)\n" (diff :: Double)
+    else printf "\n"
+  iFairInterpreterHelper cExp' s' l' mode' (nowNum + 1) expectedBType isPeano isTime
 
 iFairStep :: CExp -> Store -> CExp -> Integer -> CExp -> (CExp, Store, CExp, Integer, CExp)
 iFairStep cExp s location mode input =

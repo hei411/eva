@@ -3,24 +3,32 @@ module Interpreter.FairInterpreter where
 import Datatype
 import Interpreter.LivelyInterpreter
 import PrintFunctions.CExpPrint
+import System.CPUTime
+import Text.Printf
 
-fairInterpreter :: CExp -> Integer -> IO ()
-fairInterpreter cExp stepNum =
+fairInterpreter :: CExp -> Integer -> Bool -> IO ()
+fairInterpreter cExp stepNum isTime =
   do
     putStrLn "Running fair interpreter (For fair types):"
     -- checkBTypeLively bType
-    fairInterpreterHelper (CExpOut (CExpUnbox cExp)) (TicklessStore []) 1 stepNum 1
+    fairInterpreterHelper (CExpOut (CExpUnbox cExp)) (TicklessStore []) 1 stepNum 1 isTime
 
-fairInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Integer -> IO ()
-fairInterpreterHelper cExp s mode stepNum nowNum =
+fairInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Integer -> Bool -> IO ()
+fairInterpreterHelper cExp s mode stepNum nowNum isTime =
   do
+    start <- getCPUTime
     let (cExp', s', mode', output) = fairStep cExp s mode
-    putStrLn ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
+    putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
+    end <- getCPUTime
+    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    if isTime
+      then printf "    (%0.3f sec)\n" (diff :: Double)
+      else printf "\n"
     if mod nowNum stepNum == 0
       then do
         getChar
-        fairInterpreterHelper cExp' s' mode' stepNum (nowNum + 1)
-      else fairInterpreterHelper cExp' s' mode' stepNum (nowNum + 1)
+        fairInterpreterHelper cExp' s' mode' stepNum (nowNum + 1) isTime
+      else fairInterpreterHelper cExp' s' mode' stepNum (nowNum + 1) isTime
 
 fairStep :: CExp -> Store -> Integer -> (CExp, Store, Integer, CExp)
 fairStep cExp s mode =

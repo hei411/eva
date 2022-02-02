@@ -70,3 +70,8 @@ checkPeano :: [String] -> Bool
 checkPeano args = case args of
   [] -> False
   s : ss -> (s == "--peano") || checkPeano ss
+
+checkTime:: [String]->Bool 
+checkTime args = case args of
+  [] -> False
+  s : ss -> (s == "--time") || checkTime ss
