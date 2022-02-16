@@ -3,24 +3,37 @@ type Stream = Str(Bool)
 
 //Not entirely correct. Input is not dependent on other time-varying values
 //To account for those, need dependent type!
-def ff initial:#Bool input:#(Bool->Bool)=
-    let helper = 
-        nfix loop :#(Bool->Stream) =>
-            fun current:Bool => 
-                current::: >(<?loop (?input current))
+def ff initial:Bool xs:#Stream=
+    let helper = nfix loop :#(Bool->Stream->Stream) =>
+        fun current:Bool xs:Stream=> 
+            let x:::xs'=xs in
+            current::: >(<?loop x <xs')
     in 
-    #(?helper ?initial)
+    #(?helper initial ?xs)
 
-def current s:#Stream # =
-    let x:::_ = ?s in 
-    x
+def lift1 f:#(Bool->Bool) xs:#Stream= 
+    let helper = nfix loop:#(Stream->Stream) => 
+        fun xs:Stream  => 
+            let x:::xs' = xs in 
+            ?f x ::: >(<?loop <xs')
+    in 
+    #(?helper ?xs)
 
-def lift xs:#Stream ys:#Stream f:#(Bool->Bool->Bool) = 
-    let helper = 
-        nfix loop:#(Stream->Stream->Stream) => 
-            fun xs:Stream ys:Stream => 
-                let x:::xs' = xs in 
-                let y:::ys' = ys in 
-                ?f x y ::: >(<?loop <xs' <ys')
+def lift2 f:#(Bool->Bool->Bool) xs:#Stream ys:#Stream= 
+    let helper = nfix loop:#(Stream->Stream->Stream) => 
+        fun xs:Stream ys:Stream => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            ?f x y ::: >(<?loop <xs' <ys')
     in 
     #(?helper ?xs ?ys)
+    
+def lift3 f:#(Bool->Bool->Bool->Bool) xs:#Stream ys:#Stream zs:#Stream= 
+    let helper =nfix loop:#(Stream->Stream->Stream->Stream) => 
+        fun xs:Stream ys:Stream zs:Stream => 
+            let x:::xs' = xs in 
+            let y:::ys' = ys in 
+            let z:::zs' = zs in
+            ?f x y z::: >(<?loop <xs' <ys' <zs')
+    in 
+    #(?helper ?xs ?ys ?zs)

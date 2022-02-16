@@ -1,0 +1,9 @@
+import Modality.Stream 
+import Hardware.Definitions
+
+def trueThenFalse = ff true #(?constantStr{Bool} false)
+
+def liftNot  = lift1 (#(fun x:Bool=>not x)) trueThenFalse
+
+def liftAnd = lift2 (#(fun x:Bool y:Bool => x and y)) trueThenFalse liftNot
+
