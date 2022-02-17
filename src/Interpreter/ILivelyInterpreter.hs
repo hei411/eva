@@ -5,28 +5,41 @@ import Interpreter.EvaluationInterpreter
 import Interpreter.InputFunctions
 import Interpreter.StoreFunctions
 import PrintFunctions.CExpPrint
+import System.CPUTime
+import Text.Printf
 
-iLivelyInterpreter :: CExp -> BType -> Bool -> IO ()
-iLivelyInterpreter cExp expectedBType isPeano =
+iLivelyInterpreter :: CExp -> BType -> Bool -> Bool -> IO ()
+iLivelyInterpreter cExp expectedBType isPeano isTime =
   do
     putStrLn "Running ILively interpreter (For stream types to Until types):"
     let (s, l0) = addStoreElem (TicklessStore []) CExpUnit
     let exp = CExpApplication (CExpUnbox cExp) (CExpAdv l0)
-    iLivelyInterpreterHelper exp s l0 1 expectedBType isPeano
+    iLivelyInterpreterHelper exp s l0 1 expectedBType isPeano isTime
 
-iLivelyInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> Bool -> IO ()
-iLivelyInterpreterHelper cExp s location nowNum expectedBType isPeano =
+iLivelyInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> Bool -> Bool -> IO ()
+iLivelyInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
   do
     putStrLn ("Input expression for timestep " ++ show nowNum ++ ": ")
     (input) <- parseInputExp expectedBType isPeano
+    start <- getCPUTime
     let (maybeCExp', s', l', output) = iUntilStep cExp s location input
     case maybeCExp' of
       Nothing -> do
-        putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        end <- getCPUTime
+        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        if isTime
+          then printf "    (%0.3f sec)\n" (diff :: Double)
+          else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
-        putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-        iLivelyInterpreterHelper ce s' l' (nowNum + 1) expectedBType isPeano
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        end <- getCPUTime
+        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        if isTime
+          then printf "    (%0.3f sec)\n" (diff :: Double)
+          else printf "\n"
+        iLivelyInterpreterHelper ce s' l' (nowNum + 1) expectedBType isPeano isTime
 
 iUntilStep :: CExp -> Store -> CExp -> CExp -> (Maybe CExp, Store, CExp, CExp)
 iUntilStep cExp s l input = do

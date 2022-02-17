@@ -6,23 +6,31 @@ import Interpreter.EvaluationInterpreter (evaluationInterpreter)
 import Interpreter.InputFunctions
 import Interpreter.StoreFunctions
 import PrintFunctions.CExpPrint (printCExp)
+import System.CPUTime
+import Text.Printf
 
-iSafeInterpreter :: CExp -> BType -> Bool -> IO ()
-iSafeInterpreter cExp expectedBType isPeano =
+iSafeInterpreter :: CExp -> BType -> Bool -> Bool -> IO ()
+iSafeInterpreter cExp expectedBType isPeano isTime =
   do
     putStrLn "Running ISafe interpreter (For stream types to stream types):"
     let (s, l0) = addStoreElem (TicklessStore []) CExpUnit
     let exp = CExpApplication (CExpUnbox cExp) (CExpAdv l0)
-    iSafeInterpreterHelper exp s l0 1 expectedBType isPeano
+    iSafeInterpreterHelper exp s l0 1 expectedBType isPeano isTime
 
-iSafeInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> Bool -> IO ()
-iSafeInterpreterHelper cExp s location nowNum expectedBType isPeano =
+iSafeInterpreterHelper :: CExp -> Store -> CExp -> Integer -> BType -> Bool -> Bool -> IO ()
+iSafeInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
   do
     putStrLn ("Input expression for timestep " ++ show nowNum ++ ": ")
     (input) <- parseInputExp expectedBType isPeano
+    start <- getCPUTime
     let (cExp', s', l', output) = iStreamStep cExp s location input
-    putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-    iSafeInterpreterHelper cExp' s' l' (nowNum + 1) expectedBType isPeano
+    putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+    end <- getCPUTime
+    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    if isTime
+      then printf "    (%0.3f sec)\n" (diff :: Double)
+      else printf "\n"
+    iSafeInterpreterHelper cExp' s' l' (nowNum + 1) expectedBType isPeano isTime
 
 iStreamStep :: CExp -> Store -> CExp -> CExp -> (CExp, Store, CExp, CExp)
 iStreamStep cExp s l input = do

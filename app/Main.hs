@@ -32,13 +32,14 @@ main = do
       do
         let interpreterType = getInterpreter mainType
         let stepNum = getStepNum args
+        let isTime = checkTime args
         case interpreterType of
-          Normal -> normalInterpreter mainExp
-          Safe -> safeInterpreter mainExp stepNum
-          Lively -> livelyInterpreter mainExp stepNum
-          Fair -> fairInterpreter mainExp stepNum
-          ISafe -> iSafeInterpreter mainExp (getInputType mainType) isPeano
-          ILively -> iLivelyInterpreter mainExp (getInputType mainType) isPeano
-          IFair -> iFairInterpreter mainExp (getInputType mainType) isPeano
+          Normal -> normalInterpreter mainExp isTime
+          Safe -> safeInterpreter mainExp stepNum isTime
+          Lively -> livelyInterpreter mainExp stepNum isTime
+          Fair -> fairInterpreter mainExp stepNum isTime
+          ISafe -> iSafeInterpreter mainExp (getInputType mainType) isPeano isTime
+          ILively -> iLivelyInterpreter mainExp (getInputType mainType) isPeano isTime
+          IFair -> iFairInterpreter mainExp (getInputType mainType) isPeano isTime
 
         return ()

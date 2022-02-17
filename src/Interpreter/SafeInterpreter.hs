@@ -3,24 +3,32 @@ module Interpreter.SafeInterpreter where
 import Datatype
 import Interpreter.EvaluationInterpreter
 import PrintFunctions.CExpPrint (printCExp)
+import System.CPUTime
+import Text.Printf
 
-safeInterpreter :: CExp -> Integer -> IO ()
-safeInterpreter cExp stepNum =
+safeInterpreter :: CExp -> Integer -> Bool -> IO ()
+safeInterpreter cExp stepNum isTime =
   do
     putStrLn "Running safe interpreter (For stream types):"
     --checkBTypeSafe bType
-    safeInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1
+    safeInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1 isTime
 
-safeInterpreterHelper :: CExp -> Store -> Integer -> Integer -> IO ()
-safeInterpreterHelper cExp s stepNum nowNum =
+safeInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Bool -> IO ()
+safeInterpreterHelper cExp s stepNum nowNum isTime =
   do
+    start <- getCPUTime
     let (cExp', s', output) = streamStep cExp s
-    putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+    putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+    end <- getCPUTime
+    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    if isTime
+      then printf "    (%0.3f sec)\n" (diff :: Double)
+      else printf "\n"
     if mod nowNum stepNum == 0
       then do
         getChar
-        safeInterpreterHelper cExp' s' stepNum (nowNum + 1)
-      else safeInterpreterHelper cExp' s' stepNum (nowNum + 1)
+        safeInterpreterHelper cExp' s' stepNum (nowNum + 1) isTime
+      else safeInterpreterHelper cExp' s' stepNum (nowNum + 1) isTime
 
 streamStep :: CExp -> Store -> (CExp, Store, CExp)
 streamStep cExp s =

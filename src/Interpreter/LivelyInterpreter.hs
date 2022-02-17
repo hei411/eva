@@ -4,29 +4,42 @@ import Datatype
 import Interpreter.EvaluationInterpreter
 import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint
+import System.CPUTime
+import Text.Printf
 
-livelyInterpreter :: CExp -> Integer -> IO ()
-livelyInterpreter cExp stepNum =
+livelyInterpreter :: CExp -> Integer -> Bool -> IO ()
+livelyInterpreter cExp stepNum isTime =
   do
     putStrLn "Running lively interpreter (For until types):"
     -- checkBTypeLively bType
-    livelyInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1
+    livelyInterpreterHelper (CExpUnbox cExp) (TicklessStore []) stepNum 1 isTime
 
-livelyInterpreterHelper :: CExp -> Store -> Integer -> Integer -> IO ()
-livelyInterpreterHelper cExp s stepNum nowNum =
+livelyInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Bool -> IO ()
+livelyInterpreterHelper cExp s stepNum nowNum isTime =
   do
+    start <- getCPUTime
     let (maybecExp', s', output) = untilStep cExp s
     case maybecExp' of
       Nothing -> do
-        putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        end <- getCPUTime
+        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        if isTime
+          then printf "    (%0.3f sec)\n" (diff :: Double)
+          else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
-        putStrLn ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
+        end <- getCPUTime
+        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        if isTime
+          then printf "    (%0.3f sec)\n" (diff :: Double)
+          else printf "\n"
         if mod nowNum stepNum == 0
           then do
             getChar
-            livelyInterpreterHelper ce s' stepNum (nowNum + 1)
-          else livelyInterpreterHelper ce s' stepNum (nowNum + 1)
+            livelyInterpreterHelper ce s' stepNum (nowNum + 1) isTime
+          else livelyInterpreterHelper ce s' stepNum (nowNum + 1) isTime
 
 untilStep :: CExp -> Store -> (Maybe CExp, Store, CExp)
 untilStep cExp s =
