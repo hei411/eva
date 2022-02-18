@@ -8,7 +8,7 @@ lustreStatementParser :: Parser Statement
 lustreStatementParser =
   do
     spaces
-    char '!'
+    string "{-"
     spaces
     string "node"
     skipMany1 space
@@ -28,7 +28,7 @@ lustreStatementParser =
     spaces
     string "tel"
     spaces
-    char '!'
+    string "-}"
     spaces
     return (LustreStatement nodeName args returnVar definition)
 

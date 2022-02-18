@@ -47,6 +47,7 @@ parameterParser :: Parser [(TypeProperty, String)]
 parameterParser =
   do
     char '{'
+    notFollowedBy (char '-')
     spaces
     l <- sepBy1 oneParameterParser (try commaParser)
     spaces

@@ -1,12 +1,12 @@
 
-!node s (r:bool) returns (t:int);
+{-node s (r:int) returns (t:int);
 let 
-    t =1+9*(3); 
-tel !
+    t=r -> r+pre(t); 
+tel -}
 
-! node test () returns (t:int); 
+{- node test () returns (t:int); 
 let 
     t= 1->pre(t)+1;
-tel !
+tel -}
 
-def main =test
+def main #=?s ?test
