@@ -2,6 +2,7 @@ module Parser.MainParser where
 
 import Datatype
 import Parser.ExpParser
+import Parser.LustreParser
 import Parser.TypeParser
 import Parser.VarParser
 import Text.Parsec
@@ -13,6 +14,7 @@ statementParser =
   try importStatementParser
     <|> try typeStatementParser
     <|> try defStatementParser
+    <|> try lustreStatementParser
 
 defStatementParser :: Parser Statement
 defStatementParser = do

@@ -1,5 +1,12 @@
-def repeat =3
-type Testr=Bool
 
-import Modality.Stream
-def main # xs:Str(Bool) =xs
+!node s (r:bool) returns (t:int);
+let 
+    t =1+9*(3); 
+tel !
+
+! node test () returns (t:int); 
+let 
+    t= 1->pre(t)+1;
+tel !
+
+def main =test
