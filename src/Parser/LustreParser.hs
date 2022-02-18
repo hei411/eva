@@ -278,16 +278,16 @@ lustreArgsParser =
   do
     char '('
     spaces
-    l <- sepBy singleArgParser (try commaParser)
+    l <- sepBy singleArgParser (try colonParser)
     spaces
     char ')'
     return l
   where
-    commaParser :: Parser ()
-    commaParser =
+    colonParser :: Parser ()
+    colonParser =
       do
         spaces
-        char ','
+        char ';'
         spaces
 
 singleArgParser :: Parser (String, LustreType)

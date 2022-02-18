@@ -55,7 +55,7 @@ generateHelperBody args returnThing hd tl name =
     createLeft :: [(String, LustreType)] -> AExp -> Integer -> AExp
     createLeft l rest num = case l of
       [] -> rest
-      x0 : x1 -> AExpLambda ("'pre" ++ (show num)) (changeType (snd x0)) (createRight x1 rest (num + 1))
+      x0 : x1 -> AExpLambda ("'pre" ++ (show num)) (changeType (snd x0)) (createLeft x1 rest (num + 1))
     generateLet :: Integer -> Integer -> AExp -> AExp
     generateLet now target exp =
       if now == target
