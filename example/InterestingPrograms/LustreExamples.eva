@@ -1,0 +1,40 @@
+{-node runningTotal (input:int) returns (output:int);
+let 
+    output=input -> input+pre(output); 
+tel -}
+
+{-node runningTotalWithReset (input:int;reset:bool) returns (output:int);
+let 
+    output=input -> if reset then input else input+pre(output); 
+tel -}
+
+
+{- node naturals () returns (output:int); 
+let 
+    output= 0->pre(output)+1;
+tel -}
+
+{- node trueThenFalse () returns (x:bool); 
+let 
+x= true -> false;
+tel 
+-}
+
+{- node posClockEdge (clock:bool) returns (x:bool);
+let 
+    x= false -> clock and pre(clock);
+tel
+-}
+
+{- node switch (b:bool; x:bool; y:bool) returns (z:bool);
+let 
+    z= if b then x else y;
+tel
+-}
+
+{- node maths () returns (x:int);
+let 
+    x= 1+2*3 -6/2;
+tel
+-}
+
