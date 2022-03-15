@@ -3,7 +3,7 @@ module Interpreter.SafeInterpreter where
 import Datatype
 import Interpreter.EvaluationInterpreter
 import PrintFunctions.CExpPrint (printCExp)
-import System.CPUTime
+import System.Clock
 import Text.Printf
 
 safeInterpreter :: CExp -> Integer -> Bool -> IO ()
@@ -16,11 +16,11 @@ safeInterpreter cExp stepNum isTime =
 safeInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Bool -> IO ()
 safeInterpreterHelper cExp s stepNum nowNum isTime =
   do
-    start <- getCPUTime
+    start <- getTime Monotonic
     let (cExp', s', output) = streamStep cExp s
     putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-    end <- getCPUTime
-    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    end <- getTime Monotonic
+    let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)
       else printf "\n"

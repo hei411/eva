@@ -3,18 +3,18 @@ module Interpreter.NormalInterpreter where
 import Datatype
 import Interpreter.EvaluationInterpreter (evaluationInterpreter)
 import PrintFunctions.CExpPrint (printCExp)
-import System.CPUTime
+import System.Clock
 import Text.Printf
 
 normalInterpreter :: CExp -> Bool -> IO ()
 normalInterpreter cExp isTime =
   do
     putStrLn "Running normal interpreter:"
-    start <- getCPUTime
+    start <- getTime Monotonic
     let (cExp', _) = evaluationInterpreter cExp NullStore
     putStr (printCExp 0 cExp')
-    end <- getCPUTime
-    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    end <- getTime Monotonic
+    let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)
       else printf "\n"
