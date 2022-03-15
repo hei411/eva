@@ -45,6 +45,7 @@ library
       Interpreter.StoreFunctions
       MainFunctions.MainFunctions
       Parser.ExpParser
+      Parser.LustreParser
       Parser.MainParser
       Parser.TypeParser
       Parser.VarParser
@@ -53,6 +54,7 @@ library
       PrintFunctions.FileDataPrint
       ProgramAnalyzer.DefStatementAnalyzerUtils
       ProgramAnalyzer.ImportStatementAnalyzerUtils
+      ProgramAnalyzer.LustreTransformer
       ProgramAnalyzer.ProgramAnalyzer
       ProgramAnalyzer.TypeStatementAnalyzerUtils
       StringFunctions.CommentHandler

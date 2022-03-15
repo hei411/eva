@@ -1,5 +1,24 @@
-def repeat =3
-type Testr=Bool
 
-import Modality.Stream
-def main # xs:Str(Bool) =xs
+{-node s (r:int;a:int) returns (t:int);
+let 
+    t=r -> r+pre(t); 
+tel -}
+
+{- node test () returns (t:int); 
+let 
+    t= 1->pre(t)+1;
+tel -}
+
+{- node trueThenFalse () returns (x:bool); 
+let 
+x= true -> false;
+tel 
+-}
+
+{- node oneThenZero (input:bool) returns (x:int); 
+let 
+x= if input then 1 else 0;
+tel 
+-}
+
+def main #=?oneThenZero ?trueThenFalse

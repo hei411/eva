@@ -7,6 +7,7 @@ import ExpTypeConverters.TypeSynonymConverter
 import Parser.MainParser
 import ProgramAnalyzer.DefStatementAnalyzerUtils
 import ProgramAnalyzer.ImportStatementAnalyzerUtils
+import ProgramAnalyzer.LustreTransformer
 import ProgramAnalyzer.TypeStatementAnalyzerUtils
 import StringFunctions.CommentHandler
 import qualified Text.Parsec as Text.Parsec.Error
@@ -32,10 +33,12 @@ mainProgramAnalyzerHelper src_path isPeano currentFile compiledFilesData toCompi
     case parse_tree of
       -- Error in parsing
       Left parseError -> error (show (parseError))
-      Right program -> do
+      Right programWithLustre -> do
         -- Parsing succeeded
         -- putStrLn (show (program))
         -- putStrLn (currentFile ++ " is parsed correctly")
+        -- Lust4Eva Transformation
+        let program = lustreTransform programWithLustre
         if isPeano
           then do
             let peanoProgram = peanoConverterProgram program
@@ -76,6 +79,7 @@ singleFileAnalyzer src_path isPeano currentFile compiledFilesData toCompileFiles
     DefStatement str polyParams aExp -> defStatementAnalyzer str polyParams aExp src_path isPeano currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
     TypeStatement str typeParams aType -> typeStatementAnalyzer str typeParams aType src_path isPeano currentFile compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
     ImportStatement fileName potentialAlias -> importStatementAnalyzer fileName src_path isPeano currentFile potentialAlias compiledFilesData toCompileFiles importedFiles usedAlias importedFunctions toExportFunctions importedTypenames toExportTypenames tl
+    _ -> error "Should not happen. Found a Lustre statement in singleFileAnalyzer"
 
 {-case l of
           -- return compiled files and their functions,  type names and functions

@@ -16,10 +16,40 @@ data TypeProperty
 
 type CompiledFilesData = [(FilePath, TypeCheckedProgram, TypenameList)]
 
+data LustreType 
+  =  LustreBool
+  |LustreInt
+  deriving (Show,Eq)
+
+data LustreDef 
+  = LustreSimpleExp String LustreExp
+  |LustreArrowExp String LustreExp LustreExp 
+  deriving (Show)
+
+data LustreExp 
+  = LustreExpInt Integer 
+  | LustreExpVar String 
+  | LustreExpPre String 
+  | LustreExpTrue 
+  | LustreExpFalse 
+  | LustreExpIf LustreExp LustreExp LustreExp 
+  | LustreExpAnd LustreExp LustreExp 
+  | LustreExpOr LustreExp LustreExp 
+  | LustreExpNot LustreExp 
+  | LustreExpAdd LustreExp LustreExp 
+  | LustreExpMinus LustreExp LustreExp 
+  | LustreExpMultiply LustreExp LustreExp 
+  | LustreExpDivide LustreExp LustreExp  
+  | LustreExpEquals LustreExp LustreExp 
+  | LustreExpSmaller LustreExp LustreExp  
+  | LustreExpLarger LustreExp LustreExp 
+  deriving (Show)
+
 data Statement
   = DefStatement String [(TypeProperty, String)] AExp
   | TypeStatement String [String] AType
   | ImportStatement String (Maybe String)
+  | LustreStatement String [(String, LustreType)] (String,LustreType) LustreDef
   deriving (Show)
 
 -- First Parse
