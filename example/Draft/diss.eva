@@ -1,0 +1,6 @@
+import Modality.Stream
+def streamCreate{a} # l:List(a) xs:Str(a) = xs
+
+
+
+def main = subsequences{Nat} [0,1,2]
