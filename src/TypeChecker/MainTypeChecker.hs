@@ -679,7 +679,7 @@ emptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String]
 emptyListRule file functionName definedFunctions context varStack t =
   case t of
     BTypeList t' ->
-      (CExpList [], t)
+      (CExpList [] True, t)
     _ -> typeCheckerErrorMsg file functionName ("emptyListRule applied to nil list of non list type ascription: " ++ printBType 0 t)
 
 nonEmptyListRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> [BExp] -> (CExp, BType)
@@ -689,8 +689,8 @@ nonEmptyListRule file functionName definedFunctions context varStack bes = do
   case expTypePairList' of
     (expList, typeList) ->
       if sameType typeList
-        then (CExpList expList, BTypeList (head typeList))
-        else typeCheckerErrorMsg file functionName ("nonEmptyListRule applied to expresions of different types: " ++ printCExp 0 (CExpList expList))
+        then (CExpList expList False, BTypeList (head typeList))
+        else typeCheckerErrorMsg file functionName ("nonEmptyListRule applied to expresions of different types: " ++ printCExp 0 (CExpList expList False))
   where
     sameType xs =
       case xs of

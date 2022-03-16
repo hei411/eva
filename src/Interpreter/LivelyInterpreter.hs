@@ -21,16 +21,16 @@ livelyInterpreterHelper cExp s stepNum nowNum isTime =
     let (maybecExp', s', output) = untilStep cExp s
     case maybecExp' of
       Nothing -> do
-        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         end <- getTime Monotonic
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
           then printf "    (%0.3f sec)\n" (diff :: Double)
           else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
-        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         end <- getTime Monotonic
+        putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
           then printf "    (%0.3f sec)\n" (diff :: Double)

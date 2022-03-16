@@ -18,8 +18,8 @@ fairInterpreterHelper cExp s mode stepNum nowNum isTime =
   do
     start <- getTime Monotonic
     let (cExp', s', mode', output) = fairStep cExp s mode
-    putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
     end <- getTime Monotonic
+    putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
     let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)

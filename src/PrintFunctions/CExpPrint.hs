@@ -326,7 +326,7 @@ printCExp n cExp =
                  then "(" ++ printCExp n ce' ++ ")"
                  else printCExp n ce'
              )
-      CExpList ces -> "[" ++ cExpListToString n ces ++ "]"
+      CExpList ces b -> "[" ++ cExpListToString n ces ++ "]"
       CExpListAppend ce ce' ->
         ( if cExpLevel ce <= cExpLevel cExp
             then "(" ++ printCExp n ce ++ ")"
@@ -416,7 +416,7 @@ cExpLevel cExp = case cExp of
   CExpDivide ce ce' -> 7
   CExpMod ce ce' -> 7
   CExpPower ce ce' -> 8
-  CExpList ces -> 11
+  CExpList ces b -> 11
   CExpListAppend ce ce' -> 5
   CExpListCons ce ce' -> 5
   CExpListRec ce ce' ce2 -> 0

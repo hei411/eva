@@ -49,7 +49,7 @@ evaluationInterpreter exp store = case exp of
   CExpDivide ce ce' -> divideEval ce ce' store
   CExpMod ce ce' -> modEval ce ce' store
   CExpPower ce ce' -> powerEval ce ce' store
-  CExpList ceList -> listEval ceList store
+  CExpList ceList b -> if b then (CExpList ceList b, store) else listEval ceList store
   CExpListAppend ce ce' -> listAppendEval ce ce' store
   CExpListCons ce ce' -> listConsEval ce ce' store
   CExpListRec ce ce' ce2 -> listRecEval ce ce' ce2 store
@@ -370,7 +370,7 @@ integerToPeano n =
 listEval :: [CExp] -> Store -> (CExp, Store)
 listEval ceList s = do
   let (ceList', s') = helper ceList s
-  (CExpList ceList', s')
+  (CExpList ceList' True, s')
   where
     helper :: [CExp] -> Store -> ([CExp], Store)
     helper xs store =
@@ -386,9 +386,9 @@ listAppendEval e1 e2 s = do
   let (e1', s') = evaluationInterpreter e1 s
   let (e2', s'') = evaluationInterpreter e2 s'
   case (e1', e2') of
-    (CExpList lis1, CExpList lis2) ->
-      (CExpList (lis1 ++ lis2), s'')
-    (CExpList lis1, _) -> error "Should not happen. listAppendEval applied to a non-list second expression"
+    (CExpList lis1 b1, CExpList lis2 b2) ->
+      (CExpList (lis1 ++ lis2) True, s'')
+    (CExpList lis1 b1, _) -> error "Should not happen. listAppendEval applied to a non-list second expression"
     _ -> error "Should not happen. listAppendEval applied to a non-list first expression"
 
 listConsEval :: CExp -> CExp -> Store -> (CExp, Store)
@@ -396,8 +396,8 @@ listConsEval e1 e2 s = do
   let (e1', s') = evaluationInterpreter e1 s
   let (e2', s'') = evaluationInterpreter e2 s'
   case e2' of
-    CExpList lis2 ->
-      (CExpList (e1' : lis2), s'')
+    CExpList lis2 b2 ->
+      (CExpList (e1' : lis2) True, s'')
     _ -> error "Should not happen. listConsEval applied to a non-list second expression"
 
 listRecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
@@ -405,14 +405,14 @@ listRecEval e e1 e2 s =
   do
     let (e', s') = evaluationInterpreter e s
     case e' of
-      CExpList eList ->
+      CExpList eList b ->
         case eList of
           [] -> evaluationInterpreter e1 s'
           x : xs -> do
-            let nextExp = CExpListRec (CExpList xs) e1 e2
+            let nextExp = CExpListRec (CExpList xs True) e1 e2
             let (nextValue, s'') = evaluationInterpreter nextExp s'
             let e2' = substituteCExp nextValue 0 e2
-            let e2'' = substituteCExp (CExpList xs) 1 e2'
+            let e2'' = substituteCExp (CExpList xs True) 1 e2'
             let finalExp = substituteCExp x 2 e2''
             evaluationInterpreter finalExp s''
       _ -> error "Should not happen! listRecEval applied to a until expression"

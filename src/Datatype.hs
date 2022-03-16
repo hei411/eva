@@ -234,7 +234,7 @@ data CExp
   | CExpDivide CExp CExp 
   | CExpMod CExp CExp 
   | CExpPower CExp CExp 
-  | CExpList [CExp]
+  | CExpList [CExp] Bool
   | CExpListAppend CExp CExp
   | CExpListCons CExp CExp 
   | CExpListRec CExp CExp CExp

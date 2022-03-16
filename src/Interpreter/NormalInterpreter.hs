@@ -12,8 +12,8 @@ normalInterpreter cExp isTime =
     putStrLn "Running normal interpreter:"
     start <- getTime Monotonic
     let (cExp', _) = evaluationInterpreter cExp NullStore
-    putStr (printCExp 0 cExp')
     end <- getTime Monotonic
+    putStr (printCExp 0 cExp')
     let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)
