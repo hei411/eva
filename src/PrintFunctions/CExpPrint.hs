@@ -81,7 +81,7 @@ printCExp n cExp =
                  else printCExp (n + 1) ce2
              )
       CExpZero -> "0"
-      CExpSuc ce -> do
+      CExpSuc ce b -> do
         let maybeN = allSuc ce
         case maybeN of
           Nothing ->
@@ -95,7 +95,7 @@ printCExp n cExp =
           allSuc :: CExp -> Maybe Integer
           allSuc cExp = case cExp of
             CExpZero -> return 0
-            CExpSuc c -> do
+            CExpSuc c b -> do
               rest <- allSuc c
               return (rest + 1)
             _ -> Nothing
@@ -326,7 +326,7 @@ printCExp n cExp =
                  then "(" ++ printCExp n ce' ++ ")"
                  else printCExp n ce'
              )
-      CExpList ces -> "[" ++ cExpListToString n ces ++ "]"
+      CExpList ces b -> "[" ++ cExpListToString n ces ++ "]"
       CExpListAppend ce ce' ->
         ( if cExpLevel ce <= cExpLevel cExp
             then "(" ++ printCExp n ce ++ ")"
@@ -387,7 +387,7 @@ cExpLevel cExp = case cExp of
   CExpInr ce -> 9
   CExpMatch ce ce' ce2 -> 0
   CExpZero -> 11
-  CExpSuc ce -> 10
+  CExpSuc ce b -> 10
   CExpPrimrec ce ce' ce2 -> 0
   CExpAdv ce -> 10
   CExpDelay ce -> 10
@@ -416,7 +416,7 @@ cExpLevel cExp = case cExp of
   CExpDivide ce ce' -> 7
   CExpMod ce ce' -> 7
   CExpPower ce ce' -> 8
-  CExpList ces -> 11
+  CExpList ces b -> 11
   CExpListAppend ce ce' -> 5
   CExpListCons ce ce' -> 5
   CExpListRec ce ce' ce2 -> 0

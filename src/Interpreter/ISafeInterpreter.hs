@@ -6,7 +6,7 @@ import Interpreter.EvaluationInterpreter (evaluationInterpreter)
 import Interpreter.InputFunctions
 import Interpreter.StoreFunctions
 import PrintFunctions.CExpPrint (printCExp)
-import System.CPUTime
+import System.Clock
 import Text.Printf
 
 iSafeInterpreter :: CExp -> BType -> Bool -> Bool -> IO ()
@@ -22,11 +22,11 @@ iSafeInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
   do
     putStrLn ("Input expression for timestep " ++ show nowNum ++ ": ")
     (input) <- parseInputExp expectedBType isPeano
-    start <- getCPUTime
+    start <- getTime Monotonic
     let (cExp', s', l', output) = iStreamStep cExp s location input
+    end <- cExp' `seq` getTime Monotonic
     putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-    end <- getCPUTime
-    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)
       else printf "\n"

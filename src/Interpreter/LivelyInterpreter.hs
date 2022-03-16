@@ -4,7 +4,7 @@ import Datatype
 import Interpreter.EvaluationInterpreter
 import PrintFunctions.BTypePrint
 import PrintFunctions.CExpPrint
-import System.CPUTime
+import System.Clock
 import Text.Printf
 
 livelyInterpreter :: CExp -> Integer -> Bool -> IO ()
@@ -17,21 +17,21 @@ livelyInterpreter cExp stepNum isTime =
 livelyInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Bool -> IO ()
 livelyInterpreterHelper cExp s stepNum nowNum isTime =
   do
-    start <- getCPUTime
+    start <- getTime Monotonic
     let (maybecExp', s', output) = untilStep cExp s
     case maybecExp' of
       Nothing -> do
+        end <- maybecExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-        end <- getCPUTime
-        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
           then printf "    (%0.3f sec)\n" (diff :: Double)
           else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
+        end <- maybecExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
-        end <- getCPUTime
-        let diff = (fromIntegral (end - start)) / (10 ^ 12)
+        let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
           then printf "    (%0.3f sec)\n" (diff :: Double)
           else printf "\n"

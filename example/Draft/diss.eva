@@ -1,6 +1,48 @@
-import Modality.Stream
-def streamCreate{a} # l:List(a) xs:Str(a) = xs
+def add  #x:Nat y:Nat = 
+    primrec x with 
+        | 0 => y
+        | suc _ , rest => suc rest 
+
+/*
+def mult = 
+(fun (x:Nat) (y: Nat) => 
+    primrec x with 
+        | 0 => 0
+        | suc _, rest => add y rest )
 
 
+def exp  x:Nat y:Nat = 
+    primrec y with 
+        | 0 => 1
+        | suc _, rest => mult x rest
 
-def main = subsequences{Nat} [0,1,2]
+def main = 7 `exp` 7*/
+
+/*
+import Prelude.List
+
+def num =400
+def l = #primrec num with 
+    | 0 => []:List(Nat)
+    | suc x, rest => x+1::rest
+
+//def generated = #[3, 36, 69, 2, 35, 68, 1, 34, 67, 0, 33, 66, 99, 32, 65, 98, 31, 64, 97, 30, 63, 96, 29, 62, 95, 28, 61, 94, 27, 60, 93, 26]
+//def generated = #l
+
+def main #= 
+    let lis = ?l in 
+wait lis @( now (?insertionSort lis):List(Nat) Until List(Nat))
+*/
+import Modality.Stream as MS
+type Stream = MS.Str(Nat)
+
+def fibHelper = 
+    nfix repeat: # (Nat->Nat-> Stream) =>
+        fun x:Nat y:Nat =>
+            let sum =  x `?add` y in 
+            let rest = > (<?repeat y sum) in 
+            sum:::rest
+
+def fib # = ?fibHelper 0 1
+
+def main = fib

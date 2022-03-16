@@ -202,7 +202,7 @@ def quickSort # l:List(Nat) =
                 fun l:List(Nat) =>
                     primrec l with 
                         | []=>[]:List(Nat) 
-                        | u::v,w => 
+                        | u::v,_ => 
                             let (small,large) = ?quickSortHelper u v in 
                             let one = y small in 
                             let two = u::y large in

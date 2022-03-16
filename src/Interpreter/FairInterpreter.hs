@@ -3,7 +3,7 @@ module Interpreter.FairInterpreter where
 import Datatype
 import Interpreter.LivelyInterpreter
 import PrintFunctions.CExpPrint
-import System.CPUTime
+import System.Clock
 import Text.Printf
 
 fairInterpreter :: CExp -> Integer -> Bool -> IO ()
@@ -16,11 +16,11 @@ fairInterpreter cExp stepNum isTime =
 fairInterpreterHelper :: CExp -> Store -> Integer -> Integer -> Integer -> Bool -> IO ()
 fairInterpreterHelper cExp s mode stepNum nowNum isTime =
   do
-    start <- getCPUTime
+    start <- getTime Monotonic
     let (cExp', s', mode', output) = fairStep cExp s mode
+    end <- cExp' `seq` getTime Monotonic
     putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
-    end <- getCPUTime
-    let diff = (fromIntegral (end - start)) / (10 ^ 12)
+    let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime
       then printf "    (%0.3f sec)\n" (diff :: Double)
       else printf "\n"
