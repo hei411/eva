@@ -12,7 +12,7 @@ normalInterpreter cExp isTime =
     putStrLn "Running normal interpreter:"
     start <- getTime Monotonic
     let (cExp', _) = evaluationInterpreter cExp NullStore
-    end <- getTime Monotonic
+    end <- cExp' `seq` getTime Monotonic
     putStr (printCExp 0 cExp')
     let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime

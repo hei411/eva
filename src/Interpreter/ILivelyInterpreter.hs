@@ -25,7 +25,7 @@ iLivelyInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
     let (maybeCExp', s', l', output) = iUntilStep cExp s location input
     case maybeCExp' of
       Nothing -> do
-        end <- getTime Monotonic
+        end <- maybeCExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
@@ -33,7 +33,7 @@ iLivelyInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
           else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
-        end <- getTime Monotonic
+        end <- maybeCExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime

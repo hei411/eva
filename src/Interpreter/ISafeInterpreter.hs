@@ -24,7 +24,7 @@ iSafeInterpreterHelper cExp s location nowNum expectedBType isPeano isTime =
     (input) <- parseInputExp expectedBType isPeano
     start <- getTime Monotonic
     let (cExp', s', l', output) = iStreamStep cExp s location input
-    end <- getTime Monotonic
+    end <- cExp' `seq` getTime Monotonic
     putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
     let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
     if isTime

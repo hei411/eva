@@ -276,7 +276,7 @@ sucRule file functionName definedFunctions context varStack e =
   do
     let (eExp, eType) = mainTypeChecker file functionName definedFunctions context varStack e
     case eType of
-      BTypeNat -> (CExpSuc eExp, BTypeNat)
+      BTypeNat -> (CExpSuc eExp False, BTypeNat)
       _ -> typeCheckerErrorMsg file functionName ("sucRule applied to a non-Nat type for exp" ++ printCExp 0 eExp)
 
 primrecRule :: FilePath -> String -> TypeCheckedProgram -> Context -> [String] -> BExp -> BExp -> String -> String -> BExp -> (CExp, BType)

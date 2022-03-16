@@ -22,7 +22,7 @@ iFairInterpreterHelper cExp s location mode nowNum expectedBType isPeano isTime 
   (input) <- parseInputExp expectedBType isPeano
   start <- getTime Monotonic
   let (cExp', s', l', mode', output) = iFairStep cExp s location mode input
-  end <- getTime Monotonic
+  end <- cExp' `seq` getTime Monotonic
   putStr ("Timestep " ++ show nowNum ++ " (Mode " ++ show mode' ++ "): " ++ printCExp 0 output)
   let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
   if isTime

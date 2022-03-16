@@ -205,7 +205,7 @@ data CExp
   | CExpInr CExp
   | CExpMatch CExp CExp CExp
   | CExpZero
-  | CExpSuc CExp
+  | CExpSuc CExp Bool
   | CExpPrimrec CExp CExp CExp
   | CExpAdv CExp
   | CExpDelay CExp

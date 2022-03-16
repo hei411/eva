@@ -21,7 +21,7 @@ livelyInterpreterHelper cExp s stepNum nowNum isTime =
     let (maybecExp', s', output) = untilStep cExp s
     case maybecExp' of
       Nothing -> do
-        end <- getTime Monotonic
+        end <- maybecExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime
@@ -29,7 +29,7 @@ livelyInterpreterHelper cExp s stepNum nowNum isTime =
           else printf "\n"
         putStrLn "Halt!"
       Just ce -> do
-        end <- getTime Monotonic
+        end <- maybecExp' `seq` getTime Monotonic
         putStr ("Timestep " ++ show nowNum ++ ": " ++ printCExp 0 output)
         let diff = fromIntegral (toNanoSecs (diffTimeSpec end start)) / (10 ^ 9)
         if isTime

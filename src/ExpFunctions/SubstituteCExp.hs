@@ -15,7 +15,7 @@ substituteCExp arg level cExp = case cExp of
   CExpInr ce -> CExpInr (substituteCExpHelper ce)
   CExpMatch ce ce' ce2 -> CExpMatch (substituteCExpHelper ce) (substituteCExp arg (level + 1) ce') (substituteCExp arg (level + 1) ce2)
   CExpZero -> CExpZero
-  CExpSuc ce -> CExpSuc (substituteCExpHelper ce)
+  CExpSuc ce b -> if b then CExpSuc ce b else CExpSuc (substituteCExpHelper ce) b
   CExpPrimrec ce ce' ce2 -> CExpPrimrec (substituteCExpHelper ce) (substituteCExpHelper ce') (substituteCExp arg (level + 2) ce2)
   CExpDelay ce -> CExpDelay (substituteCExpHelper ce)
   CExpAdv ce -> CExpAdv (substituteCExpHelper ce)
@@ -44,7 +44,7 @@ substituteCExp arg level cExp = case cExp of
   CExpDivide ce ce' -> CExpDivide (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpMod ce ce' -> CExpMod (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpPower ce ce' -> CExpPower (substituteCExpHelper ce) (substituteCExpHelper ce')
-  CExpList ceList b -> CExpList (map substituteCExpHelper ceList) b
+  CExpList ceList b -> if b then CExpList ceList b else CExpList (map substituteCExpHelper ceList) b
   CExpListAppend ce ce' -> CExpListAppend (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpListCons ce ce' -> CExpListCons (substituteCExpHelper ce) (substituteCExpHelper ce')
   CExpListRec ce ce' ce2 -> CExpListRec (substituteCExpHelper ce) (substituteCExpHelper ce') (substituteCExp arg (level + 3) ce2)

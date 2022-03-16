@@ -20,7 +20,7 @@ evaluationInterpreter exp store = case exp of
   CExpInr ce -> inrEval ce store
   CExpMatch ce ce' ce2 -> matchEval ce ce' ce2 store
   CExpZero -> (CExpZero, store)
-  CExpSuc ce -> sucEval ce store
+  CExpSuc ce b -> if b then (CExpSuc ce b, store) else sucEval ce store
   CExpPrimrec ce ce' ce2 -> primrecEval ce ce' ce2 store
   CExpDelay ce -> delayEval ce store
   CExpAdv ce -> advEval ce store
@@ -111,7 +111,7 @@ sucEval :: CExp -> Store -> (CExp, Store)
 sucEval e s =
   do
     let (e', s') = evaluationInterpreter e s
-    (CExpSuc e', s')
+    (CExpSuc e' True, s')
 
 primrecEval :: CExp -> CExp -> CExp -> Store -> (CExp, Store)
 primrecEval e e1 e2 s =
@@ -119,7 +119,7 @@ primrecEval e e1 e2 s =
     let (e', s') = evaluationInterpreter e s
     case e' of
       CExpZero -> evaluationInterpreter e1 s'
-      CExpSuc pred -> do
+      CExpSuc pred b -> do
         let nextExp = CExpPrimrec pred e1 e2
         let (nextValue, s'') = evaluationInterpreter nextExp s'
         let e2' = substituteCExp nextValue 0 e2
@@ -360,12 +360,12 @@ peanoToInteger :: CExp -> Integer
 peanoToInteger e =
   case e of
     CExpZero -> 0
-    CExpSuc x -> 1 + (peanoToInteger x)
+    CExpSuc x b -> 1 + (peanoToInteger x)
     _ -> error "Should not happen. peanoToInteger applied to a non-peano expression"
 
 integerToPeano :: Integer -> CExp
 integerToPeano n =
-  if n == 0 then CExpZero else CExpSuc (integerToPeano (n -1))
+  if n == 0 then CExpZero else CExpSuc (integerToPeano (n -1)) True
 
 listEval :: [CExp] -> Store -> (CExp, Store)
 listEval ceList s = do
