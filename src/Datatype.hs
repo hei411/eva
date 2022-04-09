@@ -257,7 +257,7 @@ data Context
 
 -- Interpreter
 data InterpreterMode
-  = Normal
+  = OneStep
   | Safe
   | Lively
   | Fair

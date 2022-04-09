@@ -40,7 +40,7 @@ library
       Interpreter.InputFunctions
       Interpreter.ISafeInterpreter
       Interpreter.LivelyInterpreter
-      Interpreter.NormalInterpreter
+      Interpreter.OneStepInterpreter
       Interpreter.SafeInterpreter
       Interpreter.StoreFunctions
       MainFunctions.MainFunctions

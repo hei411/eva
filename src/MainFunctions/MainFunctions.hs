@@ -25,7 +25,7 @@ getInterpreter bType =
     BTypeBox (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) -> Safe
     BTypeBox (BTypeUntil _ _) -> Lively
     BTypeBox (BTypeNFix (BTypeUntil a (BTypeProduct b (BTypeAngle (BTypeUntil b' (BTypeProduct a' (BTypeIndex 0))))))) ->
-      if generalBTypeCompare a a' && generalBTypeCompare b b' then Fair else Normal
+      if generalBTypeCompare a a' && generalBTypeCompare b b' then Fair else OneStep
     BTypeBox (BTypeFunction (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) (BTypeNFix (BTypeProduct _ (BTypeIndex 0)))) ->
       ISafe
     BTypeBox (BTypeFunction (BTypeNFix (BTypeProduct _ (BTypeIndex 0))) (BTypeUntil _ _)) ->
@@ -35,8 +35,8 @@ getInterpreter bType =
           (BTypeNFix (BTypeProduct _ (BTypeIndex 0)))
           (BTypeNFix (BTypeUntil b (BTypeProduct c (BTypeAngle (BTypeUntil c' (BTypeProduct b' (BTypeIndex 0)))))))
         ) ->
-        if generalBTypeCompare b b' && generalBTypeCompare c c' then IFair else Normal
-    _ -> Normal
+        if generalBTypeCompare b b' && generalBTypeCompare c c' then IFair else OneStep
+    _ -> OneStep
 
 getStepNum :: [String] -> Integer
 getStepNum args = case args of
