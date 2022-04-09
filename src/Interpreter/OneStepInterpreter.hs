@@ -1,4 +1,4 @@
-module Interpreter.NormalInterpreter where
+module Interpreter.OneStepInterpreter where
 
 import Datatype
 import Interpreter.EvaluationInterpreter (evaluationInterpreter)
@@ -6,10 +6,10 @@ import PrintFunctions.CExpPrint (printCExp)
 import System.Clock
 import Text.Printf
 
-normalInterpreter :: CExp -> Bool -> IO ()
-normalInterpreter cExp isTime =
+oneStepInterpreter :: CExp -> Bool -> IO ()
+oneStepInterpreter cExp isTime =
   do
-    putStrLn "Running normal interpreter:"
+    putStrLn "Running oneStepp interpreter:"
     start <- getTime Monotonic
     let (cExp', _) = evaluationInterpreter cExp NullStore
     end <- cExp' `seq` getTime Monotonic

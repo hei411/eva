@@ -7,7 +7,7 @@ import Interpreter.IFairInterpreter
 import Interpreter.ILivelyInterpreter (iLivelyInterpreter)
 import Interpreter.ISafeInterpreter
 import Interpreter.LivelyInterpreter
-import Interpreter.NormalInterpreter (normalInterpreter)
+import Interpreter.OneStepInterpreter (oneStepInterpreter)
 import Interpreter.SafeInterpreter (safeInterpreter)
 import MainFunctions.MainFunctions
 import PrintFunctions.FileDataPrint
@@ -34,7 +34,7 @@ main = do
         let stepNum = getStepNum args
         let isTime = checkTime args
         case interpreterType of
-          Normal -> normalInterpreter mainExp isTime
+          OneStep -> oneStepInterpreter mainExp isTime
           Safe -> safeInterpreter mainExp stepNum isTime
           Lively -> livelyInterpreter mainExp stepNum isTime
           Fair -> fairInterpreter mainExp stepNum isTime
