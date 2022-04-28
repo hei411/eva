@@ -1,0 +1,9 @@
+def ackermann # m:Nat n:Nat =
+let iter f:Nat -> Nat n':Nat =
+(primrec n' with
+| 0 => f 1
+| suc _, rest => f rest
+) in
+(primrec m with
+| 0 => (fun x:Nat => suc x)
+| suc _, rest => iter rest) n
